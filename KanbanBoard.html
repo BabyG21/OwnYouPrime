@@ -91,7 +91,7 @@
       color: var(--color-muted);
     }
 
-    #driveStatus {
+    #backupStatus {
       padding: 10px 16px;
       background: rgba(18, 30, 61, 0.65);
       border-radius: var(--radius-medium);
@@ -108,25 +108,25 @@
       position: relative;
     }
 
-    #driveStatus::after {
+    #backupStatus::after {
       content: '\25BE';
       font-size: 0.7rem;
       opacity: 0.75;
     }
 
-    #driveStatus:hover,
-    #driveStatus:focus-visible {
+    #backupStatus:hover,
+    #backupStatus:focus-visible {
       background: rgba(27, 44, 87, 0.8);
       border-color: rgba(70, 243, 176, 0.45);
       color: var(--color-text);
       outline: none;
     }
 
-    .drive-control {
+    .backup-control {
       position: relative;
     }
 
-    .drive-menu {
+    .backup-menu {
       position: absolute;
       right: 0;
       top: calc(100% + 6px);
@@ -142,11 +142,11 @@
       z-index: 15;
     }
 
-    .drive-menu.open {
+    .backup-menu.open {
       display: flex;
     }
 
-    .drive-menu button {
+    .backup-menu button {
       background: transparent;
       border: none;
       padding: 8px 10px;
@@ -156,7 +156,7 @@
       justify-content: flex-start;
     }
 
-    .drive-menu button:hover {
+    .backup-menu button:hover {
       background: rgba(70, 243, 176, 0.1);
     }
 
@@ -749,11 +749,11 @@
         gap: 18px;
       }
 
-      .drive-control {
+      .backup-control {
         width: 100%;
       }
 
-      #driveStatus {
+      #backupStatus {
         align-self: stretch;
         justify-content: center;
         width: 100%;
@@ -776,15 +776,13 @@
       <p class="tagline">Execute relentlessly. Celebrate intentionally.</p>
     </div>
     <div id="currentDateTime"></div>
-    <div class="drive-control">
-      <button id="driveStatus" type="button" aria-haspopup="true" aria-expanded="false">Google Drive: Offline</button>
-      <div class="drive-menu" id="driveMenu" role="menu" aria-labelledby="driveStatus">
-        <button type="button" id="driveConnectBtn" role="menuitem">Connect</button>
-        <button type="button" id="driveDisconnectBtn" role="menuitem" disabled>Disconnect</button>
-        <button type="button" id="driveSaveNowBtn" role="menuitem" disabled>Save snapshot now</button>
-        <button type="button" id="driveLoadBtn" role="menuitem" disabled>Load latest backup</button>
-        <button type="button" id="driveDownloadLocalBtn" role="menuitem">Download local backup</button>
-        <button type="button" id="driveLoadLocalBtn" role="menuitem">Load local backup</button>
+    <div class="backup-control">
+      <button id="backupStatus" type="button" aria-haspopup="true" aria-expanded="false">Local backup: not saved yet</button>
+      <div class="backup-menu" id="backupMenu" role="menu" aria-labelledby="backupStatus">
+        <button type="button" id="backupSaveNowBtn" role="menuitem">Save snapshot now</button>
+        <button type="button" id="backupLoadBtn" role="menuitem" disabled>Restore last backup</button>
+        <button type="button" id="backupDownloadBtn" role="menuitem" disabled>Download backup file</button>
+        <button type="button" id="backupClearBtn" role="menuitem" disabled>Clear saved backup</button>
       </div>
     </div>
   </header>
@@ -909,12 +907,10 @@
     const STORAGE_KEYS = {
       tasks: 'ownYourPrime.tasks',
       wip: 'ownYourPrime.wipLimits',
-      googleClientId: 'ownYourPrime.googleClientId',
       filters: 'ownYourPrime.filters',
       focusCollapsed: 'ownYourPrime.focusCollapsed',
       focusSnoozeUntil: 'ownYourPrime.focusSnoozeUntil',
-      localSnapshot: 'ownYourPrime.localSnapshot',
-      driveOfflineCache: 'ownYourPrime.driveOfflineCache'
+      localSnapshot: 'ownYourPrime.localSnapshot'
     };
 
     const DEFAULT_ASSIGNEE = 'Prime Self';
@@ -943,14 +939,12 @@
       export: document.getElementById('exportBtn'),
       import: document.getElementById('importBtn'),
       importFile: document.getElementById('importFile'),
-      driveStatus: document.getElementById('driveStatus'),
-      driveMenu: document.getElementById('driveMenu'),
-      driveConnect: document.getElementById('driveConnectBtn'),
-      driveDisconnect: document.getElementById('driveDisconnectBtn'),
-      driveSaveNow: document.getElementById('driveSaveNowBtn'),
-      driveLoad: document.getElementById('driveLoadBtn'),
-      driveDownloadLocal: document.getElementById('driveDownloadLocalBtn'),
-      driveLoadLocal: document.getElementById('driveLoadLocalBtn'),
+      backupStatus: document.getElementById('backupStatus'),
+      backupMenu: document.getElementById('backupMenu'),
+      backupSaveNow: document.getElementById('backupSaveNowBtn'),
+      backupLoad: document.getElementById('backupLoadBtn'),
+      backupDownload: document.getElementById('backupDownloadBtn'),
+      backupClear: document.getElementById('backupClearBtn'),
       clearHistory: document.getElementById('clearHistoryBtn'),
       overdueNotice: document.getElementById('overdueNotice'),
       overdueMessage: document.getElementById('overdueMessage'),
@@ -1033,25 +1027,6 @@
       return null;
     }
 
-    function hasPendingOfflineSync() {
-      if (driveOfflineCache && driveOfflineCache.snapshot && Array.isArray(driveOfflineCache.snapshot.tasks)) {
-        return true;
-      }
-      const stored = loadFromStorage(STORAGE_KEYS.driveOfflineCache);
-      if (stored && stored.snapshot && Array.isArray(stored.snapshot.tasks)) {
-        driveOfflineCache = stored;
-        return true;
-      }
-      driveOfflineCache = null;
-      return false;
-    }
-
-    function clearDriveOfflineCache() {
-      driveOfflineCache = null;
-      removeFromStorage(STORAGE_KEYS.driveOfflineCache);
-      updateDriveStatusLabel();
-    }
-
     function buildSnapshotObject() {
       return JSON.parse(JSON.stringify({
         exportedAt: new Date().toISOString(),
@@ -1061,18 +1036,11 @@
       }));
     }
 
-    function persistLocalSnapshot({ snapshot = null, queueForDrive = false } = {}) {
+    function persistLocalSnapshot(snapshot = null) {
       const snapshotData = snapshot ? JSON.parse(JSON.stringify(snapshot)) : buildSnapshotObject();
       latestLocalSnapshot = snapshotData;
       saveToStorage(STORAGE_KEYS.localSnapshot, snapshotData);
-      if (queueForDrive) {
-        driveOfflineCache = {
-          snapshot: snapshotData,
-          savedAt: snapshotData.exportedAt || new Date().toISOString()
-        };
-        saveToStorage(STORAGE_KEYS.driveOfflineCache, driveOfflineCache);
-      }
-      updateDriveStatusLabel();
+      updateBackupStatusLabel();
       return snapshotData;
     }
 
@@ -1245,7 +1213,7 @@
     let activeFilters = new Set(Array.isArray(savedFilters) ? savedFilters : []);
     let filterMenuOpen = false;
     let dataMenuOpen = false;
-    let driveMenuOpen = false;
+    let backupMenuOpen = false;
 
     let tasks = (loadFromStorage(STORAGE_KEYS.tasks) || []).map(normalizeTask);
     let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: null, done: null };
@@ -1256,19 +1224,10 @@
     let focusSnoozeUntil = loadFromStorage(STORAGE_KEYS.focusSnoozeUntil);
     if (typeof focusSnoozeUntil === 'string') focusSnoozeUntil = Number(focusSnoozeUntil);
     if (!Number.isFinite(focusSnoozeUntil)) focusSnoozeUntil = null;
-    let driveAutosaveTimer = null;
-    let driveAutosavePending = false;
-    let driveSavingInFlight = false;
-    let lastDriveAutosave = null;
     let latestLocalSnapshot = loadFromStorage(STORAGE_KEYS.localSnapshot);
     if (!latestLocalSnapshot || !Array.isArray(latestLocalSnapshot.tasks)) {
       latestLocalSnapshot = null;
     }
-    let driveOfflineCache = loadFromStorage(STORAGE_KEYS.driveOfflineCache);
-    if (!driveOfflineCache || !driveOfflineCache.snapshot || !Array.isArray(driveOfflineCache.snapshot.tasks)) {
-      driveOfflineCache = null;
-    }
-    let driveOfflineSyncing = false;
 
     if (tasks.length === 0) {
       const tomorrow = formatDate(new Date(Date.now() + 86400000));
@@ -1424,24 +1383,24 @@
       if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'true');
     }
 
-    function closeDriveMenu() {
-      if (!elements.driveMenu) return;
-      elements.driveMenu.classList.remove('open');
-      driveMenuOpen = false;
-      updateDriveStatusLabel();
+    function closeBackupMenu() {
+      if (!elements.backupMenu) return;
+      elements.backupMenu.classList.remove('open');
+      backupMenuOpen = false;
+      updateBackupStatusLabel();
     }
 
-    function openDriveMenu() {
-      if (!elements.driveMenu) return;
-      elements.driveMenu.classList.add('open');
-      driveMenuOpen = true;
-      updateDriveStatusLabel();
+    function openBackupMenu() {
+      if (!elements.backupMenu) return;
+      elements.backupMenu.classList.add('open');
+      backupMenuOpen = true;
+      updateBackupStatusLabel();
     }
 
     function closeAllMenus() {
       closeFilterMenu();
       closeDataMenu();
-      closeDriveMenu();
+      closeBackupMenu();
     }
 
     function taskSorter(a, b) {
@@ -1794,14 +1753,12 @@
 
     function persistTasks() {
       saveToStorage(STORAGE_KEYS.tasks, tasks);
-      const snapshot = persistLocalSnapshot();
-      scheduleDriveAutosave(snapshot);
+      persistLocalSnapshot();
     }
 
     function persistWipLimits() {
       saveToStorage(STORAGE_KEYS.wip, wipLimits);
-      const snapshot = persistLocalSnapshot();
-      scheduleDriveAutosave(snapshot);
+      persistLocalSnapshot();
     }
 
     function persistFilters() {
@@ -2189,263 +2146,33 @@
       reader.readAsText(file);
     }
 
-    const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-    const DRIVE_FILE_PREFIX = 'own-your-prime-kanban';
-    const DRIVE_MIME_TYPE = 'application/json';
-    const DRIVE_AUTOSAVE_DELAY = 8000;
-
-    let googleClientId = loadFromStorage(STORAGE_KEYS.googleClientId) || '';
-    let tokenClient = null;
-    let gapiReady = false;
-    let gisReady = false;
-
-    function isDriveConnected() {
-      return !!(window.gapi && gapi.client && gapi.client.getToken && gapi.client.getToken());
-    }
-
-    function updateDriveStatusLabel() {
-      if (!elements.driveStatus) return;
-      const hasToken = isDriveConnected();
-      const ready = Boolean(googleClientId) && gapiReady && gisReady;
-      const offlinePending = hasPendingOfflineSync();
-      const localSnapshot = getLatestLocalSnapshot();
-      const online = typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
-      let label = 'Google Drive: Offline';
-      if (driveSavingInFlight) {
-        label = 'Google Drive: Saving…';
-      } else if (driveOfflineSyncing) {
-        label = 'Google Drive: Syncing offline cache…';
-      } else if (hasToken && driveAutosavePending) {
-        label = 'Google Drive: Autosave queued';
-      } else if (hasToken) {
-        label = 'Google Drive: Autosave on';
-      } else if (offlinePending) {
-        label = online ? 'Google Drive: Offline backup ready' : 'Google Drive: Offline (backup ready)';
-      } else if (ready) {
-        label = 'Google Drive: Ready';
-      } else if (!online) {
-        label = 'Google Drive: Offline';
-      }
-      elements.driveStatus.textContent = label;
-      elements.driveStatus.setAttribute('aria-expanded', driveMenuOpen ? 'true' : 'false');
-
-      const tooltip = [];
-      if (!googleClientId) {
-        tooltip.push('Provide your OAuth client ID to enable Drive sync.');
-      }
-      if (!online) {
-        tooltip.push('You appear to be offline. Changes will be cached locally.');
-      }
-      if (offlinePending) {
-        tooltip.push('Local changes will sync to Drive once reconnected.');
-      }
-      if (hasToken && lastDriveAutosave) {
-        tooltip.push(`Last autosave ${formatDateTimeDisplayFromDate(new Date(lastDriveAutosave))}`);
-      }
-      if (localSnapshot?.exportedAt) {
-        tooltip.push(`Latest local backup ${formatDateTimeDisplayFromDate(new Date(localSnapshot.exportedAt))}`);
-      }
-      elements.driveStatus.title = tooltip.join('\n') || 'Connect Google Drive for automatic backups.';
-
-      if (elements.driveConnect) elements.driveConnect.disabled = !ready || hasToken;
-      if (elements.driveDisconnect) elements.driveDisconnect.disabled = !hasToken || driveSavingInFlight;
-      if (elements.driveSaveNow) elements.driveSaveNow.disabled = driveSavingInFlight;
-      if (elements.driveLoad) elements.driveLoad.disabled = !hasToken || driveSavingInFlight;
-      if (elements.driveDownloadLocal) {
-        elements.driveDownloadLocal.disabled = !localSnapshot;
-      }
-      if (elements.driveLoadLocal) {
-        elements.driveLoadLocal.disabled = !localSnapshot;
-      }
-    }
-
-    function updateDriveUi() {
-      updateDriveStatusLabel();
-      if (isDriveConnected() && hasPendingOfflineSync() && !driveOfflineSyncing && !driveSavingInFlight) {
-        flushDriveOfflineCache().catch((error) => console.error('Failed to flush offline cache', error));
-      }
-    }
-
-    function promptForClientId() {
-      const input = prompt('Enter your Google OAuth Client ID (ending with .apps.googleusercontent.com):', googleClientId || '');
-      if (!input) return false;
-      googleClientId = input.trim();
-      saveToStorage(STORAGE_KEYS.googleClientId, googleClientId);
-      initializeTokenClient();
-      updateDriveUi();
-      return true;
-    }
-
-    function initializeTokenClient() {
-      if (!gisReady || !googleClientId) return;
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: googleClientId,
-        scope: GOOGLE_SCOPE,
-        callback: (response) => {
-          if (response.error) {
-            console.error(response);
-            alert('Google authorization failed.');
-            return;
-          }
-          updateDriveUi();
-        }
-      });
-    }
-
-    async function ensureDriveReady() {
-      if (!gapiReady || !gisReady) {
-        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) {
-          alert('Google Drive is unavailable while offline. Local backups will continue until you reconnect.');
+    function updateBackupStatusLabel() {
+      if (!elements.backupStatus) return;
+      const snapshot = getLatestLocalSnapshot();
+      let label = 'Local backup: not saved yet';
+      let tooltip = 'No backup has been saved on this device yet.';
+      if (snapshot?.exportedAt) {
+        const savedAt = new Date(snapshot.exportedAt);
+        if (!Number.isNaN(savedAt.getTime())) {
+          const formatted = formatDateTimeDisplayFromDate(savedAt);
+          label = `Local backup: ${formatted}`;
+          tooltip = `Last saved ${formatted}`;
         } else {
-          alert('Google APIs are still loading. Please wait a moment.');
+          label = 'Local backup: ready';
+          tooltip = 'Latest backup timestamp unavailable.';
         }
-        return false;
       }
-      if (!googleClientId) {
-        return promptForClientId();
-      }
-      if (!tokenClient) {
-        initializeTokenClient();
-      }
-      return true;
+      elements.backupStatus.textContent = label;
+      elements.backupStatus.setAttribute('aria-expanded', backupMenuOpen ? 'true' : 'false');
+      elements.backupStatus.title = tooltip;
+
+      const hasSnapshot = Boolean(snapshot && Array.isArray(snapshot.tasks));
+      if (elements.backupLoad) elements.backupLoad.disabled = !hasSnapshot;
+      if (elements.backupDownload) elements.backupDownload.disabled = !hasSnapshot;
+      if (elements.backupClear) elements.backupClear.disabled = !hasSnapshot;
     }
 
-    async function ensureAuthorized() {
-      if (!await ensureDriveReady()) return false;
-      const token = gapi.client.getToken();
-      if (token) {
-        updateDriveUi();
-        return true;
-      }
-      return new Promise((resolve) => {
-        tokenClient.callback = (response) => {
-          if (response.error) {
-            console.error(response);
-            alert('Authorization failed.');
-            resolve(false);
-            return;
-          }
-          updateDriveUi();
-          resolve(true);
-        };
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      });
-    }
-
-    function cancelScheduledAutosave() {
-      if (driveAutosaveTimer) {
-        clearTimeout(driveAutosaveTimer);
-        driveAutosaveTimer = null;
-      }
-      driveAutosavePending = false;
-    }
-
-    function scheduleDriveAutosave(snapshot = null) {
-      cancelScheduledAutosave();
-      const snapshotData = snapshot ? JSON.parse(JSON.stringify(snapshot)) : persistLocalSnapshot();
-      if (!isDriveConnected()) {
-        persistLocalSnapshot({ snapshot: snapshotData, queueForDrive: true });
-        return;
-      }
-      driveAutosavePending = true;
-      const snapshotForTimer = JSON.parse(JSON.stringify(snapshotData));
-      driveAutosaveTimer = setTimeout(() => {
-        saveSnapshotToDrive(snapshotForTimer, { autosave: true, queueOnFailure: true })
-          .then((result) => {
-            if (!result.success) {
-              console.warn('Autosave not uploaded to Drive', result.reason || 'unknown', result.error || '');
-            }
-          })
-          .catch((error) => console.error('Autosave failed', error));
-      }, DRIVE_AUTOSAVE_DELAY);
-      updateDriveStatusLabel();
-    }
-
-    async function saveSnapshotToDrive(snapshotInput, { autosave = false, queueOnFailure = true } = {}) {
-      const snapshot = snapshotInput ? JSON.parse(JSON.stringify(snapshotInput)) : buildSnapshotObject();
-
-      if (autosave) {
-        if (!isDriveConnected()) {
-          cancelScheduledAutosave();
-          if (queueOnFailure) {
-            persistLocalSnapshot({ snapshot, queueForDrive: true });
-          }
-          return { success: false, reason: 'offline', snapshot };
-        }
-      } else if (!await ensureAuthorized()) {
-        if (queueOnFailure) {
-          persistLocalSnapshot({ snapshot, queueForDrive: true });
-        }
-        return { success: false, reason: 'auth', snapshot };
-      }
-
-      cancelScheduledAutosave();
-      driveSavingInFlight = true;
-      updateDriveStatusLabel();
-
-      const payload = JSON.stringify(snapshot, null, 2);
-      const snapshotDate = snapshot.exportedAt ? new Date(snapshot.exportedAt) : new Date();
-      const safeDate = Number.isNaN(snapshotDate.getTime()) ? new Date() : snapshotDate;
-      const stamp = `${safeDate.getFullYear()}${String(safeDate.getMonth() + 1).padStart(2, '0')}${String(safeDate.getDate()).padStart(2, '0')}-${String(safeDate.getHours()).padStart(2, '0')}${String(safeDate.getMinutes()).padStart(2, '0')}${String(safeDate.getSeconds()).padStart(2, '0')}`;
-      const metadata = {
-        name: `${DRIVE_FILE_PREFIX}-${stamp}.json`,
-        mimeType: DRIVE_MIME_TYPE
-      };
-      const boundary = 'own-your-prime-boundary';
-      const delimiter = `\r\n--${boundary}\r\n`;
-      const closeDelimiter = `\r\n--${boundary}--`;
-      const body = delimiter
-        + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-        + JSON.stringify(metadata)
-        + delimiter
-        + 'Content-Type: application/json\r\n\r\n'
-        + payload
-        + closeDelimiter;
-
-      try {
-        await gapi.client.request({
-          path: '/upload/drive/v3/files',
-          method: 'POST',
-          params: { uploadType: 'multipart' },
-          headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-          body
-        });
-        lastDriveAutosave = safeDate.getTime();
-        clearDriveOfflineCache();
-        return { success: true, snapshot };
-      } catch (error) {
-        console.error(error);
-        if (queueOnFailure) {
-          persistLocalSnapshot({ snapshot, queueForDrive: true });
-        }
-        return { success: false, reason: 'network', error, snapshot };
-      } finally {
-        driveSavingInFlight = false;
-        driveAutosavePending = false;
-        driveAutosaveTimer = null;
-        updateDriveStatusLabel();
-      }
-    }
-
-    async function saveToDrive({ autosave = false } = {}) {
-      if (autosave) {
-        return saveSnapshotToDrive(null, { autosave: true, queueOnFailure: true });
-      }
-      let snapshot = buildSnapshotObject();
-      snapshot = persistLocalSnapshot({ snapshot, queueForDrive: false });
-      const result = await saveSnapshotToDrive(snapshot, { autosave: false, queueOnFailure: true });
-      if (result.success) {
-        alert('Board snapshot saved to Google Drive.');
-      } else if (result.reason === 'auth' || result.reason === 'offline') {
-        downloadSnapshot(snapshot, buildLocalBackupFilename(snapshot));
-        alert('Google Drive unavailable. A local backup was downloaded and will sync when Drive reconnects.');
-      } else {
-        alert('Failed to save to Google Drive. A local backup is stored and will sync when possible.');
-      }
-      return result;
-    }
-
-    function applySnapshot(snapshot, { queueForDrive = false } = {}) {
+    function applySnapshot(snapshot) {
       if (!snapshot || !Array.isArray(snapshot.tasks)) {
         throw new Error('Invalid snapshot payload.');
       }
@@ -2458,12 +2185,11 @@
       });
       saveToStorage(STORAGE_KEYS.tasks, tasks);
       saveToStorage(STORAGE_KEYS.wip, wipLimits);
-      const storedSnapshot = persistLocalSnapshot({ snapshot: sanitized, queueForDrive });
+      const storedSnapshot = persistLocalSnapshot(sanitized);
       renderBoard();
       updateHistoryButton();
       updateOverdueNotice();
       updateFilterIndicators();
-      scheduleDriveAutosave(storedSnapshot);
       return storedSnapshot;
     }
 
@@ -2473,138 +2199,30 @@
         if (!silent) alert('No local backup found on this device yet.');
         return false;
       }
-      applySnapshot(snapshot, { queueForDrive: !isDriveConnected() });
+      applySnapshot(snapshot);
       if (!silent) alert('Board restored from local backup.');
       return true;
     }
 
     function downloadLocalBackup() {
-      const snapshot = persistLocalSnapshot({ queueForDrive: !isDriveConnected() });
+      const snapshot = persistLocalSnapshot();
       downloadSnapshot(snapshot, buildLocalBackupFilename(snapshot));
     }
 
-    async function flushDriveOfflineCache() {
-      if (!driveOfflineCache || !driveOfflineCache.snapshot) return;
-      if (!isDriveConnected() || driveSavingInFlight) return;
-      driveOfflineSyncing = true;
-      updateDriveStatusLabel();
-      try {
-        const result = await saveSnapshotToDrive(driveOfflineCache.snapshot, { autosave: true, queueOnFailure: false });
-        if (!result.success) {
-          console.warn('Unable to sync offline cache to Drive', result.reason || 'unknown', result.error || '');
-        }
-      } catch (error) {
-        console.error('Unexpected error during offline cache sync', error);
-      } finally {
-        driveOfflineSyncing = false;
-        updateDriveStatusLabel();
+    function clearLocalBackup() {
+      const snapshot = getLatestLocalSnapshot();
+      if (!snapshot) {
+        alert('No local backup found on this device yet.');
+        return false;
       }
-    }
-
-    async function loadFromDrive() {
-      if (!await ensureAuthorized()) {
-        if (loadFromLocalCache({ silent: true })) {
-          alert('Google Drive unavailable. Loaded the latest local backup instead.');
-        }
-        return;
+      if (!confirm('Remove the saved local backup from this device?')) {
+        return false;
       }
-      try {
-        const list = await gapi.client.drive.files.list({
-          q: `name contains '${DRIVE_FILE_PREFIX}' and trashed=false`,
-          orderBy: 'createdTime desc',
-          pageSize: 1,
-          fields: 'files(id, name)',
-          spaces: 'drive'
-        });
-        const file = list.result.files?.[0];
-        if (!file) {
-          alert('No Own Your Prime backups found on Drive yet.');
-          return;
-        }
-        const response = await gapi.client.drive.files.get({
-          fileId: file.id,
-          alt: 'media'
-        });
-        const data = response.body ? JSON.parse(response.body) : response.result;
-        if (!data || !Array.isArray(data.tasks)) {
-          throw new Error('Invalid file structure.');
-        }
-        const snapshot = {
-          exportedAt: data.exportedAt || new Date().toISOString(),
-          version: data.version || 1,
-          wipLimits: data.wipLimits || wipLimits,
-          tasks: data.tasks
-        };
-        applySnapshot(snapshot, { queueForDrive: false });
-        alert('Board loaded from Google Drive.');
-      } catch (error) {
-        console.error(error);
-        if (loadFromLocalCache({ silent: true })) {
-          alert('Failed to load from Google Drive. Loaded the latest local backup instead.');
-        } else {
-          alert('Failed to load from Google Drive.');
-        }
-      }
-    }
-
-    async function signInToDrive() {
-      if (!await ensureDriveReady()) return;
-      if (isDriveConnected()) {
-        updateDriveUi();
-        return;
-      }
-      tokenClient.callback = (response) => {
-        if (response.error) {
-          console.error(response);
-          alert('Authorization failed.');
-          return;
-        }
-        updateDriveUi();
-      };
-      tokenClient.requestAccessToken({ prompt: 'consent' });
-    }
-
-    function signOutOfDrive() {
-      const token = gapi.client.getToken && gapi.client.getToken();
-      if (token) {
-        google.accounts.oauth2.revoke(token.access_token, () => {
-          gapi.client.setToken('');
-          cancelScheduledAutosave();
-          driveSavingInFlight = false;
-          driveAutosavePending = false;
-          driveAutosaveTimer = null;
-          lastDriveAutosave = null;
-          updateDriveUi();
-        });
-      }
-    }
-
-    function setupGoogleApis() {
-      window.handleGapiLoad = () => {
-        try {
-          gapi.load('client', async () => {
-            try {
-              await gapi.client.init({
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-              });
-              gapiReady = true;
-              updateDriveUi();
-            } catch (error) {
-              console.error('GAPI init failed', error);
-            }
-          });
-        } catch (error) {
-          console.error('GAPI load failed', error);
-        }
-      };
-
-      window.handleGisLoad = () => {
-        gisReady = true;
-        if (googleClientId) {
-          initializeTokenClient();
-        }
-        updateDriveUi();
-      };
+      latestLocalSnapshot = null;
+      removeFromStorage(STORAGE_KEYS.localSnapshot);
+      updateBackupStatusLabel();
+      alert('Local backup removed.');
+      return true;
     }
 
     function setupEventListeners() {
@@ -2694,61 +2312,44 @@
       });
       elements.clearHistory.addEventListener('click', clearHistory);
 
-      if (elements.driveStatus) {
-        elements.driveStatus.addEventListener('click', (event) => {
+      if (elements.backupStatus) {
+        elements.backupStatus.addEventListener('click', (event) => {
           event.stopPropagation();
-          const willOpen = !driveMenuOpen;
+          const willOpen = !backupMenuOpen;
           closeAllMenus();
-          if (willOpen) openDriveMenu();
+          if (willOpen) openBackupMenu();
         });
       }
 
-      if (elements.driveMenu) {
-        elements.driveMenu.addEventListener('click', (event) => event.stopPropagation());
+      if (elements.backupMenu) {
+        elements.backupMenu.addEventListener('click', (event) => event.stopPropagation());
       }
 
-      if (elements.driveConnect) {
-        elements.driveConnect.addEventListener('click', async () => {
-          if (!googleClientId) {
-            if (!promptForClientId()) return;
-          }
-          await signInToDrive();
-          closeDriveMenu();
+      if (elements.backupSaveNow) {
+        elements.backupSaveNow.addEventListener('click', () => {
+          persistLocalSnapshot();
+          alert('Local backup saved.');
+          closeBackupMenu();
         });
       }
 
-      if (elements.driveDisconnect) {
-        elements.driveDisconnect.addEventListener('click', () => {
-          signOutOfDrive();
-          closeDriveMenu();
-        });
-      }
-
-      if (elements.driveSaveNow) {
-        elements.driveSaveNow.addEventListener('click', async () => {
-          await saveToDrive();
-          closeDriveMenu();
-        });
-      }
-
-      if (elements.driveLoad) {
-        elements.driveLoad.addEventListener('click', async () => {
-          await loadFromDrive();
-          closeDriveMenu();
-        });
-      }
-
-      if (elements.driveDownloadLocal) {
-        elements.driveDownloadLocal.addEventListener('click', () => {
-          downloadLocalBackup();
-          closeDriveMenu();
-        });
-      }
-
-      if (elements.driveLoadLocal) {
-        elements.driveLoadLocal.addEventListener('click', () => {
+      if (elements.backupLoad) {
+        elements.backupLoad.addEventListener('click', () => {
           const loaded = loadFromLocalCache();
-          if (loaded) closeDriveMenu();
+          if (loaded) closeBackupMenu();
+        });
+      }
+
+      if (elements.backupDownload) {
+        elements.backupDownload.addEventListener('click', () => {
+          downloadLocalBackup();
+          closeBackupMenu();
+        });
+      }
+
+      if (elements.backupClear) {
+        elements.backupClear.addEventListener('click', () => {
+          if (clearLocalBackup()) closeBackupMenu();
         });
       }
 
@@ -2786,12 +2387,11 @@
 
     function initializeBoard() {
       setupEventListeners();
-      setupGoogleApis();
       renderBoard();
       if (!getLatestLocalSnapshot()) {
         persistLocalSnapshot();
       }
-      updateDriveUi();
+      updateBackupStatusLabel();
       updateCurrentDateTime();
       setInterval(updateCurrentDateTime, 1000);
       setInterval(updateTimersLive, 1000);
@@ -2801,17 +2401,9 @@
         if (document.activeElement && document.activeElement.closest('.modal')) return;
         renderBoard();
       }, 60000);
-      window.addEventListener('online', () => {
-        updateDriveUi();
-      });
-      window.addEventListener('offline', () => {
-        updateDriveUi();
-      });
     }
 
     initializeBoard();
   </script>
-  <script src="https://apis.google.com/js/api.js" async defer onload="handleGapiLoad && handleGapiLoad()"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer onload="handleGisLoad && handleGisLoad()"></script>
 </body>
 </html>
