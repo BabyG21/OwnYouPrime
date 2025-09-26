@@ -5,6 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Own Your Prime – Kanban Board</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%' stop-color='%2346f3b0'/%3E%3Cstop offset='100%' stop-color='%237b8bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23101a34'/%3E%3Cpath d='M16 44L28 20l8 12 12-16' fill='none' stroke='url(%23g)' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='28' cy='20' r='4' fill='%23ff9a62'/%3E%3Ccircle cx='48' cy='16' r='3' fill='%23ff4477'/%3E%3C/svg%3E'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -96,11 +97,67 @@
       border-radius: var(--radius-medium);
       font-size: 0.85rem;
       color: var(--color-muted);
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-width: 150px;
-      justify-content: flex-end;
+      min-width: 170px;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: background var(--transition-fast), color var(--transition-fast), border var(--transition-fast);
+      position: relative;
+    }
+
+    #driveStatus::after {
+      content: '\25BE';
+      font-size: 0.7rem;
+      opacity: 0.75;
+    }
+
+    #driveStatus:hover,
+    #driveStatus:focus-visible {
+      background: rgba(27, 44, 87, 0.8);
+      border-color: rgba(70, 243, 176, 0.45);
+      color: var(--color-text);
+      outline: none;
+    }
+
+    .drive-control {
+      position: relative;
+    }
+
+    .drive-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: rgba(15, 24, 46, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-medium);
+      box-shadow: 0 18px 40px rgba(3, 7, 18, 0.45);
+      padding: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+      z-index: 15;
+    }
+
+    .drive-menu.open {
+      display: flex;
+    }
+
+    .drive-menu button {
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: var(--radius-small);
+      font-size: 0.85rem;
+      color: var(--color-text);
+      justify-content: flex-start;
+    }
+
+    .drive-menu button:hover {
+      background: rgba(70, 243, 176, 0.1);
     }
 
     main {
@@ -151,6 +208,7 @@
       gap: 10px;
       justify-content: flex-end;
       align-items: center;
+      position: relative;
     }
 
     .board-actions input[type="text"] {
@@ -201,17 +259,7 @@
       box-shadow: none;
     }
 
-    .danger-button {
-      background: linear-gradient(135deg, rgba(255, 107, 129, 0.9), rgba(255, 120, 94, 0.85));
-      box-shadow: 0 8px 20px rgba(255, 107, 129, 0.25);
-    }
-
-    #showNotificationsBtn.filter-active {
-      background: linear-gradient(135deg, rgba(255, 69, 110, 0.9), rgba(255, 107, 129, 0.9));
-      box-shadow: 0 0 15px rgba(255, 69, 110, 0.5);
-    }
-
-    .notif-count {
+    .filter-count {
       background-color: rgba(255, 69, 110, 0.95);
       color: #fff;
       border-radius: 999px;
@@ -219,14 +267,164 @@
       font-size: 0.7rem;
     }
 
+    .filter-control,
+    .data-menu {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    #filterBtn,
+    #dataMenuBtn {
+      background: rgba(36, 52, 96, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px;
+      border-radius: var(--radius-medium);
+      font-size: 0.85rem;
+      box-shadow: none;
+      gap: 6px;
+    }
+
+    #filterBtn:hover,
+    #dataMenuBtn:hover,
+    #filterBtn:focus-visible,
+    #dataMenuBtn:focus-visible {
+      outline: none;
+      border-color: rgba(70, 243, 176, 0.4);
+      background: rgba(27, 44, 87, 0.85);
+    }
+
+    #dataMenuBtn {
+      font-size: 0.9rem;
+    }
+
+    .filter-menu,
+    .data-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: rgba(15, 24, 46, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-medium);
+      padding: 10px;
+      box-shadow: 0 18px 40px rgba(3, 7, 18, 0.45);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 190px;
+      z-index: 15;
+    }
+
+    .filter-menu.open,
+    .data-dropdown.open {
+      display: flex;
+    }
+
+    .filter-menu label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .filter-menu-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    .filter-menu input[type="checkbox"] {
+      accent-color: var(--color-primary);
+    }
+
+    .data-dropdown button {
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: var(--radius-small);
+      font-size: 0.85rem;
+      color: var(--color-text);
+      justify-content: flex-start;
+    }
+
+    .data-dropdown button:hover {
+      background: rgba(70, 243, 176, 0.1);
+    }
+
+    .danger-button {
+      background: linear-gradient(135deg, rgba(255, 107, 129, 0.9), rgba(255, 120, 94, 0.85));
+      box-shadow: 0 8px 20px rgba(255, 107, 129, 0.25);
+    }
+
+    #filterBtn.filter-active {
+      background: linear-gradient(135deg, rgba(255, 69, 110, 0.9), rgba(255, 107, 129, 0.9));
+      box-shadow: 0 0 15px rgba(255, 69, 110, 0.5);
+    }
+
     #overdueNotice {
       display: none;
-      padding: 10px 14px;
       border-radius: var(--radius-medium);
       background: rgba(255, 107, 129, 0.18);
       color: var(--color-text);
       border: 1px solid rgba(255, 107, 129, 0.35);
       font-size: 0.9rem;
+      overflow: hidden;
+    }
+
+    #overdueNotice.collapsed .focus-body {
+      display: none;
+    }
+
+    .focus-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      gap: 12px;
+      background: rgba(255, 107, 129, 0.22);
+    }
+
+    .focus-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .focus-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .focus-actions select,
+    .focus-actions button {
+      background: rgba(27, 44, 87, 0.4);
+      color: var(--color-text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-small);
+      font-size: 0.8rem;
+      padding: 6px 10px;
+    }
+
+    .focus-actions button {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .focus-body {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .focus-body p {
+      margin: 0;
     }
 
     .kanban-board {
@@ -255,23 +453,17 @@
       font-size: 1rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+      gap: 12px;
     }
 
     .kanban-column h3 span.task-count {
       font-size: 0.85rem;
       color: var(--color-muted);
-      margin-left: 6px;
+      margin-left: auto;
       letter-spacing: 0;
-    }
-
-    .limit-input {
-      width: 60px;
-      padding: 4px 6px;
-      border-radius: var(--radius-small);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(21, 34, 69, 0.6);
-      color: var(--color-text);
-      font-size: 0.8rem;
+      background: rgba(27, 44, 87, 0.65);
+      padding: 4px 8px;
+      border-radius: 999px;
     }
 
     .kanban-tasks {
@@ -557,9 +749,14 @@
         gap: 18px;
       }
 
+      .drive-control {
+        width: 100%;
+      }
+
       #driveStatus {
         align-self: stretch;
-        justify-content: flex-start;
+        justify-content: center;
+        width: 100%;
       }
 
       .board-actions {
@@ -579,7 +776,15 @@
       <p class="tagline">Execute relentlessly. Celebrate intentionally.</p>
     </div>
     <div id="currentDateTime"></div>
-    <div id="driveStatus">Drive: Offline</div>
+    <div class="drive-control">
+      <button id="driveStatus" type="button" aria-haspopup="true" aria-expanded="false">Google Drive: Offline</button>
+      <div class="drive-menu" id="driveMenu" role="menu" aria-labelledby="driveStatus">
+        <button type="button" id="driveConnectBtn" role="menuitem">Connect</button>
+        <button type="button" id="driveDisconnectBtn" role="menuitem" disabled>Disconnect</button>
+        <button type="button" id="driveSaveNowBtn" role="menuitem" disabled>Save snapshot now</button>
+        <button type="button" id="driveLoadBtn" role="menuitem" disabled>Load latest backup</button>
+      </div>
+    </div>
   </header>
   <main>
     <section id="kanbanSection">
@@ -591,28 +796,59 @@
         <div class="board-actions">
           <input type="text" id="taskSearch" placeholder="Search tasks, notes, or assignees..." />
           <button id="addTaskBtn">+ Task</button>
-          <button id="showNotificationsBtn">Notifications<span id="notifCount" class="notif-count" style="display:none;">0</span></button>
-          <button id="exportBtn" class="ghost-button">Export JSON</button>
-          <button id="importBtn" class="ghost-button">Import JSON</button>
+          <div class="filter-control">
+            <button id="filterBtn" type="button">Filter<span id="filterCount" class="filter-count" style="display:none;">0</span></button>
+            <div id="filterMenu" class="filter-menu" role="menu" aria-labelledby="filterBtn">
+              <label><input type="checkbox" value="urgent" />Urgent tasks</label>
+              <label><input type="checkbox" value="overdue" />Overdue tasks</label>
+              <label><input type="checkbox" value="dueSoon" />Due within 7 days</label>
+              <div class="filter-menu-actions">
+                <button type="button" id="clearFiltersBtn" class="ghost-button">Clear filters</button>
+              </div>
+            </div>
+          </div>
+          <div class="data-menu">
+            <button id="dataMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dataDropdown" title="Import or export data">☰</button>
+            <div id="dataDropdown" class="data-dropdown" role="menu" aria-labelledby="dataMenuBtn">
+              <button type="button" id="exportBtn" role="menuitem">Export JSON</button>
+              <button type="button" id="importBtn" role="menuitem">Import JSON</button>
+            </div>
+          </div>
           <input type="file" id="importFile" accept="application/json" hidden />
-          <button id="driveSignInBtn" class="ghost-button">Connect Google</button>
-          <button id="driveSignOutBtn" class="ghost-button" disabled>Disconnect</button>
-          <button id="driveSaveBtn" class="ghost-button" disabled>Save to Drive</button>
-          <button id="driveLoadBtn" class="ghost-button" disabled>Load from Drive</button>
         </div>
       </div>
-      <div id="overdueNotice"></div>
+      <div id="overdueNotice" class="collapsed" aria-live="polite">
+        <div class="focus-header">
+          <h3><span aria-hidden="true">⚠</span> Focus</h3>
+          <div class="focus-actions">
+            <select id="focusSnoozeSelect" aria-label="Snooze focus warning">
+              <option value="">Snooze…</option>
+              <option value="5">5 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="1440">24 hours</option>
+              <option value="clear">Clear snooze</option>
+              <option value="custom">Custom…</option>
+            </select>
+            <button type="button" id="focusToggleBtn" aria-expanded="false" aria-controls="focusBody">Expand</button>
+          </div>
+        </div>
+        <div class="focus-body" id="focusBody">
+          <p id="overdueMessage"></p>
+        </div>
+      </div>
       <div class="kanban-board" id="kanbanBoard">
         <div class="kanban-column todo" data-status="todo">
-          <h3>To Do <span class="task-count" id="count-todo">0</span> <input type="number" class="limit-input" id="limit-todo" min="0" placeholder="∞" /></h3>
+          <h3><span class="column-title">To Do</span><span class="task-count" id="count-todo">0</span></h3>
           <div class="kanban-tasks" id="tasks-todo"></div>
         </div>
         <div class="kanban-column doing" data-status="doing">
-          <h3>Doing <span class="task-count" id="count-doing">0</span> <input type="number" class="limit-input" id="limit-doing" min="0" /></h3>
+          <h3><span class="column-title">Doing</span><span class="task-count" id="count-doing">0</span></h3>
           <div class="kanban-tasks" id="tasks-doing"></div>
         </div>
         <div class="kanban-column done" data-status="done">
-          <h3>Done <span class="task-count" id="count-done">0</span> <input type="number" class="limit-input" id="limit-done" min="0" placeholder="∞" /></h3>
+          <h3><span class="column-title">Done</span><span class="task-count" id="count-done">0</span></h3>
           <div class="kanban-tasks" id="tasks-done"></div>
           <div class="history-controls">
             <button id="clearHistoryBtn" class="danger-button ghost-button">Clear History</button>
@@ -671,7 +907,10 @@
     const STORAGE_KEYS = {
       tasks: 'ownYourPrime.tasks',
       wip: 'ownYourPrime.wipLimits',
-      googleClientId: 'ownYourPrime.googleClientId'
+      googleClientId: 'ownYourPrime.googleClientId',
+      filters: 'ownYourPrime.filters',
+      focusCollapsed: 'ownYourPrime.focusCollapsed',
+      focusSnoozeUntil: 'ownYourPrime.focusSnoozeUntil'
     };
 
     const DEFAULT_ASSIGNEE = 'Prime Self';
@@ -683,21 +922,35 @@
       { id: 'all', shortLabel: 'All', description: 'all completed tasks', predicate: () => true }
     ];
 
+    const FILTER_DEFINITIONS = {
+      urgent: { predicate: (task, now) => isTaskUrgent(task) },
+      overdue: { predicate: (task, now) => isTaskOverdue(task, now) },
+      dueSoon: { predicate: (task, now) => isTaskDueSoon(task, now) }
+    };
+
     const elements = {
       search: document.getElementById('taskSearch'),
       addTask: document.getElementById('addTaskBtn'),
-      notifications: document.getElementById('showNotificationsBtn'),
-      notifCount: document.getElementById('notifCount'),
+      filterBtn: document.getElementById('filterBtn'),
+      filterCount: document.getElementById('filterCount'),
+      filterMenu: document.getElementById('filterMenu'),
+      dataMenuBtn: document.getElementById('dataMenuBtn'),
+      dataDropdown: document.getElementById('dataDropdown'),
       export: document.getElementById('exportBtn'),
       import: document.getElementById('importBtn'),
       importFile: document.getElementById('importFile'),
       driveStatus: document.getElementById('driveStatus'),
-      driveSignIn: document.getElementById('driveSignInBtn'),
-      driveSignOut: document.getElementById('driveSignOutBtn'),
-      driveSave: document.getElementById('driveSaveBtn'),
+      driveMenu: document.getElementById('driveMenu'),
+      driveConnect: document.getElementById('driveConnectBtn'),
+      driveDisconnect: document.getElementById('driveDisconnectBtn'),
+      driveSaveNow: document.getElementById('driveSaveNowBtn'),
       driveLoad: document.getElementById('driveLoadBtn'),
       clearHistory: document.getElementById('clearHistoryBtn'),
       overdueNotice: document.getElementById('overdueNotice'),
+      overdueMessage: document.getElementById('overdueMessage'),
+      focusSnoozeSelect: document.getElementById('focusSnoozeSelect'),
+      focusToggleBtn: document.getElementById('focusToggleBtn'),
+      focusBody: document.getElementById('focusBody'),
       taskModal: document.getElementById('taskModal'),
       taskForm: document.getElementById('taskForm'),
       taskModalTitle: document.getElementById('taskModalTitle'),
@@ -723,6 +976,18 @@
       zoomContent: document.getElementById('zoomContent')
     };
 
+    if (elements.overdueNotice) {
+      elements.overdueNotice.classList.toggle('collapsed', focusCollapsed);
+      if (elements.focusToggleBtn) {
+        elements.focusToggleBtn.textContent = focusCollapsed ? 'Expand' : 'Minimize';
+        elements.focusToggleBtn.setAttribute('aria-expanded', focusCollapsed ? 'false' : 'true');
+      }
+    }
+
+    syncFilterMenuToState();
+    if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'false');
+    if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'false');
+
     function saveToStorage(key, data) {
       try {
         localStorage.setItem(key, JSON.stringify(data));
@@ -738,6 +1003,14 @@
       } catch (error) {
         console.warn('Storage load failed', error);
         return null;
+      }
+    }
+
+    function removeFromStorage(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.warn('Storage remove failed', error);
       }
     }
 
@@ -774,6 +1047,66 @@
       const h = String(date.getHours()).padStart(2, '0');
       const mi = String(date.getMinutes()).padStart(2, '0');
       return `${y}-${m}-${d} ${h}:${mi}`;
+    }
+
+    function formatDateForDisplayFromDate(date) {
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+    function formatDateDisplay(dateString) {
+      if (!dateString || typeof dateString !== 'string') return '';
+      const [year, month, day] = dateString.split('-');
+      if (!year || !month || !day) return dateString;
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatDateTimeDisplay(dateTimeString) {
+      if (!dateTimeString || typeof dateTimeString !== 'string') return '';
+      const [datePart, timePart] = dateTimeString.split(' ');
+      const formattedDate = formatDateDisplay(datePart);
+      return timePart ? `${formattedDate} ${timePart}` : formattedDate;
+    }
+
+    function formatDateTimeDisplayFromDate(date) {
+      const formattedDate = formatDateForDisplayFromDate(date);
+      const h = String(date.getHours()).padStart(2, '0');
+      const mi = String(date.getMinutes()).padStart(2, '0');
+      return `${formattedDate} ${h}:${mi}`;
+    }
+
+    function parseDueDateTime(task) {
+      if (!task || !task.dueDate) return null;
+      const dueTime = task.dueTime ? `${task.dueTime}:00` : '23:59:00';
+      const parsed = new Date(`${task.dueDate}T${dueTime}`);
+      if (Number.isNaN(parsed.getTime())) return null;
+      return parsed;
+    }
+
+    function getDueTimestamp(task) {
+      const parsed = parseDueDateTime(task);
+      return parsed ? parsed.getTime() : Number.NEGATIVE_INFINITY;
+    }
+
+    function isTaskUrgent(task) {
+      return task.priority === 'urgent' && task.status !== 'done';
+    }
+
+    function isTaskOverdue(task, now = new Date()) {
+      if (!task || task.status === 'done') return false;
+      const due = parseDueDateTime(task);
+      if (!due) return false;
+      return due.getTime() < now.getTime();
+    }
+
+    function isTaskDueSoon(task, now = new Date()) {
+      if (!task || task.status === 'done') return false;
+      const due = parseDueDateTime(task);
+      if (!due) return false;
+      const diff = due.getTime() - now.getTime();
+      return diff >= 0 && diff <= 7 * 86400000;
     }
 
     function formatDuration(ms) {
@@ -823,11 +1156,25 @@
       return Math.floor(diff / 86400000);
     }
 
+    const savedFilters = loadFromStorage(STORAGE_KEYS.filters);
+    let activeFilters = new Set(Array.isArray(savedFilters) ? savedFilters : []);
+    let filterMenuOpen = false;
+    let dataMenuOpen = false;
+    let driveMenuOpen = false;
+
     let tasks = (loadFromStorage(STORAGE_KEYS.tasks) || []).map(normalizeTask);
-    let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: 3, done: null };
-    let notificationsFilterActive = false;
+    let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: null, done: null };
     let editingTaskId = null;
     let historyStageIndex = 0;
+    let focusCollapsed = loadFromStorage(STORAGE_KEYS.focusCollapsed);
+    if (typeof focusCollapsed !== 'boolean') focusCollapsed = true;
+    let focusSnoozeUntil = loadFromStorage(STORAGE_KEYS.focusSnoozeUntil);
+    if (typeof focusSnoozeUntil === 'string') focusSnoozeUntil = Number(focusSnoozeUntil);
+    if (!Number.isFinite(focusSnoozeUntil)) focusSnoozeUntil = null;
+    let driveAutosaveTimer = null;
+    let driveAutosavePending = false;
+    let driveSavingInFlight = false;
+    let lastDriveAutosave = null;
 
     if (tasks.length === 0) {
       const tomorrow = formatDate(new Date(Date.now() + 86400000));
@@ -884,16 +1231,12 @@
       const searchTerm = elements.search.value.trim().toLowerCase();
       const now = new Date();
 
-      let workingList = [...tasks];
-      if (notificationsFilterActive) {
-        workingList = workingList.filter((task) => shouldIncludeInNotifications(task, now));
-      }
-
-      workingList
+      tasks
         .filter((task) => matchesSearch(task, searchTerm))
+        .filter((task) => matchesActiveFilters(task, now))
         .sort(taskSorter)
         .forEach((task) => {
-          const card = buildTaskCard(task);
+          const card = buildTaskCard(task, now);
           elements.taskContainers[task.status].appendChild(card);
         });
 
@@ -902,8 +1245,8 @@
         elements.taskCounts[status].textContent = container.children.length;
       });
 
-      updateNotifications();
-      updateOverdueNotice();
+      updateFilterIndicators(now);
+      updateOverdueNotice(now);
       updateHistoryButton();
     }
 
@@ -919,34 +1262,131 @@
       return haystack.includes(term);
     }
 
+    function matchesActiveFilters(task, now) {
+      if (!(activeFilters instanceof Set) || activeFilters.size === 0) return true;
+      for (const filterId of activeFilters) {
+        const definition = FILTER_DEFINITIONS[filterId];
+        if (!definition || definition.predicate(task, now)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function syncFilterMenuToState() {
+      if (!elements.filterMenu) return;
+      const checkboxes = elements.filterMenu.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = activeFilters.has(checkbox.value);
+      });
+    }
+
+    function updateFilterIndicators(now = new Date()) {
+      if (!elements.filterBtn) return;
+      const flaggedIds = new Set();
+      tasks.forEach((task) => {
+        if (isTaskUrgent(task) || isTaskOverdue(task, now)) {
+          flaggedIds.add(task.id);
+        }
+      });
+      const count = flaggedIds.size;
+      if (elements.filterCount) {
+        elements.filterCount.textContent = count;
+        elements.filterCount.style.display = count > 0 ? 'inline-block' : 'none';
+      }
+      elements.filterBtn.classList.toggle('filter-active', activeFilters.size > 0);
+      elements.filterBtn.setAttribute('aria-pressed', activeFilters.size > 0 ? 'true' : 'false');
+      elements.filterBtn.title = count
+        ? `${count} urgent or overdue task${count === 1 ? '' : 's'}`
+        : 'Filter tasks';
+      syncFilterMenuToState();
+    }
+
+    function closeFilterMenu() {
+      if (!elements.filterMenu) return;
+      elements.filterMenu.classList.remove('open');
+      filterMenuOpen = false;
+      if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function openFilterMenu() {
+      if (!elements.filterMenu) return;
+      elements.filterMenu.classList.add('open');
+      filterMenuOpen = true;
+      if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDataMenu() {
+      if (!elements.dataDropdown) return;
+      elements.dataDropdown.classList.remove('open');
+      dataMenuOpen = false;
+      if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function openDataMenu() {
+      if (!elements.dataDropdown) return;
+      elements.dataDropdown.classList.add('open');
+      dataMenuOpen = true;
+      if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDriveMenu() {
+      if (!elements.driveMenu) return;
+      elements.driveMenu.classList.remove('open');
+      driveMenuOpen = false;
+      updateDriveStatusLabel();
+    }
+
+    function openDriveMenu() {
+      if (!elements.driveMenu) return;
+      elements.driveMenu.classList.add('open');
+      driveMenuOpen = true;
+      updateDriveStatusLabel();
+    }
+
+    function closeAllMenus() {
+      closeFilterMenu();
+      closeDataMenu();
+      closeDriveMenu();
+    }
+
     function taskSorter(a, b) {
       const statusOrder = { todo: 0, doing: 1, done: 2 };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
-      if (a.status === 'todo') {
-        if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
-        if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
+
+      if (a.status === 'done' && b.status === 'done') {
+        const aCompleted = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const bCompleted = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return bCompleted - aCompleted;
       }
-      const aDue = a.dueDate ? new Date(`${a.dueDate}T${a.dueTime || '23:59'}:00`) : null;
-      const bDue = b.dueDate ? new Date(`${b.dueDate}T${b.dueTime || '23:59'}:00`) : null;
+
+      const priorityRank = { urgent: 0, high: 1, medium: 2, low: 3 };
+      const aRank = priorityRank[a.priority] ?? 4;
+      const bRank = priorityRank[b.priority] ?? 4;
+      if (aRank !== bRank) return aRank - bRank;
+
+      const aDue = parseDueDateTime(a);
+      const bDue = parseDueDateTime(b);
+      if (aDue && bDue) {
+        const aTime = aDue.getTime();
+        const bTime = bDue.getTime();
+        if (aTime !== bTime) return bTime - aTime;
+      }
+      if (aDue && !bDue) return -1;
+      if (bDue && !aDue) return 1;
+
       if (a.status === 'doing') {
         const aStart = a.startedAt || 0;
         const bStart = b.startedAt || 0;
         if (aStart && bStart && aStart !== bStart) return aStart - bStart;
       }
-      if (a.status === 'done') {
-        const aCompleted = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-        const bCompleted = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-        return bCompleted - aCompleted;
-      }
-      if (aDue && bDue) return aDue - bDue;
-      if (aDue) return -1;
-      if (bDue) return 1;
+
       return a.title.localeCompare(b.title);
     }
 
-    function buildTaskCard(task) {
+    function buildTaskCard(task, now = new Date()) {
       const card = document.createElement('article');
       card.className = 'kanban-card';
       card.dataset.id = task.id;
@@ -1036,18 +1476,26 @@
       if (task.dueDate) {
         const due = document.createElement('span');
         due.className = 'due-date';
-        due.textContent = `Due: ${task.dueDate}${task.dueTime ? ` ${task.dueTime}` : ''}`;
+        const dueLabel = formatDateDisplay(task.dueDate);
+        due.textContent = `Due: ${dueLabel}${task.dueTime ? ` ${task.dueTime}` : ''}`;
         meta.appendChild(due);
 
-        const dueDate = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
-        if (dueDate < new Date() && task.status !== 'done' && (task.attemptCount || 0) === 0) {
+        const dueDate = parseDueDateTime(task);
+        if (dueDate && isTaskOverdue(task, now)) {
           card.classList.add('overdue');
           const overdueLabel = document.createElement('span');
           overdueLabel.className = 'overdue-time';
-          const diffMs = Date.now() - dueDate.getTime();
+          const diffMs = now.getTime() - dueDate.getTime();
           const diffDays = Math.floor(diffMs / 86400000);
           const diffHours = Math.floor((diffMs % 86400000) / 3600000);
-          overdueLabel.textContent = `Overdue by ${diffDays > 0 ? `${diffDays}d ${diffHours}h` : `${diffHours}h`}`;
+          const diffMinutes = Math.floor((diffMs % 3600000) / 60000);
+          if (diffDays > 0) {
+            overdueLabel.textContent = `Overdue by ${diffDays}d ${diffHours}h`;
+          } else if (diffHours > 0) {
+            overdueLabel.textContent = `Overdue by ${diffHours}h`;
+          } else {
+            overdueLabel.textContent = `Overdue by ${diffMinutes}m`;
+          }
           meta.appendChild(overdueLabel);
         }
       }
@@ -1073,7 +1521,7 @@
 
       if (task.status === 'done' && task.completedAt) {
         const span = document.createElement('span');
-        span.textContent = `Done: ${task.completedAt}`;
+        span.textContent = `Done: ${formatDateTimeDisplay(task.completedAt)}`;
         meta.appendChild(span);
       }
 
@@ -1252,55 +1700,84 @@
 
     function persistTasks() {
       saveToStorage(STORAGE_KEYS.tasks, tasks);
+      scheduleDriveAutosave();
     }
 
     function persistWipLimits() {
       saveToStorage(STORAGE_KEYS.wip, wipLimits);
+      scheduleDriveAutosave();
     }
 
-    function shouldIncludeInNotifications(task, now = new Date()) {
-      if (task.status === 'done') return false;
-      if (task.priority === 'urgent') return true;
-      if (task.dueDate) {
-        const due = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
-        return (due - now) <= 3600000 && (due - now) >= -86400000;
+    function persistFilters() {
+      saveToStorage(STORAGE_KEYS.filters, Array.from(activeFilters));
+      updateFilterIndicators();
+    }
+
+    function updateOverdueNotice(now = new Date()) {
+      if (!elements.overdueNotice) return;
+      if (focusSnoozeUntil && now.getTime() >= focusSnoozeUntil) {
+        focusSnoozeUntil = null;
+        removeFromStorage(STORAGE_KEYS.focusSnoozeUntil);
       }
-      return false;
-    }
-
-    function updateNotifications() {
-      const now = new Date();
-      const list = tasks.filter((task) => shouldIncludeInNotifications(task, now));
-      elements.notifCount.textContent = list.length;
-      elements.notifCount.style.display = list.length > 0 ? 'inline-block' : 'none';
-      elements.notifications.title = list.length
-        ? `${list.length} urgent or due-soon task${list.length > 1 ? 's' : ''}`
-        : 'No urgent tasks';
-      updateNotificationButtonVisual(list.length);
-    }
-
-    function updateNotificationButtonVisual(count) {
-      const label = notificationsFilterActive ? 'Show All' : 'Notifications';
-      elements.notifications.innerHTML = `${label}<span id="notifCount" class="notif-count" style="${count > 0 ? '' : 'display:none;'}">${count}</span>`;
-      elements.notifCount = document.getElementById('notifCount');
-      if (elements.notifCount) elements.notifCount.textContent = count;
-      elements.notifications.classList.toggle('filter-active', notificationsFilterActive);
-    }
-
-    function updateOverdueNotice() {
-      const now = new Date();
-      const overdueCount = tasks.filter((task) => {
-        if (!task.dueDate || task.status === 'done') return false;
-        const due = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
-        return due < now && (task.attemptCount || 0) === 0;
-      }).length;
-      if (overdueCount > 0) {
-        elements.overdueNotice.innerHTML = `<strong>⚠ Focus:</strong> ${overdueCount} task${overdueCount > 1 ? 's' : ''} overdue and untouched.`;
+      if (focusSnoozeUntil && now.getTime() < focusSnoozeUntil) {
+        elements.overdueNotice.style.display = 'none';
+        if (elements.overdueMessage) elements.overdueMessage.textContent = '';
+        return;
+      }
+      const overdueTasks = tasks.filter((task) => isTaskOverdue(task, now));
+      if (overdueTasks.length > 0) {
+        if (elements.overdueMessage) {
+          elements.overdueMessage.textContent = `${overdueTasks.length} task${overdueTasks.length === 1 ? '' : 's'} overdue and incomplete.`;
+        }
         elements.overdueNotice.style.display = 'block';
+        elements.overdueNotice.classList.toggle('collapsed', focusCollapsed);
+        if (elements.focusToggleBtn) {
+          elements.focusToggleBtn.textContent = focusCollapsed ? 'Expand' : 'Minimize';
+          elements.focusToggleBtn.setAttribute('aria-expanded', focusCollapsed ? 'false' : 'true');
+        }
       } else {
         elements.overdueNotice.style.display = 'none';
-        elements.overdueNotice.textContent = '';
+        if (elements.overdueMessage) elements.overdueMessage.textContent = '';
       }
+    }
+
+    function handleFocusToggle() {
+      focusCollapsed = !focusCollapsed;
+      saveToStorage(STORAGE_KEYS.focusCollapsed, focusCollapsed);
+      updateOverdueNotice();
+    }
+
+    function handleFocusSnoozeSelection(event) {
+      const { value } = event.target;
+      if (!value) return;
+      if (value === 'clear') {
+        focusSnoozeUntil = null;
+        removeFromStorage(STORAGE_KEYS.focusSnoozeUntil);
+        updateOverdueNotice();
+        event.target.value = '';
+        return;
+      }
+
+      let minutes = value === 'custom' ? null : Number(value);
+      if (value === 'custom') {
+        const input = prompt('Enter snooze duration in minutes:', '30');
+        const parsed = Number(input);
+        if (!input || !Number.isFinite(parsed) || parsed <= 0) {
+          event.target.value = '';
+          return;
+        }
+        minutes = parsed;
+      }
+
+      if (!Number.isFinite(minutes) || minutes <= 0) {
+        event.target.value = '';
+        return;
+      }
+
+      focusSnoozeUntil = Date.now() + minutes * 60000;
+      saveToStorage(STORAGE_KEYS.focusSnoozeUntil, focusSnoozeUntil);
+      updateOverdueNotice();
+      event.target.value = '';
     }
 
     function updateTimersLive() {
@@ -1321,7 +1798,7 @@
       }
       const stage = HISTORY_STAGES[Math.min(historyStageIndex, HISTORY_STAGES.length - 1)];
       elements.clearHistory.textContent = `Clear History (${stage.shortLabel})`;
-      elements.clearHistory.title = `Next: remove ${stage.description}. Double confirmation required.`;
+      elements.clearHistory.title = `Next: remove ${stage.description}. Confirmation required.`;
     }
 
     function clearHistory() {
@@ -1335,8 +1812,7 @@
         return;
       }
       const message = `Remove ${stage.description}?`;
-      if (!confirm(`${message}\n\nThis action cannot be undone.`)) return;
-      if (!confirm('Double-check: Are you absolutely sure?')) return;
+      if (!confirm(`${message}\n\nThis action cannot be undone. Please double-check before confirming.`)) return;
       const now = new Date();
       const beforeCount = tasks.length;
       tasks = tasks.filter((task) => {
@@ -1503,7 +1979,8 @@
       }
       html += '<div style="margin-top:12px;font-size:0.85rem;color:var(--color-muted);display:flex;flex-direction:column;gap:4px;">';
       if (task.dueDate) {
-        html += `<span><strong>Due:</strong> ${escapeHtml(task.dueDate)}${task.dueTime ? ` ${escapeHtml(task.dueTime)}` : ''}</span>`;
+        const dueLabel = escapeHtml(formatDateDisplay(task.dueDate));
+        html += `<span><strong>Due:</strong> ${dueLabel}${task.dueTime ? ` ${escapeHtml(task.dueTime)}` : ''}</span>`;
       }
       html += `<span><strong>Priority:</strong> ${escapeHtml(task.priority)}</span>`;
       if (task.timeSpent) {
@@ -1513,7 +1990,7 @@
         html += `<span><strong>Attempts:</strong> ${task.attemptCount}</span>`;
       }
       if (task.completedAt) {
-        html += `<span><strong>Completed:</strong> ${escapeHtml(task.completedAt)}</span>`;
+        html += `<span><strong>Completed:</strong> ${escapeHtml(formatDateTimeDisplay(task.completedAt))}</span>`;
       }
       html += '</div>';
 
@@ -1567,7 +2044,7 @@
     const currentDateTimeEl = document.getElementById('currentDateTime');
     function updateCurrentDateTime() {
       const now = new Date();
-      const formatted = `${formatDate(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const formatted = `${formatDateForDisplayFromDate(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
       currentDateTimeEl.textContent = formatted;
     }
 
@@ -1617,22 +2094,53 @@
     }
 
     const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-    const DRIVE_FILE_NAME = 'own-your-prime-kanban.json';
+    const DRIVE_FILE_PREFIX = 'own-your-prime-kanban';
+    const DRIVE_MIME_TYPE = 'application/json';
+    const DRIVE_AUTOSAVE_DELAY = 8000;
 
     let googleClientId = loadFromStorage(STORAGE_KEYS.googleClientId) || '';
     let tokenClient = null;
     let gapiReady = false;
     let gisReady = false;
 
+    function isDriveConnected() {
+      return !!(window.gapi && gapi.client && gapi.client.getToken && gapi.client.getToken());
+    }
+
+    function updateDriveStatusLabel() {
+      if (!elements.driveStatus) return;
+      const hasToken = isDriveConnected();
+      const ready = Boolean(googleClientId) && gapiReady && gisReady;
+      let label = 'Google Drive: Offline';
+      if (hasToken && driveSavingInFlight) {
+        label = 'Google Drive: Saving…';
+      } else if (hasToken && driveAutosavePending) {
+        label = 'Google Drive: Autosave queued';
+      } else if (hasToken) {
+        label = 'Google Drive: Autosave on';
+      } else if (ready) {
+        label = 'Google Drive: Ready';
+      }
+      elements.driveStatus.textContent = label;
+      elements.driveStatus.setAttribute('aria-expanded', driveMenuOpen ? 'true' : 'false');
+
+      const tooltip = [];
+      if (!googleClientId) {
+        tooltip.push('Provide your OAuth client ID to enable Drive sync.');
+      }
+      if (hasToken && lastDriveAutosave) {
+        tooltip.push(`Last autosave ${formatDateTimeDisplayFromDate(new Date(lastDriveAutosave))}`);
+      }
+      elements.driveStatus.title = tooltip.join('\n') || 'Connect Google Drive for automatic backups.';
+
+      elements.driveConnect.disabled = !ready || hasToken;
+      elements.driveDisconnect.disabled = !hasToken || driveSavingInFlight;
+      elements.driveSaveNow.disabled = !hasToken || driveSavingInFlight;
+      elements.driveLoad.disabled = !hasToken || driveSavingInFlight;
+    }
+
     function updateDriveUi() {
-      const hasClientId = Boolean(googleClientId);
-      const hasToken = !!(window.gapi && gapi.client && gapi.client.getToken && gapi.client.getToken());
-      const ready = hasClientId && gapiReady && gisReady;
-      elements.driveSignIn.disabled = !ready;
-      elements.driveSignOut.disabled = !hasToken;
-      elements.driveSave.disabled = !hasToken;
-      elements.driveLoad.disabled = !hasToken;
-      elements.driveStatus.textContent = hasToken ? 'Drive: Connected' : ready ? 'Drive: Ready' : 'Drive: Offline';
+      updateDriveStatusLabel();
     }
 
     function promptForClientId() {
@@ -1646,8 +2154,7 @@
     }
 
     function initializeTokenClient() {
-      if (!gisReady) return;
-      if (!googleClientId) return;
+      if (!gisReady || !googleClientId) return;
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: googleClientId,
         scope: GOOGLE_SCOPE,
@@ -1679,7 +2186,10 @@
     async function ensureAuthorized() {
       if (!await ensureDriveReady()) return false;
       const token = gapi.client.getToken();
-      if (token) return true;
+      if (token) {
+        updateDriveUi();
+        return true;
+      }
       return new Promise((resolve) => {
         tokenClient.callback = (response) => {
           if (response.error) {
@@ -1695,87 +2205,88 @@
       });
     }
 
-    async function signInToDrive() {
-      if (!await ensureDriveReady()) return;
-      const token = gapi.client.getToken();
-      if (token) {
-        updateDriveUi();
-        return;
+    function cancelScheduledAutosave() {
+      if (driveAutosaveTimer) {
+        clearTimeout(driveAutosaveTimer);
+        driveAutosaveTimer = null;
       }
-      tokenClient.callback = (response) => {
-        if (response.error) {
-          console.error(response);
-          alert('Authorization failed.');
-          return;
-        }
-        updateDriveUi();
-      };
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+      driveAutosavePending = false;
     }
 
-    function signOutOfDrive() {
-      const token = gapi.client.getToken();
-      if (token) {
-        google.accounts.oauth2.revoke(token.access_token, () => {
-          gapi.client.setToken('');
-          updateDriveUi();
-        });
-      }
+    function scheduleDriveAutosave() {
+      if (!isDriveConnected()) return;
+      driveAutosavePending = true;
+      if (driveAutosaveTimer) clearTimeout(driveAutosaveTimer);
+      driveAutosaveTimer = setTimeout(() => {
+        saveToDrive({ autosave: true }).catch((error) => console.error('Autosave failed', error));
+      }, DRIVE_AUTOSAVE_DELAY);
+      updateDriveStatusLabel();
     }
 
-    async function saveToDrive() {
-      if (!await ensureAuthorized()) return;
-      const payload = {
+    function buildDrivePayload() {
+      return JSON.stringify({
         exportedAt: new Date().toISOString(),
         version: 1,
         wipLimits,
         tasks
+      }, null, 2);
+    }
+
+    async function saveToDrive({ autosave = false } = {}) {
+      if (autosave) {
+        if (!isDriveConnected()) {
+          cancelScheduledAutosave();
+          updateDriveStatusLabel();
+          return;
+        }
+      } else if (!await ensureAuthorized()) {
+        return;
+      }
+
+      cancelScheduledAutosave();
+      driveSavingInFlight = true;
+      updateDriveStatusLabel();
+
+      const payload = buildDrivePayload();
+      const timestamp = new Date();
+      const stamp = `${timestamp.getFullYear()}${String(timestamp.getMonth() + 1).padStart(2, '0')}${String(timestamp.getDate()).padStart(2, '0')}-${String(timestamp.getHours()).padStart(2, '0')}${String(timestamp.getMinutes()).padStart(2, '0')}${String(timestamp.getSeconds()).padStart(2, '0')}`;
+      const metadata = {
+        name: `${DRIVE_FILE_PREFIX}-${stamp}.json`,
+        mimeType: DRIVE_MIME_TYPE
       };
-      const fileContent = JSON.stringify(payload, null, 2);
       const boundary = 'own-your-prime-boundary';
       const delimiter = `\r\n--${boundary}\r\n`;
       const closeDelimiter = `\r\n--${boundary}--`;
-      const metadata = {
-        name: DRIVE_FILE_NAME,
-        mimeType: 'application/json'
-      };
+      const body = delimiter
+        + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+        + JSON.stringify(metadata)
+        + delimiter
+        + 'Content-Type: application/json\r\n\r\n'
+        + payload
+        + closeDelimiter;
 
       try {
-        const existing = await gapi.client.drive.files.list({
-          q: `name='${DRIVE_FILE_NAME}' and trashed=false`,
-          fields: 'files(id, name)',
-          spaces: 'drive'
+        await gapi.client.request({
+          path: '/upload/drive/v3/files',
+          method: 'POST',
+          params: { uploadType: 'multipart' },
+          headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+          body
         });
-        const fileId = existing.result.files?.[0]?.id;
-        const body = delimiter
-          + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-          + JSON.stringify(metadata)
-          + delimiter
-          + 'Content-Type: application/json\r\n\r\n'
-          + fileContent
-          + closeDelimiter;
-
-        if (fileId) {
-          await gapi.client.request({
-            path: `/upload/drive/v3/files/${fileId}`,
-            method: 'PATCH',
-            params: { uploadType: 'multipart' },
-            headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-            body
-          });
-        } else {
-          await gapi.client.request({
-            path: '/upload/drive/v3/files',
-            method: 'POST',
-            params: { uploadType: 'multipart' },
-            headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-            body
-          });
+        lastDriveAutosave = timestamp.getTime();
+        if (!autosave) {
+          alert('Board snapshot saved to Google Drive.');
         }
-        alert('Board saved to Google Drive.');
       } catch (error) {
         console.error(error);
-        alert('Failed to save to Google Drive. Check console for details.');
+        if (!autosave) {
+          alert('Failed to save to Google Drive. Check console for details.');
+        }
+      } finally {
+        driveSavingInFlight = false;
+        driveAutosavePending = false;
+        driveAutosaveTimer = null;
+        updateDriveStatusLabel();
       }
     }
 
@@ -1783,13 +2294,15 @@
       if (!await ensureAuthorized()) return;
       try {
         const list = await gapi.client.drive.files.list({
-          q: `name='${DRIVE_FILE_NAME}' and trashed=false`,
+          q: `name contains '${DRIVE_FILE_PREFIX}' and trashed=false`,
+          orderBy: 'createdTime desc',
+          pageSize: 1,
           fields: 'files(id, name)',
           spaces: 'drive'
         });
         const file = list.result.files?.[0];
         if (!file) {
-          alert('No Own Your Prime backup found on Drive.');
+          alert('No Own Your Prime backups found on Drive yet.');
           return;
         }
         const response = await gapi.client.drive.files.get({
@@ -1813,6 +2326,38 @@
       } catch (error) {
         console.error(error);
         alert('Failed to load from Google Drive.');
+      }
+    }
+
+    async function signInToDrive() {
+      if (!await ensureDriveReady()) return;
+      if (isDriveConnected()) {
+        updateDriveUi();
+        return;
+      }
+      tokenClient.callback = (response) => {
+        if (response.error) {
+          console.error(response);
+          alert('Authorization failed.');
+          return;
+        }
+        updateDriveUi();
+      };
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    function signOutOfDrive() {
+      const token = gapi.client.getToken && gapi.client.getToken();
+      if (token) {
+        google.accounts.oauth2.revoke(token.access_token, () => {
+          gapi.client.setToken('');
+          cancelScheduledAutosave();
+          driveSavingInFlight = false;
+          driveAutosavePending = false;
+          driveAutosaveTimer = null;
+          lastDriveAutosave = null;
+          updateDriveUi();
+        });
       }
     }
 
@@ -1862,20 +2407,68 @@
         });
       });
       Object.entries(elements.limits).forEach(([status, input]) => {
+        if (!input) return;
         input.addEventListener('change', () => {
           const value = input.value;
           wipLimits[status] = value === '' ? null : Number(value);
           persistWipLimits();
         });
       });
-      elements.notifications.addEventListener('click', () => {
-        notificationsFilterActive = !notificationsFilterActive;
-        const count = parseInt(elements.notifCount.textContent, 10) || 0;
-        updateNotificationButtonVisual(count);
-        renderBoard();
+
+      if (elements.filterBtn) {
+        elements.filterBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const willOpen = !filterMenuOpen;
+          closeAllMenus();
+          if (willOpen) openFilterMenu();
+        });
+      }
+
+      if (elements.filterMenu) {
+        elements.filterMenu.addEventListener('click', (event) => event.stopPropagation());
+        elements.filterMenu.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              activeFilters.add(checkbox.value);
+            } else {
+              activeFilters.delete(checkbox.value);
+            }
+            persistFilters();
+            renderBoard();
+          });
+        });
+        const clearFiltersBtn = elements.filterMenu.querySelector('#clearFiltersBtn');
+        if (clearFiltersBtn) {
+          clearFiltersBtn.addEventListener('click', () => {
+            activeFilters = new Set();
+            persistFilters();
+            closeFilterMenu();
+            renderBoard();
+          });
+        }
+      }
+
+      if (elements.dataMenuBtn) {
+        elements.dataMenuBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const willOpen = !dataMenuOpen;
+          closeAllMenus();
+          if (willOpen) openDataMenu();
+        });
+      }
+
+      if (elements.dataDropdown) {
+        elements.dataDropdown.addEventListener('click', (event) => event.stopPropagation());
+      }
+
+      elements.export.addEventListener('click', () => {
+        closeDataMenu();
+        exportTasksToFile();
       });
-      elements.export.addEventListener('click', exportTasksToFile);
-      elements.import.addEventListener('click', () => elements.importFile.click());
+      elements.import.addEventListener('click', () => {
+        closeDataMenu();
+        elements.importFile.click();
+      });
       elements.importFile.addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (file) importTasksFromFile(file);
@@ -1883,15 +2476,59 @@
       });
       elements.clearHistory.addEventListener('click', clearHistory);
 
-      elements.driveSignIn.addEventListener('click', async () => {
-        if (!googleClientId) {
-          if (!promptForClientId()) return;
-        }
-        await signInToDrive();
-      });
-      elements.driveSignOut.addEventListener('click', signOutOfDrive);
-      elements.driveSave.addEventListener('click', saveToDrive);
-      elements.driveLoad.addEventListener('click', loadFromDrive);
+      if (elements.driveStatus) {
+        elements.driveStatus.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const willOpen = !driveMenuOpen;
+          closeAllMenus();
+          if (willOpen) openDriveMenu();
+        });
+      }
+
+      if (elements.driveMenu) {
+        elements.driveMenu.addEventListener('click', (event) => event.stopPropagation());
+      }
+
+      if (elements.driveConnect) {
+        elements.driveConnect.addEventListener('click', async () => {
+          if (!googleClientId) {
+            if (!promptForClientId()) return;
+          }
+          await signInToDrive();
+          closeDriveMenu();
+        });
+      }
+
+      if (elements.driveDisconnect) {
+        elements.driveDisconnect.addEventListener('click', () => {
+          signOutOfDrive();
+          closeDriveMenu();
+        });
+      }
+
+      if (elements.driveSaveNow) {
+        elements.driveSaveNow.addEventListener('click', async () => {
+          await saveToDrive();
+          closeDriveMenu();
+        });
+      }
+
+      if (elements.driveLoad) {
+        elements.driveLoad.addEventListener('click', async () => {
+          await loadFromDrive();
+          closeDriveMenu();
+        });
+      }
+
+      if (elements.focusToggleBtn) {
+        elements.focusToggleBtn.addEventListener('click', handleFocusToggle);
+      }
+
+      if (elements.focusSnoozeSelect) {
+        elements.focusSnoozeSelect.addEventListener('change', handleFocusSnoozeSelection);
+      }
+
+      document.addEventListener('click', closeAllMenus);
 
       elements.zoomModal.addEventListener('click', (event) => {
         if (event.target === elements.zoomModal) {
@@ -1901,6 +2538,7 @@
 
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
+          closeAllMenus();
           if (elements.taskModal.style.display === 'flex') closeTaskModal();
           if (elements.zoomModal.style.display === 'flex') elements.zoomModal.style.display = 'none';
         }
@@ -1922,7 +2560,7 @@
       updateCurrentDateTime();
       setInterval(updateCurrentDateTime, 1000);
       setInterval(updateTimersLive, 1000);
-      setInterval(updateNotifications, 30000);
+      setInterval(() => updateFilterIndicators(), 30000);
       setInterval(updateOverdueNotice, 30000);
       setInterval(() => {
         if (document.activeElement && document.activeElement.closest('.modal')) return;
