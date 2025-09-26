@@ -976,15 +976,6 @@
       zoomContent: document.getElementById('zoomContent')
     };
 
-    if (elements.overdueNotice) {
-      elements.overdueNotice.classList.toggle('collapsed', focusCollapsed);
-      if (elements.focusToggleBtn) {
-        elements.focusToggleBtn.textContent = focusCollapsed ? 'Expand' : 'Minimize';
-        elements.focusToggleBtn.setAttribute('aria-expanded', focusCollapsed ? 'false' : 'true');
-      }
-    }
-
-    syncFilterMenuToState();
     if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'false');
     if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'false');
 
@@ -1215,12 +1206,21 @@
     let dataMenuOpen = false;
     let backupMenuOpen = false;
 
+    syncFilterMenuToState();
+
     let tasks = (loadFromStorage(STORAGE_KEYS.tasks) || []).map(normalizeTask);
     let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: null, done: null };
     let editingTaskId = null;
     let historyStageIndex = 0;
     let focusCollapsed = loadFromStorage(STORAGE_KEYS.focusCollapsed);
     if (typeof focusCollapsed !== 'boolean') focusCollapsed = true;
+    if (elements.overdueNotice) {
+      elements.overdueNotice.classList.toggle('collapsed', focusCollapsed);
+      if (elements.focusToggleBtn) {
+        elements.focusToggleBtn.textContent = focusCollapsed ? 'Expand' : 'Minimize';
+        elements.focusToggleBtn.setAttribute('aria-expanded', focusCollapsed ? 'false' : 'true');
+      }
+    }
     let focusSnoozeUntil = loadFromStorage(STORAGE_KEYS.focusSnoozeUntil);
     if (typeof focusSnoozeUntil === 'string') focusSnoozeUntil = Number(focusSnoozeUntil);
     if (!Number.isFinite(focusSnoozeUntil)) focusSnoozeUntil = null;
