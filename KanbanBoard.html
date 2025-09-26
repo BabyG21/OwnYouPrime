@@ -267,15 +267,13 @@
       font-size: 0.7rem;
     }
 
-    .filter-control,
-    .data-menu {
+    .filter-control {
       position: relative;
       display: inline-flex;
       align-items: center;
     }
 
-    #filterBtn,
-    #dataMenuBtn {
+    #filterBtn {
       background: rgba(36, 52, 96, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 10px;
@@ -286,20 +284,13 @@
     }
 
     #filterBtn:hover,
-    #dataMenuBtn:hover,
-    #filterBtn:focus-visible,
-    #dataMenuBtn:focus-visible {
+    #filterBtn:focus-visible {
       outline: none;
       border-color: rgba(70, 243, 176, 0.4);
       background: rgba(27, 44, 87, 0.85);
     }
 
-    #dataMenuBtn {
-      font-size: 0.9rem;
-    }
-
-    .filter-menu,
-    .data-dropdown {
+    .filter-menu {
       position: absolute;
       right: 0;
       top: calc(100% + 6px);
@@ -315,8 +306,7 @@
       z-index: 15;
     }
 
-    .filter-menu.open,
-    .data-dropdown.open {
+    .filter-menu.open {
       display: flex;
     }
 
@@ -336,20 +326,6 @@
 
     .filter-menu input[type="checkbox"] {
       accent-color: var(--color-primary);
-    }
-
-    .data-dropdown button {
-      background: transparent;
-      border: none;
-      padding: 8px 10px;
-      border-radius: var(--radius-small);
-      font-size: 0.85rem;
-      color: var(--color-text);
-      justify-content: flex-start;
-    }
-
-    .data-dropdown button:hover {
-      background: rgba(70, 243, 176, 0.1);
     }
 
     .danger-button {
@@ -779,11 +755,11 @@
     <div class="backup-control">
       <button id="backupStatus" type="button" aria-haspopup="true" aria-expanded="false">Local backup: not saved yet</button>
       <div class="backup-menu" id="backupMenu" role="menu" aria-labelledby="backupStatus">
-        <button type="button" id="backupSaveNowBtn" role="menuitem">Save snapshot now</button>
         <button type="button" id="backupLoadBtn" role="menuitem" disabled>Restore last backup</button>
         <button type="button" id="backupDownloadBtn" role="menuitem" disabled>Download backup file</button>
-        <button type="button" id="backupClearBtn" role="menuitem" disabled>Clear saved backup</button>
+        <button type="button" id="backupImportBtn" role="menuitem">Import backup file</button>
       </div>
+      <input type="file" id="backupFileInput" accept="application/json" hidden />
     </div>
   </header>
   <main>
@@ -800,21 +776,17 @@
             <button id="filterBtn" type="button">Filter<span id="filterCount" class="filter-count" style="display:none;">0</span></button>
             <div id="filterMenu" class="filter-menu" role="menu" aria-labelledby="filterBtn">
               <label><input type="checkbox" value="urgent" />Urgent tasks</label>
+              <label><input type="checkbox" value="highPriority" />High priority</label>
+              <label><input type="checkbox" value="mediumPriority" />Medium priority</label>
+              <label><input type="checkbox" value="lowPriority" />Low priority</label>
               <label><input type="checkbox" value="overdue" />Overdue tasks</label>
+              <label><input type="checkbox" value="dueTomorrow" />Due tomorrow</label>
               <label><input type="checkbox" value="dueSoon" />Due within 7 days</label>
               <div class="filter-menu-actions">
                 <button type="button" id="clearFiltersBtn" class="ghost-button">Clear filters</button>
               </div>
             </div>
           </div>
-          <div class="data-menu">
-            <button id="dataMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dataDropdown" title="Import or export data">☰</button>
-            <div id="dataDropdown" class="data-dropdown" role="menu" aria-labelledby="dataMenuBtn">
-              <button type="button" id="exportBtn" role="menuitem">Export JSON</button>
-              <button type="button" id="importBtn" role="menuitem">Import JSON</button>
-            </div>
-          </div>
-          <input type="file" id="importFile" accept="application/json" hidden />
         </div>
       </div>
       <div id="overdueNotice" class="collapsed" aria-live="polite">
@@ -923,8 +895,12 @@
     ];
 
     const FILTER_DEFINITIONS = {
-      urgent: { predicate: (task, now) => isTaskUrgent(task) },
+      urgent: { predicate: (task) => isTaskUrgent(task) },
+      highPriority: { predicate: (task) => isTaskPriority(task, 'high') },
+      mediumPriority: { predicate: (task) => isTaskPriority(task, 'medium') },
+      lowPriority: { predicate: (task) => isTaskPriority(task, 'low') },
       overdue: { predicate: (task, now) => isTaskOverdue(task, now) },
+      dueTomorrow: { predicate: (task, now) => isTaskDueTomorrow(task, now) },
       dueSoon: { predicate: (task, now) => isTaskDueSoon(task, now) }
     };
 
@@ -934,17 +910,12 @@
       filterBtn: document.getElementById('filterBtn'),
       filterCount: document.getElementById('filterCount'),
       filterMenu: document.getElementById('filterMenu'),
-      dataMenuBtn: document.getElementById('dataMenuBtn'),
-      dataDropdown: document.getElementById('dataDropdown'),
-      export: document.getElementById('exportBtn'),
-      import: document.getElementById('importBtn'),
-      importFile: document.getElementById('importFile'),
       backupStatus: document.getElementById('backupStatus'),
       backupMenu: document.getElementById('backupMenu'),
-      backupSaveNow: document.getElementById('backupSaveNowBtn'),
       backupLoad: document.getElementById('backupLoadBtn'),
       backupDownload: document.getElementById('backupDownloadBtn'),
-      backupClear: document.getElementById('backupClearBtn'),
+      backupImport: document.getElementById('backupImportBtn'),
+      backupFileInput: document.getElementById('backupFileInput'),
       clearHistory: document.getElementById('clearHistoryBtn'),
       overdueNotice: document.getElementById('overdueNotice'),
       overdueMessage: document.getElementById('overdueMessage'),
@@ -977,7 +948,6 @@
     };
 
     if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'false');
-    if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'false');
 
     function saveToStorage(key, data) {
       try {
@@ -1029,6 +999,9 @@
 
     function persistLocalSnapshot(snapshot = null) {
       const snapshotData = snapshot ? JSON.parse(JSON.stringify(snapshot)) : buildSnapshotObject();
+      if (!snapshotData.exportedAt) {
+        snapshotData.exportedAt = new Date().toISOString();
+      }
       latestLocalSnapshot = snapshotData;
       saveToStorage(STORAGE_KEYS.localSnapshot, snapshotData);
       updateBackupStatusLabel();
@@ -1153,6 +1126,21 @@
       return diff >= 0 && diff <= 7 * 86400000;
     }
 
+    function isTaskPriority(task, priority) {
+      if (!task || task.status === 'done') return false;
+      return task.priority === priority;
+    }
+
+    function isTaskDueTomorrow(task, now = new Date()) {
+      if (!task || task.status === 'done') return false;
+      const due = parseDueDateTime(task);
+      if (!due) return false;
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfTomorrow = new Date(startOfToday.getTime() + 86400000);
+      const startOfDayAfter = new Date(startOfTomorrow.getTime() + 86400000);
+      return due.getTime() >= startOfTomorrow.getTime() && due.getTime() < startOfDayAfter.getTime();
+    }
+
     function formatDuration(ms) {
       const seconds = Math.floor(ms / 1000);
       const hours = Math.floor(seconds / 3600);
@@ -1180,6 +1168,13 @@
       }
       if (!normalized.priority) normalized.priority = 'low';
       if (!normalized.status) normalized.status = 'todo';
+      if (!normalized.createdAt) normalized.createdAt = formatDateTime(new Date());
+      if (typeof normalized.createdAt === 'string' && normalized.createdAt.includes('T')) {
+        const parsedCreated = new Date(normalized.createdAt);
+        if (!Number.isNaN(parsedCreated.getTime())) {
+          normalized.createdAt = formatDateTime(parsedCreated);
+        }
+      }
       if (!normalized.notes) normalized.notes = '';
       if (normalized.status === 'doing' && !normalized.startedAt) {
         normalized.startedAt = Date.now();
@@ -1203,7 +1198,6 @@
     const savedFilters = loadFromStorage(STORAGE_KEYS.filters);
     let activeFilters = new Set(Array.isArray(savedFilters) ? savedFilters : []);
     let filterMenuOpen = false;
-    let dataMenuOpen = false;
     let backupMenuOpen = false;
 
     syncFilterMenuToState();
@@ -1369,20 +1363,6 @@
       if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'true');
     }
 
-    function closeDataMenu() {
-      if (!elements.dataDropdown) return;
-      elements.dataDropdown.classList.remove('open');
-      dataMenuOpen = false;
-      if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'false');
-    }
-
-    function openDataMenu() {
-      if (!elements.dataDropdown) return;
-      elements.dataDropdown.classList.add('open');
-      dataMenuOpen = true;
-      if (elements.dataMenuBtn) elements.dataMenuBtn.setAttribute('aria-expanded', 'true');
-    }
-
     function closeBackupMenu() {
       if (!elements.backupMenu) return;
       elements.backupMenu.classList.remove('open');
@@ -1399,7 +1379,6 @@
 
     function closeAllMenus() {
       closeFilterMenu();
-      closeDataMenu();
       closeBackupMenu();
     }
 
@@ -1955,6 +1934,7 @@
           dueDate: dueDateValue || formatDate(new Date(Date.now() + 86400000)),
           dueTime: dueTimeValue || '',
           subtasks,
+          createdAt: formatDateTime(new Date()),
           attemptCount: 0,
           timeSpent: 0
         }));
@@ -2031,6 +2011,9 @@
         html += `<p style="margin-top:10px;font-style:italic;color:var(--color-muted);">Notes: ${escapeHtml(task.notes)}</p>`;
       }
       html += '<div style="margin-top:12px;font-size:0.85rem;color:var(--color-muted);display:flex;flex-direction:column;gap:4px;">';
+      if (task.createdAt) {
+        html += `<span><strong>Created:</strong> ${escapeHtml(formatDateTimeDisplay(task.createdAt))}</span>`;
+      }
       if (task.dueDate) {
         const dueLabel = escapeHtml(formatDateDisplay(task.dueDate));
         html += `<span><strong>Due:</strong> ${dueLabel}${task.dueTime ? ` ${escapeHtml(task.dueTime)}` : ''}</span>`;
@@ -2101,75 +2084,20 @@
       currentDateTimeEl.textContent = formatted;
     }
 
-    function exportTasksToFile() {
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        version: 1,
-        wipLimits,
-        tasks
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `own-your-prime-${Date.now()}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-
-    function importTasksFromFile(file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const parsed = JSON.parse(event.target.result);
-          if (!parsed || !Array.isArray(parsed.tasks)) throw new Error('Invalid file structure.');
-          tasks = parsed.tasks.map(normalizeTask);
-          wipLimits = parsed.wipLimits || wipLimits;
-          Object.entries(wipLimits).forEach(([status, value]) => {
-            const input = elements.limits[status];
-            if (input) input.value = value ?? '';
-          });
-          persistTasks();
-          persistWipLimits();
-          renderBoard();
-          alert('Kanban data imported successfully.');
-        } catch (error) {
-          console.error(error);
-          alert('Failed to import file. Ensure it is a valid Own Your Prime export.');
-        }
-      };
-      reader.onerror = () => {
-        alert('Unable to read the selected file.');
-      };
-      reader.readAsText(file);
-    }
-
     function updateBackupStatusLabel() {
       if (!elements.backupStatus) return;
       const snapshot = getLatestLocalSnapshot();
-      let label = 'Local backup: not saved yet';
-      let tooltip = 'No backup has been saved on this device yet.';
-      if (snapshot?.exportedAt) {
-        const savedAt = new Date(snapshot.exportedAt);
-        if (!Number.isNaN(savedAt.getTime())) {
-          const formatted = formatDateTimeDisplayFromDate(savedAt);
-          label = `Local backup: ${formatted}`;
-          tooltip = `Last saved ${formatted}`;
-        } else {
-          label = 'Local backup: ready';
-          tooltip = 'Latest backup timestamp unavailable.';
-        }
-      }
+      const hasSnapshot = Boolean(snapshot && Array.isArray(snapshot.tasks));
+      const label = hasSnapshot ? 'Local backup: ready' : 'Local backup: not saved yet';
+      const tooltip = hasSnapshot
+        ? 'Local backup stored on this device.'
+        : 'No backup has been saved on this device yet.';
       elements.backupStatus.textContent = label;
       elements.backupStatus.setAttribute('aria-expanded', backupMenuOpen ? 'true' : 'false');
       elements.backupStatus.title = tooltip;
 
-      const hasSnapshot = Boolean(snapshot && Array.isArray(snapshot.tasks));
       if (elements.backupLoad) elements.backupLoad.disabled = !hasSnapshot;
       if (elements.backupDownload) elements.backupDownload.disabled = !hasSnapshot;
-      if (elements.backupClear) elements.backupClear.disabled = !hasSnapshot;
     }
 
     function applySnapshot(snapshot) {
@@ -2209,20 +2137,27 @@
       downloadSnapshot(snapshot, buildLocalBackupFilename(snapshot));
     }
 
-    function clearLocalBackup() {
-      const snapshot = getLatestLocalSnapshot();
-      if (!snapshot) {
-        alert('No local backup found on this device yet.');
-        return false;
-      }
-      if (!confirm('Remove the saved local backup from this device?')) {
-        return false;
-      }
-      latestLocalSnapshot = null;
-      removeFromStorage(STORAGE_KEYS.localSnapshot);
-      updateBackupStatusLabel();
-      alert('Local backup removed.');
-      return true;
+    function importBackupFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          applySnapshot(parsed);
+          alert('Backup imported successfully.');
+          closeBackupMenu();
+        } catch (error) {
+          console.error(error);
+          alert('Failed to import backup file. Please ensure it was created by Own Your Prime.');
+        } finally {
+          if (elements.backupFileInput) elements.backupFileInput.value = '';
+        }
+      };
+      reader.onerror = () => {
+        alert('Unable to read the selected file.');
+        if (elements.backupFileInput) elements.backupFileInput.value = '';
+      };
+      reader.readAsText(file);
     }
 
     function setupEventListeners() {
@@ -2284,32 +2219,6 @@
         }
       }
 
-      if (elements.dataMenuBtn) {
-        elements.dataMenuBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          const willOpen = !dataMenuOpen;
-          closeAllMenus();
-          if (willOpen) openDataMenu();
-        });
-      }
-
-      if (elements.dataDropdown) {
-        elements.dataDropdown.addEventListener('click', (event) => event.stopPropagation());
-      }
-
-      elements.export.addEventListener('click', () => {
-        closeDataMenu();
-        exportTasksToFile();
-      });
-      elements.import.addEventListener('click', () => {
-        closeDataMenu();
-        elements.importFile.click();
-      });
-      elements.importFile.addEventListener('change', (event) => {
-        const file = event.target.files?.[0];
-        if (file) importTasksFromFile(file);
-        elements.importFile.value = '';
-      });
       elements.clearHistory.addEventListener('click', clearHistory);
 
       if (elements.backupStatus) {
@@ -2323,14 +2232,6 @@
 
       if (elements.backupMenu) {
         elements.backupMenu.addEventListener('click', (event) => event.stopPropagation());
-      }
-
-      if (elements.backupSaveNow) {
-        elements.backupSaveNow.addEventListener('click', () => {
-          persistLocalSnapshot();
-          alert('Local backup saved.');
-          closeBackupMenu();
-        });
       }
 
       if (elements.backupLoad) {
@@ -2347,9 +2248,19 @@
         });
       }
 
-      if (elements.backupClear) {
-        elements.backupClear.addEventListener('click', () => {
-          if (clearLocalBackup()) closeBackupMenu();
+      if (elements.backupImport) {
+        elements.backupImport.addEventListener('click', () => {
+          elements.backupFileInput?.click();
+        });
+      }
+
+      if (elements.backupFileInput) {
+        elements.backupFileInput.addEventListener('change', (event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            importBackupFromFile(file);
+          }
+          if (elements.backupFileInput) elements.backupFileInput.value = '';
         });
       }
 
