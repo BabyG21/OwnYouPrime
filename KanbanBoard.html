@@ -4,233 +4,631 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GetYourSh@tTogether – Kanban</title>
+  <title>Own Your Prime – Kanban Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-  :root {
-    --color-bg: #0f1734; /* Use Kanban dark as app bg */
-    --color-surface: #ffffff;
-    --color-card-bg: #112e51;
-    --color-card-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    --color-text: #f2f6fc;
-    --color-muted: #8ea5c9;
-    --color-primary: #00b88d;
-    --color-primary-dark: #009d78;
-    --color-secondary: #627ef3;
-    --color-secondary-dark: #495ec4;
-    --color-danger: #ef5350;
-    --color-warning: #f5a623;
-    --color-info: #8e44ad;
-    /* Kanban dark theme colours */
-    --kanban-bg: #0f1734;
-    --kanban-col-todo: #172a4e;
-    --kanban-col-doing: #1d3565;
-    --kanban-col-done: #13355a;
-    --kanban-card-bg: #112e51;
-    --kanban-text: #f2f6fc;
-    --kanban-muted: #8ea5c9;
-    --priority-high: #ff6b6b;
-    --priority-medium: #f5a623;
-    --priority-low: #2ecc71;
-    --priority-urgent: #e91e63;
-  }
+    :root {
+      --color-bg: #030712;
+      --color-surface: #101a34;
+      --color-surface-alt: #152245;
+      --color-card: #1b2c57;
+      --color-card-hover: #203467;
+      --color-text: #f5f7ff;
+      --color-muted: #9fb0d9;
+      --color-primary: #46f3b0;
+      --color-primary-dark: #13c78d;
+      --color-accent: #7b8bff;
+      --color-danger: #ff6b81;
+      --color-warning: #f7c948;
+      --color-info: #8e59ff;
+      --priority-urgent: #ff4477;
+      --priority-high: #ff9a62;
+      --priority-medium: #ffdb5b;
+      --priority-low: #4ad4a3;
+      --shadow-elevated: 0 20px 60px rgba(5, 11, 31, 0.55);
+      --radius-large: 18px;
+      --radius-medium: 12px;
+      --radius-small: 8px;
+      --transition-fast: 0.2s ease;
+    }
 
-  * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-  body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: var(--color-bg);
-    color: var(--kanban-text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top right, rgba(70, 243, 176, 0.12), transparent 55%),
+                  radial-gradient(circle at bottom left, rgba(139, 148, 255, 0.12), transparent 55%),
+                  var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
 
-  header {
-    background: linear-gradient(90deg, var(--kanban-col-doing) 0%, var(--kanban-col-done) 100%);
-    color: var(--kanban-text);
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  header h1 { margin: 0; font-size: 1.6rem; }
-  #currentDateTime { margin-left: 15px; font-size: 0.9rem; color: var(--kanban-muted); }
+    header {
+      padding: 22px clamp(20px, 5vw, 48px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(21, 34, 69, 0.95), rgba(8, 15, 33, 0.92));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(3, 7, 18, 0.35);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
 
-  main { flex: 1; overflow-y: auto; position: relative; }
+    header .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-  /* Kanban controls */
-  #kanbanSection { background-color: var(--kanban-bg); padding: 16px; }
-  #kanbanSection h2 { margin: 0 0 10px; color: var(--color-primary); }
-  #kanbanSection .kanban-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
-  #kanbanSection .kanban-controls input[type="text"] {
-    flex: 1; min-width: 160px; padding: 8px; background-color: var(--kanban-col-doing);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: var(--kanban-text); font-size: 0.9rem;
-  }
-  #kanbanSection .kanban-controls input[type="text"]::placeholder { color: var(--kanban-muted); }
-  #kanbanSection .kanban-controls button {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-    color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer;
-    font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    transition: background 0.3s ease, transform 0.1s ease;
-  }
-  #kanbanSection .kanban-controls button:hover { transform: translateY(-2px); }
-  #showNotificationsBtn.filter-active { background-color: var(--priority-urgent); box-shadow: 0 0 6px rgba(255,0,0,0.6); }
-  .notif-count { background-color: var(--priority-urgent); color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; margin-left: 6px; }
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
 
-  /* Board & columns */
-  #kanbanSection .kanban-board { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
-  #kanbanSection .kanban-column {
-    background-color: var(--kanban-col-todo);
-    border-radius: 8px; padding: 10px; flex: 1; min-width: 270px; display: flex; flex-direction: column;
-    max-height: calc(100vh - 220px); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  }
-  #kanbanSection .kanban-column.doing { background-color: var(--kanban-col-doing); }
-  #kanbanSection .kanban-column.done { background-color: var(--kanban-col-done); }
-  #kanbanSection .kanban-column h3 {
-    margin: 0 0 8px; display: flex; align-items: center; justify-content: space-between;
-    font-size: 1.1rem; font-weight: bold; text-transform: uppercase; color: var(--kanban-text);
-    border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;
-  }
-  #kanbanSection .task-count { font-size: 0.8rem; margin-left: 4px; color: var(--kanban-muted); }
-  #kanbanSection .limit-input { display: none; }
-  #kanbanSection .kanban-tasks { flex: 1; overflow-y: auto; padding-right: 4px; }
+    header .tagline {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--color-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
 
-  /* Cards */
-  #kanbanSection .kanban-card {
-    background-color: var(--kanban-card-bg);
-    margin: 6px 0; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    cursor: grab; color: var(--kanban-text); display: flex; flex-direction: column; border-left: 4px solid var(--priority-low);
-  }
-  #kanbanSection .kanban-card[data-priority="high"] { border-left-color: var(--priority-high); }
-  #kanbanSection .kanban-card[data-priority="medium"] { border-left-color: var(--priority-medium); }
-  #kanbanSection .kanban-card[data-priority="urgent"] { border-left-color: var(--priority-urgent); }
-  #kanbanSection .kanban-card[data-priority="low"] { border-left-color: var(--priority-low); }
-  #kanbanSection .kanban-card h4 { margin: 0; font-size: 1rem; font-weight: bold; }
-  #kanbanSection .kanban-card p { margin: 4px 0 8px; font-size: 0.8rem; color: var(--kanban-muted); }
-  #kanbanSection .card-header { display: flex; justify-content: space-between; align-items: center; }
-  #kanbanSection .action-buttons { display: flex; align-items: center; gap: 6px; }
-  #kanbanSection .action-buttons button { background: none; border: none; color: var(--kanban-muted); cursor: pointer; font-size: 0.95rem; padding: 0 2px; }
-  #kanbanSection .action-buttons button:hover { color: var(--kanban-text); }
-  #kanbanSection .card-meta { display: flex; flex-wrap: wrap; align-items: center; font-size: 0.75rem; color: var(--kanban-muted); gap: 8px; margin-top: 4px; }
-  #kanbanSection .kanban-card.overdue .due-date { color: var(--color-danger); font-weight: bold; }
-  #kanbanSection .overdue-time { color: var(--color-danger); font-size: 0.7rem; margin-left: 4px; }
-  /* Subtasks list: no bullets; checkbox acts as the bullet */
-  #kanbanSection .subtask-list { list-style: none; padding-left: 0; margin: 4px 0 0 0; color: var(--kanban-muted); font-size: 0.8rem; }
-  #kanbanSection .subtask-list li { margin: 2px 0; }
-  #kanbanSection .subtask-text.done { text-decoration: line-through; }
-  /* Also remove bullets inside the zoom modal */
-  #cardZoomModal ul { list-style: none; padding-left: 0; }
-  #cardZoomModal li { margin: 2px 0; }
-  /* Preserve notes formatting (indentation and line breaks) */
-  #kanbanSection .task-notes { white-space: pre-wrap; }
-  /* Hide scrollbars but keep scrolling */
-  #kanbanSection .kanban-board::-webkit-scrollbar,
-  #kanbanSection .kanban-tasks::-webkit-scrollbar { display: none; }
-  #kanbanSection .kanban-board,
-  #kanbanSection .kanban-tasks { -ms-overflow-style: none; scrollbar-width: none; }
-  /* Overdue animations: shake; stronger + faster for urgent */
-  @keyframes shake { from { transform: translateX(0); } to { transform: translateX(2px); } }
-  @keyframes shake-strong { from { transform: translateX(0); } to { transform: translateX(4px); } }
-  #kanbanSection .kanban-card.overdue { animation: shake 0.3s infinite alternate; }
-  #kanbanSection .kanban-card.overdue[data-priority="urgent"] { animation: shake-strong 0.18s infinite alternate; }
-  #kanbanSection .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-  #kanbanSection .assigned { display: flex; gap: 4px; align-items: center; }
-  #kanbanSection .avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.7rem; font-weight: bold; }
-  #kanbanSection .priority-label { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; color: var(--kanban-text); }
-  #kanbanSection .notes-field { width: 100%; min-height: 60px; margin-top: 6px; padding: 6px; background-color: var(--kanban-col-todo); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: var(--kanban-text); font-size: 0.8rem; resize: vertical; }
-  #kanbanSection .task-notes { font-size: 0.75rem; font-style: italic; color: var(--kanban-muted); margin: 4px 0; }
+    #currentDateTime {
+      font-size: 0.9rem;
+      color: var(--color-muted);
+    }
 
-  /* Buttons inside cards */
-  #kanbanSection .complete-btn, #kanbanSection .attempt-btn, #kanbanSection .delete-btn, #kanbanSection .start-btn { border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.75rem; cursor: pointer; color: #fff; }
-  #kanbanSection .complete-btn { background-color: var(--color-primary); }
-  #kanbanSection .complete-btn:hover { background-color: var(--color-primary-dark); }
-  #kanbanSection .attempt-btn { background-color: var(--color-secondary); }
-  #kanbanSection .attempt-btn:hover { background-color: var(--color-secondary-dark); }
-  #kanbanSection .delete-btn { background-color: var(--color-danger); }
-  #kanbanSection .delete-btn:hover { background-color: #d32f2f; }
-  #kanbanSection .start-btn { background-color: var(--color-secondary); }
-  #kanbanSection .start-btn:hover { background-color: var(--color-secondary-dark); }
+    #driveStatus {
+      padding: 10px 16px;
+      background: rgba(18, 30, 61, 0.65);
+      border-radius: var(--radius-medium);
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 150px;
+      justify-content: flex-end;
+    }
 
-  /* Overdue banner */
-  #overdueNotice { display: none; }
+    main {
+      flex: 1;
+      padding: clamp(20px, 5vw, 48px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
 
-  /* Priority picker in modal */
-  #priorityBoxContainer { display: flex; gap: 10px; margin-top: 4px; }
-  .priority-box { padding: 6px 12px; border-radius: 4px; color: #fff; cursor: pointer; font-size: 0.8rem; }
-  .priority-box.urgent { background-color: var(--priority-urgent); }
-  .priority-box.high { background-color: var(--priority-high); }
-  .priority-box.medium { background-color: var(--priority-medium); }
-  .priority-box.low { background-color: var(--priority-low); }
-  .priority-box.selected { outline: 3px solid #ffffff; transform: scale(1.15); box-shadow: 0 0 10px rgba(255,255,255,0.8); }
+    #kanbanSection {
+      background: rgba(12, 20, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-large);
+      padding: clamp(20px, 4vw, 36px);
+      box-shadow: var(--shadow-elevated);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
 
-  /* Modal */
-  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-  .modal-content { background-color: var(--kanban-col-doing); color: var(--kanban-text); padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 6px 12px rgba(0,0,0,0.6); }
-  .modal-content h3 { margin: 0 0 10px; font-size: 1.3rem; color: var(--kanban-text); }
-  .modal-content form { display: flex; flex-direction: column; gap: 10px; }
-  .modal-content form input, .modal-content form textarea, .modal-content form select { padding: 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.9rem; background: var(--kanban-col-todo); color: var(--kanban-text); }
-  .modal-content form label { font-size: 0.85rem; font-weight: bold; margin-bottom: 3px; }
-  .modal-content .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-  .modal-content button { padding: 8px 14px; border: none; border-radius: 4px; font-size: 0.9rem; cursor: pointer; }
-  .modal-content button.primary { background-color: var(--color-primary); color: #fff; }
-  .modal-content button.secondary { background-color: #bbb; color: #333; }
-  .modal-content button.delete { background-color: var(--color-danger); color: #fff; }
+    .board-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
 
-  /* Zoom modal button colors */
-  #cardZoomModal .zoom-actions { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
-  #cardZoomModal .zoom-actions button { padding: 6px 12px; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; color: #fff; transition: background 0.2s ease; }
-  #cardZoomModal .zoom-actions .start-btn { background-color: var(--kanban-col-todo); }
-  #cardZoomModal .zoom-actions .complete-btn { background-color: var(--kanban-col-done); }
-  #cardZoomModal .zoom-actions .attempt-btn { background-color: var(--priority-high); }
-  #cardZoomModal .zoom-actions .edit-btn { background-color: var(--color-primary); }
-  #cardZoomModal .zoom-actions .delete-btn { background-color: var(--color-danger); }
+    .board-title h2 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+    }
 
-  /* Responsive */
-  @media (max-width: 700px) {
-    #kanbanSection .kanban-column { min-width: 250px; }
-    #kanbanSection .kanban-controls button { font-size: 0.85rem; padding: 8px 12px; }
-  }
+    .board-title p {
+      margin: 4px 0 0;
+      color: var(--color-muted);
+      font-size: 0.95rem;
+    }
+
+    .board-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .board-actions input[type="text"] {
+      min-width: 200px;
+      padding: 10px 14px;
+      border-radius: var(--radius-medium);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(27, 44, 87, 0.55);
+      color: var(--color-text);
+      font-size: 0.95rem;
+      transition: border var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .board-actions input[type="text"]:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(70, 243, 176, 0.25);
+    }
+
+    button {
+      border: none;
+      border-radius: var(--radius-medium);
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text);
+      background: linear-gradient(135deg, rgba(70, 243, 176, 0.85), rgba(123, 139, 255, 0.85));
+      cursor: pointer;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(70, 243, 176, 0.25);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .ghost-button {
+      background: rgba(36, 52, 96, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+    }
+
+    .danger-button {
+      background: linear-gradient(135deg, rgba(255, 107, 129, 0.9), rgba(255, 120, 94, 0.85));
+      box-shadow: 0 8px 20px rgba(255, 107, 129, 0.25);
+    }
+
+    #showNotificationsBtn.filter-active {
+      background: linear-gradient(135deg, rgba(255, 69, 110, 0.9), rgba(255, 107, 129, 0.9));
+      box-shadow: 0 0 15px rgba(255, 69, 110, 0.5);
+    }
+
+    .notif-count {
+      background-color: rgba(255, 69, 110, 0.95);
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+    }
+
+    #overdueNotice {
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-medium);
+      background: rgba(255, 107, 129, 0.18);
+      color: var(--color-text);
+      border: 1px solid rgba(255, 107, 129, 0.35);
+      font-size: 0.9rem;
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .kanban-column {
+      background: linear-gradient(165deg, rgba(27, 44, 87, 0.9), rgba(13, 22, 45, 0.85));
+      border-radius: var(--radius-large);
+      padding: 16px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kanban-column h3 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .kanban-column h3 span.task-count {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      margin-left: 6px;
+      letter-spacing: 0;
+    }
+
+    .limit-input {
+      width: 60px;
+      padding: 4px 6px;
+      border-radius: var(--radius-small);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(21, 34, 69, 0.6);
+      color: var(--color-text);
+      font-size: 0.8rem;
+    }
+
+    .kanban-tasks {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .kanban-tasks::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .kanban-tasks::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+    }
+
+    .kanban-card {
+      background: linear-gradient(165deg, rgba(27, 44, 87, 0.95), rgba(17, 28, 55, 0.92));
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-left: 4px solid var(--priority-low);
+      border-radius: var(--radius-medium);
+      padding: 14px 16px;
+      box-shadow: 0 14px 32px rgba(5, 10, 24, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: grab;
+      transition: transform var(--transition-fast), border var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .kanban-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px rgba(5, 10, 24, 0.45);
+    }
+
+    .kanban-card[data-priority="urgent"] { border-left-color: var(--priority-urgent); }
+    .kanban-card[data-priority="high"] { border-left-color: var(--priority-high); }
+    .kanban-card[data-priority="medium"] { border-left-color: var(--priority-medium); }
+    .kanban-card[data-priority="low"] { border-left-color: var(--priority-low); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .card-header h4 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .action-buttons {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-buttons button {
+      padding: 6px 8px;
+      border-radius: var(--radius-small);
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid transparent;
+      box-shadow: none;
+    }
+
+    .action-buttons button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .kanban-card p {
+      margin: 0;
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    .subtask-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.85rem;
+    }
+
+    .subtask-text.done {
+      text-decoration: line-through;
+      color: var(--color-muted);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+    }
+
+    .overdue-time {
+      color: var(--color-danger);
+      font-weight: 600;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .assigned {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .priority-label {
+      padding: 4px 8px;
+      border-radius: var(--radius-small);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .notes-field {
+      width: 100%;
+      min-height: 70px;
+      padding: 10px 12px;
+      border-radius: var(--radius-medium);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(21, 34, 69, 0.7);
+      color: var(--color-text);
+      resize: vertical;
+      font-size: 0.85rem;
+    }
+
+    .task-notes {
+      font-style: italic;
+      color: var(--color-muted);
+      font-size: 0.85rem;
+    }
+
+    .history-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    #clearHistoryBtn {
+      font-size: 0.8rem;
+      padding: 8px 12px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 18, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-content {
+      background: linear-gradient(160deg, rgba(21, 34, 69, 0.95), rgba(9, 15, 33, 0.96));
+      color: var(--color-text);
+      border-radius: var(--radius-large);
+      padding: 24px;
+      width: min(520px, 90vw);
+      box-shadow: var(--shadow-elevated);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 6px;
+      font-size: 1.3rem;
+    }
+
+    .modal-content form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-content label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-content input,
+    .modal-content textarea,
+    .modal-content select {
+      padding: 10px 12px;
+      border-radius: var(--radius-medium);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(27, 44, 87, 0.7);
+      color: var(--color-text);
+      font-size: 0.9rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .priority-boxes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .priority-box {
+      padding: 8px 12px;
+      border-radius: var(--radius-small);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0.65;
+      transition: transform var(--transition-fast), opacity var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .priority-box.selected {
+      opacity: 1;
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .priority-box.urgent { background: var(--priority-urgent); }
+    .priority-box.high { background: var(--priority-high); }
+    .priority-box.medium { background: var(--priority-medium); color: #2b1a06; }
+    .priority-box.low { background: var(--priority-low); color: #062a1d; }
+
+    #cardZoomModal .zoom-actions {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    #cardZoomModal .zoom-actions button {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+      }
+
+      #driveStatus {
+        align-self: stretch;
+        justify-content: flex-start;
+      }
+
+      .board-actions {
+        justify-content: flex-start;
+      }
+
+      .kanban-tasks {
+        max-height: 50vh;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>GetYourSh@tTogether</h1>
-    <span id="currentDateTime"></span>
+    <div class="brand">
+      <h1>Own Your Prime</h1>
+      <p class="tagline">Execute relentlessly. Celebrate intentionally.</p>
+    </div>
+    <div id="currentDateTime"></div>
+    <div id="driveStatus">Drive: Offline</div>
   </header>
   <main>
     <section id="kanbanSection">
-      <h2>Kanban Board</h2>
-      <div class="kanban-controls">
-        <input type="text" id="taskSearch" placeholder="Search tasks..." />
-        <button id="addTaskBtn">Add Task</button>
-        <button id="showNotificationsBtn">Notifications<span id="notifCount" class="notif-count" style="display:none;">0</span></button>
+      <div class="board-header">
+        <div class="board-title">
+          <h2>Command Center</h2>
+          <p>Focus on what matters now, next, and never again.</p>
+        </div>
+        <div class="board-actions">
+          <input type="text" id="taskSearch" placeholder="Search tasks, notes, or assignees..." />
+          <button id="addTaskBtn">+ Task</button>
+          <button id="showNotificationsBtn">Notifications<span id="notifCount" class="notif-count" style="display:none;">0</span></button>
+          <button id="exportBtn" class="ghost-button">Export JSON</button>
+          <button id="importBtn" class="ghost-button">Import JSON</button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+          <button id="driveSignInBtn" class="ghost-button">Connect Google</button>
+          <button id="driveSignOutBtn" class="ghost-button" disabled>Disconnect</button>
+          <button id="driveSaveBtn" class="ghost-button" disabled>Save to Drive</button>
+          <button id="driveLoadBtn" class="ghost-button" disabled>Load from Drive</button>
+        </div>
       </div>
-      <div id="overdueNotice" style="margin-bottom:10px; font-size:0.9rem;"></div>
+      <div id="overdueNotice"></div>
       <div class="kanban-board" id="kanbanBoard">
         <div class="kanban-column todo" data-status="todo">
-          <h3>To&nbsp;Do <span class="task-count" id="count-todo">0</span> <input type="number" class="limit-input" id="limit-todo" min="0" value="" placeholder="∞" /></h3>
+          <h3>To Do <span class="task-count" id="count-todo">0</span> <input type="number" class="limit-input" id="limit-todo" min="0" placeholder="∞" /></h3>
           <div class="kanban-tasks" id="tasks-todo"></div>
         </div>
         <div class="kanban-column doing" data-status="doing">
-          <h3>Doing <span class="task-count" id="count-doing">0</span> <input type="number" class="limit-input" id="limit-doing" min="0" value="3" /></h3>
+          <h3>Doing <span class="task-count" id="count-doing">0</span> <input type="number" class="limit-input" id="limit-doing" min="0" /></h3>
           <div class="kanban-tasks" id="tasks-doing"></div>
         </div>
         <div class="kanban-column done" data-status="done">
-          <h3>Done <span class="task-count" id="count-done">0</span> <input type="number" class="limit-input" id="limit-done" min="0" value="" placeholder="∞" /></h3>
+          <h3>Done <span class="task-count" id="count-done">0</span> <input type="number" class="limit-input" id="limit-done" min="0" placeholder="∞" /></h3>
           <div class="kanban-tasks" id="tasks-done"></div>
+          <div class="history-controls">
+            <button id="clearHistoryBtn" class="danger-button ghost-button">Clear History</button>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Modal for adding/editing tasks -->
   <div class="modal" id="taskModal">
     <div class="modal-content">
       <h3 id="taskModalTitle">Add Task</h3>
       <form id="taskForm">
         <label for="taskTitle">Title</label>
         <input type="text" id="taskTitle" required />
+
         <label for="taskDesc">Description</label>
         <textarea id="taskDesc" rows="3"></textarea>
 
@@ -238,483 +636,1303 @@
         <div id="subtasksContainer">
           <input type="text" class="subtask-input" placeholder="Add subtask and press Enter" />
         </div>
+
         <label>Priority</label>
-        <div id="priorityBoxContainer">
+        <div id="priorityBoxContainer" class="priority-boxes">
           <span class="priority-box urgent" data-value="urgent">Urgent</span>
           <span class="priority-box high" data-value="high">High</span>
           <span class="priority-box medium" data-value="medium">Medium</span>
           <span class="priority-box low" data-value="low">Low</span>
         </div>
         <input type="hidden" id="taskPriority" value="low" />
+
         <label for="taskDueDate">Due Date</label>
         <input type="date" id="taskDueDate" />
+
         <label for="taskDueTime">Due Time (optional)</label>
         <input type="time" id="taskDueTime" />
+
         <label for="taskAssigned">Assign to (comma separated names)</label>
         <input type="text" id="taskAssigned" placeholder="e.g. Alice, Bob" />
+
         <div class="modal-actions">
-          <button type="button" class="secondary" id="cancelTaskBtn">Cancel</button>
-          <button type="submit" class="primary">Save</button>
+          <button type="button" class="ghost-button" id="cancelTaskBtn">Cancel</button>
+          <button type="submit">Save</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal for zooming in on a task card -->
   <div class="modal" id="cardZoomModal">
     <div class="modal-content" id="zoomContent"></div>
   </div>
 
   <script>
-  // ===== Utilities =====
-  function saveToStorage(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-  function loadFromStorage(key) { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
-  function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
-  function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
-  function hashStringToColor(str) { let hash = 0; for (let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash<<5) - hash);} const hue = (hash % 360 + 360) % 360; return `hsl(${hue}, 70%, 50%)`; }
-  function formatDate(date) { const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,'0'); const d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
-  function formatDuration(ms){ const s=Math.floor(ms/1000); const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const sec=s%60; return `${h>0? h+'h ':''}${m}m ${sec}s`.trim(); }
-  function formatDateTime(date){ const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,'0'); const d=String(date.getDate()).padStart(2,'0'); const h=String(date.getHours()).padStart(2,'0'); const mi=String(date.getMinutes()).padStart(2,'0'); return `${y}-${m}-${d} ${h}:${mi}`; }
+    const STORAGE_KEYS = {
+      tasks: 'ownYourPrime.tasks',
+      wip: 'ownYourPrime.wipLimits',
+      googleClientId: 'ownYourPrime.googleClientId'
+    };
 
-  // ===== Kanban State =====
-  let tasks = loadFromStorage('tasks') || [];
-  tasks = tasks.map(t => {
-    const copy = { ...t };
-    if (copy.attemptCount === undefined) copy.attemptCount = copy.attempted ? 1 : 0;
-    delete copy.attempted;
-    if (!Array.isArray(copy.subtasks)) copy.subtasks = [];
-    if (copy.subtasks.length && typeof copy.subtasks[0] === 'string') copy.subtasks = copy.subtasks.map(title => ({ title, done:false }));
-    if (copy.notes === undefined) copy.notes = '';
-    if (copy.dueTime === undefined) copy.dueTime = '';
-    if (copy.status === 'done' && copy.timeSpent === undefined) copy.timeSpent = 0;
-    return copy;
-  });
-  if (tasks.length === 0) {
-    tasks = [
-      { id: generateId(), title: 'Setup project repo', description: 'Initialize repository and README.', priority: 'high', assigned: ['Alice'], status: 'todo', dueDate: formatDate(new Date(Date.now()+86400000)), dueTime: '', attemptCount: 0, subtasks: [] },
-      { id: generateId(), title: 'Design UI mockups', description: 'Create wireframes for the new app.', priority: 'medium', assigned: ['Bob','Clara'], status: 'doing', dueDate: formatDate(new Date(Date.now()+86400000)), dueTime: '', attemptCount: 0, startedAt: Date.now(), subtasks: [] },
-      { id: generateId(), title: 'Review PR #42', description: 'Code review and merge changes.', priority: 'low', assigned: ['Dan'], status: 'done', dueDate: formatDate(new Date(Date.now()-86400000)), dueTime: '', attemptCount: 0, timeSpent: 0, subtasks: [], completedAt: formatDate(new Date()) }
+    const DEFAULT_ASSIGNEE = 'Prime Self';
+
+    const HISTORY_STAGES = [
+      { id: '30', shortLabel: '30d+', description: 'tasks completed 30 or more days ago', predicate: (task, now) => completedDaysAgo(task, now) >= 30 },
+      { id: '7', shortLabel: '7d+', description: 'tasks completed 7 or more days ago', predicate: (task, now) => completedDaysAgo(task, now) >= 7 },
+      { id: '1', shortLabel: 'Yesterday', description: 'tasks completed before today', predicate: (task, now) => completedDaysAgo(task, now) >= 1 },
+      { id: 'all', shortLabel: 'All', description: 'all completed tasks', predicate: () => true }
     ];
-    saveToStorage('tasks', tasks);
-  }
-  let wipLimits = loadFromStorage('wipLimits') || { todo: null, doing: 3, done: null };
 
-  // ===== Elements =====
-  const taskSearchInput = document.getElementById('taskSearch');
-  const addTaskBtn = document.getElementById('addTaskBtn');
-  const taskModal = document.getElementById('taskModal');
-  const taskForm = document.getElementById('taskForm');
-  const taskModalTitle = document.getElementById('taskModalTitle');
-  const cancelTaskBtn = document.getElementById('cancelTaskBtn');
-  const showNotificationsBtn = document.getElementById('showNotificationsBtn');
+    const elements = {
+      search: document.getElementById('taskSearch'),
+      addTask: document.getElementById('addTaskBtn'),
+      notifications: document.getElementById('showNotificationsBtn'),
+      notifCount: document.getElementById('notifCount'),
+      export: document.getElementById('exportBtn'),
+      import: document.getElementById('importBtn'),
+      importFile: document.getElementById('importFile'),
+      driveStatus: document.getElementById('driveStatus'),
+      driveSignIn: document.getElementById('driveSignInBtn'),
+      driveSignOut: document.getElementById('driveSignOutBtn'),
+      driveSave: document.getElementById('driveSaveBtn'),
+      driveLoad: document.getElementById('driveLoadBtn'),
+      clearHistory: document.getElementById('clearHistoryBtn'),
+      overdueNotice: document.getElementById('overdueNotice'),
+      taskModal: document.getElementById('taskModal'),
+      taskForm: document.getElementById('taskForm'),
+      taskModalTitle: document.getElementById('taskModalTitle'),
+      cancelTask: document.getElementById('cancelTaskBtn'),
+      subtasksContainer: document.getElementById('subtasksContainer'),
+      priorityBoxes: document.querySelectorAll('.priority-box'),
+      limits: {
+        todo: document.getElementById('limit-todo'),
+        doing: document.getElementById('limit-doing'),
+        done: document.getElementById('limit-done')
+      },
+      taskContainers: {
+        todo: document.getElementById('tasks-todo'),
+        doing: document.getElementById('tasks-doing'),
+        done: document.getElementById('tasks-done')
+      },
+      taskCounts: {
+        todo: document.getElementById('count-todo'),
+        doing: document.getElementById('count-doing'),
+        done: document.getElementById('count-done')
+      },
+      zoomModal: document.getElementById('cardZoomModal'),
+      zoomContent: document.getElementById('zoomContent')
+    };
 
-  document.getElementById('limit-todo').value = wipLimits.todo ?? '';
-  document.getElementById('limit-doing').value = wipLimits.doing ?? '';
-  document.getElementById('limit-done').value = wipLimits.done ?? '';
-
-  let notificationsFilterActive = false;
-  let editingTaskId = null;
-
-  // Priority box selection
-  document.querySelectorAll('.priority-box').forEach(box => {
-    box.addEventListener('click', () => {
-      document.querySelectorAll('.priority-box').forEach(b => b.classList.remove('selected'));
-      box.classList.add('selected');
-      document.getElementById('taskPriority').value = box.dataset.value;
-    });
-  });
-
-  // Subtasks entry (Enter key)
-  const subtasksContainer = document.getElementById('subtasksContainer');
-  subtasksContainer.addEventListener('keypress', (e) => {
-    if (e.target.classList.contains('subtask-input') && e.key === 'Enter') {
-      e.preventDefault();
-      const value = e.target.value.trim();
-      if (value) {
-        const subtaskItem = document.createElement('div');
-        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = false;
-        const label = document.createElement('label'); label.textContent = value;
-        subtaskItem.appendChild(checkbox); subtaskItem.appendChild(label);
-        subtasksContainer.insertBefore(subtaskItem, e.target);
-        e.target.value = '';
+    function saveToStorage(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (error) {
+        console.warn('Storage save failed', error);
       }
     }
-  });
 
-  // ===== Render Board =====
-  function renderBoard() {
-    // Preserve scroll positions to avoid jank during frequent re-renders
-    const containers = ['todo','doing','done'].map(s => document.getElementById(`tasks-${s}`));
-    const scrolls = {};
-    containers.forEach(c => { if (c) scrolls[c.id] = c.scrollTop; });
-
-    ['todo','doing','done'].forEach(status => { document.getElementById(`tasks-${status}`).innerHTML = ''; });
-
-    const searchTerm = taskSearchInput.value.toLowerCase();
-    const now = new Date();
-    let displayTasks;
-    if (notificationsFilterActive) {
-      displayTasks = tasks.filter(t => {
-        if (t.status === 'done') return false;
-        if (t.priority === 'urgent') return true;
-        if (t.dueDate) { const due = new Date(`${t.dueDate}T${t.dueTime ? t.dueTime : '23:59'}:00`); return (due - now) <= 3600000; }
-        return false;
-      });
-    } else {
-      displayTasks = tasks;
+    function loadFromStorage(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        console.warn('Storage load failed', error);
+        return null;
+      }
     }
 
-    // Build sorted lists per status so ordering inside each column is correct
-    const farFuture = new Date(8640000000000000);
-    const toDue = (t) => t.dueDate ? new Date(`${t.dueDate}T${t.dueTime ? t.dueTime : '23:59'}:00`) : farFuture;
-    const todos = displayTasks
-      .filter(t => t.status === 'todo')
-      .sort((a, b) => {
-        // Urgent first, then earlier due date/time
+    function generateId() {
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
+    function hashStringToColor(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i += 1) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = (hash % 360 + 360) % 360;
+      return `hsl(${hue}, 70%, 52%)`;
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateTime(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const mi = String(date.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${d} ${h}:${mi}`;
+    }
+
+    function formatDuration(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const sec = seconds % 60;
+      if (hours > 0) {
+        return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+      }
+      return `${minutes}m ${String(sec).padStart(2, '0')}s`;
+    }
+
+    function normalizeTask(raw) {
+      const normalized = { ...raw };
+      if (!normalized.id) normalized.id = generateId();
+      if (!Array.isArray(normalized.assigned)) {
+        normalized.assigned = (typeof normalized.assigned === 'string' && normalized.assigned)
+          ? normalized.assigned.split(',').map((name) => name.trim()).filter(Boolean)
+          : [DEFAULT_ASSIGNEE];
+      }
+      if (!Array.isArray(normalized.subtasks)) {
+        normalized.subtasks = [];
+      }
+      if (normalized.subtasks.length && typeof normalized.subtasks[0] === 'string') {
+        normalized.subtasks = normalized.subtasks.map((title) => ({ title, done: false }));
+      }
+      if (!normalized.priority) normalized.priority = 'low';
+      if (!normalized.status) normalized.status = 'todo';
+      if (!normalized.notes) normalized.notes = '';
+      if (normalized.status === 'doing' && !normalized.startedAt) {
+        normalized.startedAt = Date.now();
+      }
+      if (normalized.status === 'done' && !normalized.completedAt) {
+        normalized.completedAt = formatDateTime(new Date());
+      }
+      normalized.attemptCount = normalized.attemptCount ?? 0;
+      normalized.timeSpent = normalized.timeSpent ?? 0;
+      return normalized;
+    }
+
+    function completedDaysAgo(task, now = new Date()) {
+      if (!task.completedAt) return -1;
+      const completed = new Date(task.completedAt);
+      const diff = now - completed;
+      if (Number.isNaN(diff)) return -1;
+      return Math.floor(diff / 86400000);
+    }
+
+    let tasks = (loadFromStorage(STORAGE_KEYS.tasks) || []).map(normalizeTask);
+    let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: 3, done: null };
+    let notificationsFilterActive = false;
+    let editingTaskId = null;
+    let historyStageIndex = 0;
+
+    if (tasks.length === 0) {
+      const tomorrow = formatDate(new Date(Date.now() + 86400000));
+      tasks = [
+        normalizeTask({
+          id: generateId(),
+          title: 'Blueprint the big win',
+          description: 'Draft the milestones that will move the needle this week.',
+          priority: 'high',
+          assigned: ['Prime Self'],
+          status: 'todo',
+          dueDate: tomorrow,
+          dueTime: '',
+          attemptCount: 0,
+          subtasks: []
+        }),
+        normalizeTask({
+          id: generateId(),
+          title: 'Prototype focus ritual',
+          description: 'Run a 45 minute deep work sprint and document friction points.',
+          priority: 'medium',
+          assigned: ['Prime Self'],
+          status: 'doing',
+          dueDate: tomorrow,
+          startedAt: Date.now(),
+          subtasks: []
+        }),
+        normalizeTask({
+          id: generateId(),
+          title: 'Celebrate yesterday\'s win',
+          description: 'Capture gratitude & lessons learned from yesterday\'s momentum.',
+          priority: 'low',
+          assigned: ['Prime Self'],
+          status: 'done',
+          dueDate: formatDate(new Date(Date.now() - 86400000)),
+          completedAt: formatDateTime(new Date())
+        })
+      ];
+      saveToStorage(STORAGE_KEYS.tasks, tasks);
+    }
+
+    Object.entries(wipLimits).forEach(([status, value]) => {
+      const input = elements.limits[status];
+      if (input) input.value = value ?? '';
+    });
+
+    function renderBoard() {
+      const scrollPositions = {};
+      Object.entries(elements.taskContainers).forEach(([status, container]) => {
+        scrollPositions[status] = container.scrollTop;
+        container.innerHTML = '';
+      });
+
+      const searchTerm = elements.search.value.trim().toLowerCase();
+      const now = new Date();
+
+      let workingList = [...tasks];
+      if (notificationsFilterActive) {
+        workingList = workingList.filter((task) => shouldIncludeInNotifications(task, now));
+      }
+
+      workingList
+        .filter((task) => matchesSearch(task, searchTerm))
+        .sort(taskSorter)
+        .forEach((task) => {
+          const card = buildTaskCard(task);
+          elements.taskContainers[task.status].appendChild(card);
+        });
+
+      Object.entries(elements.taskContainers).forEach(([status, container]) => {
+        container.scrollTop = scrollPositions[status] ?? 0;
+        elements.taskCounts[status].textContent = container.children.length;
+      });
+
+      updateNotifications();
+      updateOverdueNotice();
+      updateHistoryButton();
+    }
+
+    function matchesSearch(task, term) {
+      if (!term) return true;
+      const haystack = [
+        task.title,
+        task.description,
+        task.notes,
+        ...(task.assigned || []),
+        ...(task.subtasks || []).map((sub) => sub.title)
+      ].join(' ').toLowerCase();
+      return haystack.includes(term);
+    }
+
+    function taskSorter(a, b) {
+      const statusOrder = { todo: 0, doing: 1, done: 2 };
+      if (statusOrder[a.status] !== statusOrder[b.status]) {
+        return statusOrder[a.status] - statusOrder[b.status];
+      }
+      if (a.status === 'todo') {
         if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
         if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
-        return toDue(a) - toDue(b);
-      });
-    const doings = displayTasks
-      .filter(t => t.status === 'doing')
-      .sort((a, b) => {
-        // Older started first; fallback to due
+      }
+      const aDue = a.dueDate ? new Date(`${a.dueDate}T${a.dueTime || '23:59'}:00`) : null;
+      const bDue = b.dueDate ? new Date(`${b.dueDate}T${b.dueTime || '23:59'}:00`) : null;
+      if (a.status === 'doing') {
         const aStart = a.startedAt || 0;
         const bStart = b.startedAt || 0;
         if (aStart && bStart && aStart !== bStart) return aStart - bStart;
-        return toDue(a) - toDue(b);
-      });
-    const dones = displayTasks
-      .filter(t => t.status === 'done')
-      .sort((a, b) => {
-        // Most recently completed first
-        const aComp = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-        const bComp = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-        return bComp - aComp;
-      });
-    const sortedTasks = [...todos, ...doings, ...dones];
+      }
+      if (a.status === 'done') {
+        const aCompleted = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const bCompleted = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return bCompleted - aCompleted;
+      }
+      if (aDue && bDue) return aDue - bDue;
+      if (aDue) return -1;
+      if (bDue) return 1;
+      return a.title.localeCompare(b.title);
+    }
 
-    sortedTasks.forEach(task => {
-      const matchesSearch = !searchTerm ||
-        task.title.toLowerCase().includes(searchTerm) ||
-        (task.description && task.description.toLowerCase().includes(searchTerm)) ||
-        (task.notes && task.notes.toLowerCase().includes(searchTerm)) ||
-        (Array.isArray(task.subtasks) && task.subtasks.some(sub => sub.title.toLowerCase().includes(searchTerm))) ||
-        task.assigned.some(a => a.toLowerCase().includes(searchTerm));
-      if (!matchesSearch) return;
-
-      const card = document.createElement('div');
+    function buildTaskCard(task) {
+      const card = document.createElement('article');
       card.className = 'kanban-card';
-      card.setAttribute('draggable', 'true');
       card.dataset.id = task.id;
       card.dataset.priority = task.priority;
+      card.setAttribute('draggable', 'true');
 
-      // Overdue detection
-      let isOverdue = false;
-      if (task.dueDate) {
-        const due = new Date(`${task.dueDate}T${task.dueTime ? task.dueTime : '23:59'}:00`);
-        if (due < new Date() && (task.attemptCount || 0) === 0 && task.status !== 'done') isOverdue = true;
+      const header = document.createElement('div');
+      header.className = 'card-header';
+
+      const title = document.createElement('h4');
+      title.textContent = task.title;
+      header.appendChild(title);
+
+      const actions = document.createElement('div');
+      actions.className = 'action-buttons';
+
+      actions.appendChild(createIconButton('✎', 'Edit task', () => openTaskEditor(task.id)));
+
+      if (task.status === 'todo') {
+        actions.appendChild(createIconButton('▶', 'Start task', () => moveTaskToDoing(task.id)));
+        actions.appendChild(createIconButton('✓', 'Mark complete', () => completeTask(task.id)));
+      } else if (task.status === 'doing') {
+        actions.appendChild(createIconButton('✓', 'Mark complete', () => completeTask(task.id)));
+        actions.appendChild(createIconButton('↺', 'Send back to To Do', () => markAttempt(task.id)));
+      } else if (task.status === 'done') {
+        actions.appendChild(createIconButton('↻', 'Reopen in Doing', () => reopenTask(task.id)));
       }
-      if (isOverdue) card.classList.add('overdue');
 
-      const headerHTML = `<div class=\"card-header\"><h4>${escapeHtml(task.title)}</h4>` +
-        `<div class=\"action-buttons\">` +
-          `<button class=\"edit-btn\" data-id=\"${task.id}\" title=\"Edit task\">✎</button>` +
-          (task.status === 'todo' ? `<button class=\"start-btn\" data-id=\"${task.id}\" title=\"Start task\">▶</button>` : '') +
-          (task.status !== 'todo' ? `<button class=\"complete-btn\" data-id=\"${task.id}\" title=\"Mark complete\">✓</button>` : '') +
-          (task.status === 'doing' ? `<button class=\"attempt-btn\" data-id=\"${task.id}\" title=\"Mark incomplete and move back to To Do\">↺</button>` : '') +
-          `<button class=\"delete-btn\" data-id=\"${task.id}\" title=\"Delete task\">✕</button>` +
-        `</div></div>`;
+      actions.appendChild(createIconButton('✕', 'Delete task', () => deleteTask(task.id)));
+      header.appendChild(actions);
+      card.appendChild(header);
 
-      const descHTML = task.description ? `<p>${escapeHtml(task.description)}</p>` : '';
+      if (task.description) {
+        const desc = document.createElement('p');
+        desc.textContent = task.description;
+        card.appendChild(desc);
+      }
 
-      // Subtasks
-      let subtasksHTML = '';
-      if (task.subtasks && task.subtasks.length > 0) {
-        subtasksHTML = '<ul class=\"subtask-list\">';
-        task.subtasks.forEach((st, idx) => {
-          const checked = st.done ? 'checked' : '';
-          const doneClass = st.done ? 'done' : '';
-          subtasksHTML += `<li><label><input type=\"checkbox\" class=\"subtask-checkbox\" data-id=\"${task.id}\" data-index=\"${idx}\" ${checked}> <span class=\"subtask-text ${doneClass}\">${escapeHtml(st.title)}</span></label></li>`;
+      if (task.subtasks && task.subtasks.length) {
+        const list = document.createElement('ul');
+        list.className = 'subtask-list';
+        task.subtasks.forEach((subtask, index) => {
+          const item = document.createElement('li');
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'subtask-checkbox';
+          checkbox.dataset.id = task.id;
+          checkbox.dataset.index = String(index);
+          checkbox.checked = Boolean(subtask.done);
+          checkbox.addEventListener('change', handleSubtaskToggle);
+          const span = document.createElement('span');
+          span.className = `subtask-text${subtask.done ? ' done' : ''}`;
+          span.textContent = subtask.title;
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(' '));
+          label.appendChild(span);
+          item.appendChild(label);
+          list.appendChild(item);
         });
-        subtasksHTML += '</ul>';
+        card.appendChild(list);
       }
 
-      // Meta
-      const metaSpans = [];
-      if (task.dueDate) {
-        let dueStr = escapeHtml(task.dueDate); if (task.dueTime) dueStr += ' ' + escapeHtml(task.dueTime);
-        metaSpans.push(`<span class=\"due-date\">Due: ${dueStr}</span>`);
-        const dueDateTime = new Date(`${task.dueDate}T${task.dueTime ? task.dueTime : '23:59'}:00`);
-        const nowMeta = new Date();
-        if (dueDateTime < nowMeta && task.status !== 'done') {
-          const diffMs = nowMeta - dueDateTime; const diffDays = Math.floor(diffMs / 86400000); const diffHours = Math.floor((diffMs % 86400000)/3600000);
-          metaSpans.push(`<span class=\"overdue-time\">Overdue by ${diffDays>0? diffDays+'d'+(diffHours>0? ' '+diffHours+'h':'' ) : diffHours+'h'}</span>`);
-        }
-      }
-      if (task.status === 'doing' && task.startedAt) {
-        const diff = Date.now() - task.startedAt; const hrs = Math.floor(diff / 3600000); const mins = Math.floor((diff % 3600000)/60000); const secs = Math.floor((diff % 60000)/1000);
-        metaSpans.push(`<span class=\"timer\">${hrs>0? hrs+'h ':''}${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</span>`);
-      }
-      if ((task.status !== 'doing' || !task.startedAt) && task.timeSpent && task.timeSpent > 0) {
-        metaSpans.push(`<span class=\"time-spent\">Spent: ${escapeHtml(formatDuration(task.timeSpent))}</span>`);
-      }
-      if (task.attemptCount && task.attemptCount > 0) metaSpans.push(`<span class=\"attempt-count\">Attempts: ${task.attemptCount}</span>`);
-      if (task.status === 'done' && task.completedAt) metaSpans.push(`<span class=\"completed-at\">Done: ${escapeHtml(task.completedAt)}</span>`);
-      const metaHTML = `<div class=\"card-meta\">${metaSpans.join('')}</div>`;
-
-      // Notes
-      let notesHTML = ''; let notesDisplayHTML = '';
-      if (task.status === 'doing') notesHTML = `<textarea class=\"notes-field\" data-id=\"${task.id}\" placeholder=\"Add notes...\">${escapeHtml(task.notes || '')}</textarea>`;
-      else if (task.notes) notesDisplayHTML = `<p class=\"task-notes\">${escapeHtml(task.notes)}</p>`;
-
-      // Footer
-      const avatarsHTML = task.assigned.map(name => {
-        const initial = escapeHtml(name.trim().charAt(0).toUpperCase());
-        const color = hashStringToColor(name.trim());
-        return `<div class=\"avatar\" style=\"background-color:${color}\" title=\"${escapeHtml(name.trim())}\">${initial}</div>`;
-      }).join('');
-      let priorityBg = task.priority==='urgent' ? 'var(--priority-urgent)' : task.priority==='high' ? 'var(--priority-high)' : task.priority==='medium' ? 'var(--priority-medium)' : 'var(--priority-low)';
-      const priorityHTML = `<span class=\"priority-label\" style=\"background-color:${priorityBg}\">${task.priority.charAt(0).toUpperCase()+task.priority.slice(1)}</span>`;
-      const footerHTML = `<div class=\"card-footer\"><div class=\"assigned\">${avatarsHTML}</div><div class=\"labels\">${priorityHTML}</div></div>`;
-
-      card.innerHTML = `${headerHTML}${descHTML}${subtasksHTML}${notesHTML || notesDisplayHTML}${metaHTML}${footerHTML}`;
-
-      // Drag
-      card.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', task.id); });
-
-      // Actions
-      card.querySelector('.delete-btn').addEventListener('click', (ev) => { ev.stopPropagation(); tasks = tasks.filter(t => t.id !== task.id); saveToStorage('tasks', tasks); renderBoard(); });
-      const startBtn = card.querySelector('.start-btn');
-      if (startBtn) startBtn.addEventListener('click', (ev) => {
-        ev.stopPropagation(); const doingLimit = wipLimits['doing'];
-        if (doingLimit !== null && doingLimit !== undefined && doingLimit !== '' && doingLimit >= 0) {
-          const currentDoing = tasks.filter(tt => tt.status === 'doing').length; if (currentDoing >= doingLimit) { alert(`Cannot start: WIP limit for DOING is ${doingLimit}`); return; }
-        }
-        task.status = 'doing'; task.startedAt = Date.now(); saveToStorage('tasks', tasks); renderBoard();
-      });
-      const completeBtn = card.querySelector('.complete-btn');
-      if (completeBtn) completeBtn.addEventListener('click', (ev) => { ev.stopPropagation(); let delta = 0; if (task.startedAt) delta = Date.now() - task.startedAt; task.timeSpent = (task.timeSpent || 0) + delta; delete task.startedAt; task.status = 'done'; task.completedAt = formatDateTime(new Date()); saveToStorage('tasks', tasks); renderBoard(); });
-      const attemptBtn = card.querySelector('.attempt-btn');
-      if (attemptBtn) attemptBtn.addEventListener('click', (ev) => { ev.stopPropagation(); const delta = task.startedAt ? (Date.now() - task.startedAt) : 0; task.timeSpent = (task.timeSpent || 0) + delta; task.attemptCount = (task.attemptCount || 0) + 1; delete task.startedAt; task.status = 'todo'; saveToStorage('tasks', tasks); renderBoard(); });
-      const editBtn = card.querySelector('.edit-btn');
-      if (editBtn) editBtn.addEventListener('click', (ev) => {
-        ev.stopPropagation(); editingTaskId = task.id; taskModalTitle.textContent = 'Edit Task'; document.getElementById('taskTitle').value = task.title; document.getElementById('taskDesc').value = task.description || ''; document.getElementById('taskDueDate').value = task.dueDate || ''; document.getElementById('taskDueTime').value = task.dueTime || ''; document.getElementById('taskAssigned').value = task.assigned.join(', ');
-        const container = document.getElementById('subtasksContainer'); Array.from(container.children).forEach(ch => { if (!ch.classList.contains('subtask-input')) ch.remove(); });
-        if (Array.isArray(task.subtasks)) task.subtasks.forEach(sub => { const subDiv = document.createElement('div'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = sub.done; const label = document.createElement('label'); label.textContent = sub.title; subDiv.appendChild(cb); subDiv.appendChild(label); container.insertBefore(subDiv, container.querySelector('.subtask-input')); });
-        document.querySelectorAll('.priority-box').forEach(b => b.classList.remove('selected')); const sel = document.querySelector(`.priority-box[data-value=\"${task.priority}\"]`); if (sel) sel.classList.add('selected'); document.getElementById('taskPriority').value = task.priority; taskModal.style.display = 'flex';
-      });
-
-      // Notes save on blur
-      const notesField = card.querySelector('.notes-field');
-      if (notesField) notesField.addEventListener('blur', (ev) => { const t = tasks.find(tt => tt.id === task.id); if (t) { t.notes = ev.target.value; saveToStorage('tasks', tasks); } });
-
-      // Subtasks toggle
-      card.querySelectorAll('.subtask-checkbox').forEach(cb => { cb.addEventListener('change', (ev) => { const idx = parseInt(ev.target.getAttribute('data-index')); const t = tasks.find(tt => tt.id === task.id); if (t && t.subtasks[idx]) { t.subtasks[idx].done = ev.target.checked; saveToStorage('tasks', tasks); renderBoard(); } }); });
-
-      // Zoom modal on double click
-      card.addEventListener('dblclick', (ev) => { ev.stopPropagation(); showZoomModal(task); });
-
-      document.getElementById(`tasks-${task.status}`).appendChild(card);
-    });
-
-    // Counts reflect visible cards
-    document.getElementById('count-todo').textContent = document.getElementById('tasks-todo').children.length;
-    document.getElementById('count-doing').textContent = document.getElementById('tasks-doing').children.length;
-    document.getElementById('count-done').textContent = document.getElementById('tasks-done').children.length;
-
-    updateNotifications();
-    updateOverdueNotice();
-
-    // Restore scroll positions after DOM updates
-    containers.forEach(c => { if (c && scrolls[c.id] !== undefined) c.scrollTop = scrolls[c.id]; });
-  }
-
-  // DnD
-  function attachDropHandlers(element, status) {
-    element.addEventListener('dragover', (ev) => { ev.preventDefault(); });
-    element.addEventListener('drop', (ev) => {
-      ev.preventDefault(); const id = ev.dataTransfer.getData('text/plain'); const targetStatus = status; const limit = wipLimits[targetStatus];
-      if (limit !== null && limit !== undefined && limit !== '' && limit >= 0) {
-        const currentCount = tasks.filter(t => t.status === targetStatus).length;
-        if (currentCount >= limit && tasks.find(t => t.id === id).status !== targetStatus) { alert(`Cannot move: WIP limit for ${targetStatus.toUpperCase()} is ${limit}`); return; }
-      }
-      const task = tasks.find(t => t.id === id);
-      if (task) {
-        const prev = task.status;
-        if (prev === 'doing' && targetStatus !== 'doing') { if (task.startedAt) { const delta = Date.now() - task.startedAt; task.timeSpent = (task.timeSpent || 0) + delta; } delete task.startedAt; }
-        task.status = targetStatus; if (targetStatus === 'doing') task.startedAt = Date.now();
-        saveToStorage('tasks', tasks); renderBoard();
-      }
-    });
-  }
-  document.querySelectorAll('.kanban-column').forEach(column => {
-    const status = column.dataset.status; attachDropHandlers(column, status); const tasksContainer = column.querySelector('.kanban-tasks'); if (tasksContainer) attachDropHandlers(tasksContainer, status);
-  });
-
-  // Search & WIP limit updates
-  taskSearchInput.addEventListener('input', renderBoard);
-  ['limit-todo','limit-doing','limit-done'].forEach(id => { const input=document.getElementById(id); input.addEventListener('change', () => { const status=id.split('-')[1]; const value=input.value; wipLimits[status] = value ? Number(value) : null; saveToStorage('wipLimits', wipLimits); }); });
-
-  // Add/Edit task modal
-  addTaskBtn.addEventListener('click', () => {
-    editingTaskId = null; taskModalTitle.textContent = 'Add Task'; taskForm.reset();
-    const tomorrow = new Date(Date.now()+86400000); document.getElementById('taskDueDate').value = formatDate(tomorrow);
-    document.getElementById('taskAssigned').value = 'BabyG'; document.getElementById('taskDueTime').value = '';
-    document.querySelectorAll('.priority-box').forEach(b => b.classList.remove('selected')); const def = document.querySelector('.priority-box.low'); if (def) def.classList.add('selected'); document.getElementById('taskPriority').value = 'low';
-    const cont = document.getElementById('subtasksContainer'); Array.from(cont.children).forEach(ch => { if (!ch.classList.contains('subtask-input')) ch.remove(); });
-    taskModal.style.display = 'flex';
-  });
-  cancelTaskBtn.addEventListener('click', () => { taskModal.style.display = 'none'; taskForm.reset(); document.querySelectorAll('.priority-box').forEach(b => b.classList.remove('selected')); const def = document.querySelector('.priority-box.low'); if (def) def.classList.add('selected'); document.getElementById('taskPriority').value = 'low'; const cont2 = document.getElementById('subtasksContainer'); Array.from(cont2.children).forEach(ch => { if (!ch.classList.contains('subtask-input')) ch.remove(); }); });
-  taskModal.addEventListener('click', (ev) => { if (ev.target === taskModal) taskModal.style.display = 'none'; });
-  taskForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = document.getElementById('taskTitle').value.trim();
-    const description = document.getElementById('taskDesc').value.trim();
-    const subtaskNodes = Array.from(document.getElementById('subtasksContainer').children);
-    const subtasksInput = [];
-    subtaskNodes.forEach(node => { if (node.classList.contains('subtask-input')) return; const cb=node.querySelector('input[type="checkbox"]'); const label=node.querySelector('label'); if (label) subtasksInput.push({ title: label.textContent.trim(), done: cb ? cb.checked : false }); });
-    const priority = document.getElementById('taskPriority').value;
-    let assigned = document.getElementById('taskAssigned').value.split(',').map(s => s.trim()).filter(Boolean);
-    if (assigned.length === 0) assigned = ['BabyG'];
-    const dueDateValue = document.getElementById('taskDueDate').value || formatDate(new Date(Date.now()+86400000));
-    const dueTimeValue = document.getElementById('taskDueTime').value;
-    if (!title) { alert('Title is required.'); return; }
-    if (editingTaskId) {
-      const t = tasks.find(t => t.id === editingTaskId);
-      if (t) { t.title = title; t.description = description; t.priority = priority; t.assigned = assigned; t.dueDate = dueDateValue; t.dueTime = dueTimeValue || ''; t.subtasks = subtasksInput; }
-    } else {
-      tasks.push({ id: generateId(), title, description, priority, assigned, status: 'todo', dueDate: dueDateValue, dueTime: dueTimeValue || '', attemptCount: 0, subtasks: subtasksInput, timeSpent: 0 });
-    }
-    saveToStorage('tasks', tasks); taskModal.style.display = 'none'; renderBoard();
-  });
-
-  renderBoard();
-
-  // Live timers + overdue labels
-  function updateTimersLive() {
-    const nowMs = Date.now(); const nowDate = new Date(nowMs);
-    tasks.forEach(t => {
-      if (t.status === 'doing' && t.startedAt) {
-        const cardEl = document.querySelector(`.kanban-card[data-id="${t.id}"]`);
-        if (cardEl) { const timerEl = cardEl.querySelector('.timer'); if (timerEl) { const diff = nowMs - t.startedAt; const hrs = Math.floor(diff / 3600000); const mins = Math.floor((diff % 3600000)/60000); const secs = Math.floor((diff % 60000)/1000); timerEl.textContent = `${hrs>0? hrs+'h ':''}${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; } }
-      }
-    });
-    tasks.forEach(t => {
-      if (t.status !== 'done' && t.dueDate) {
-        const due = new Date(`${t.dueDate}T${t.dueTime ? t.dueTime : '23:59'}:00`);
-        if (due < nowDate) {
-          const cardEl = document.querySelector(`.kanban-card[data-id="${t.id}"]`);
-          if (cardEl) {
-            if ((t.attemptCount || 0) === 0) cardEl.classList.add('overdue');
-            const metaEl = cardEl.querySelector('.card-meta'); let labelEl = cardEl.querySelector('.overdue-time');
-            if (!labelEl && metaEl) { labelEl = document.createElement('span'); labelEl.className = 'overdue-time'; metaEl.appendChild(labelEl); }
-            if (labelEl) {
-              const diffMs = nowDate - due; const diffDays = Math.floor(diffMs / 86400000); const diffHours = Math.floor((diffMs % 86400000)/3600000);
-              labelEl.textContent = `Overdue by ${diffDays>0? diffDays+'d'+(diffHours>0? ' '+diffHours+'h':'' ) : diffHours+'h'}`;
-            }
+      if (task.status === 'doing') {
+        const notesField = document.createElement('textarea');
+        notesField.className = 'notes-field';
+        notesField.placeholder = 'Add notes...';
+        notesField.value = task.notes || '';
+        notesField.addEventListener('blur', () => {
+          const match = tasks.find((t) => t.id === task.id);
+          if (match) {
+            match.notes = notesField.value;
+            persistTasks();
           }
+        });
+        card.appendChild(notesField);
+      } else if (task.notes) {
+        const notes = document.createElement('p');
+        notes.className = 'task-notes';
+        notes.textContent = task.notes;
+        card.appendChild(notes);
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+
+      if (task.dueDate) {
+        const due = document.createElement('span');
+        due.className = 'due-date';
+        due.textContent = `Due: ${task.dueDate}${task.dueTime ? ` ${task.dueTime}` : ''}`;
+        meta.appendChild(due);
+
+        const dueDate = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
+        if (dueDate < new Date() && task.status !== 'done' && (task.attemptCount || 0) === 0) {
+          card.classList.add('overdue');
+          const overdueLabel = document.createElement('span');
+          overdueLabel.className = 'overdue-time';
+          const diffMs = Date.now() - dueDate.getTime();
+          const diffDays = Math.floor(diffMs / 86400000);
+          const diffHours = Math.floor((diffMs % 86400000) / 3600000);
+          overdueLabel.textContent = `Overdue by ${diffDays > 0 ? `${diffDays}d ${diffHours}h` : `${diffHours}h`}`;
+          meta.appendChild(overdueLabel);
         }
       }
-    });
-  }
-  setInterval(updateTimersLive, 1000);
 
-  // Notifications (filter toggle + badge)
-  function updateNotifications() {
-    const now = new Date();
-    const tasksForNotif = tasks.filter(t => {
-      if (t.status === 'done') return false; if (t.priority === 'urgent') return true;
-      if (t.dueDate) { const due = new Date(`${t.dueDate}T${t.dueTime ? t.dueTime : '23:59'}:00`); return (due - now) <= 3600000; }
+      if (task.status === 'doing' && task.startedAt) {
+        const timer = document.createElement('span');
+        timer.className = 'timer';
+        timer.textContent = formatOngoingTimer(task.startedAt);
+        meta.appendChild(timer);
+      }
+
+      if ((task.status !== 'doing' || !task.startedAt) && task.timeSpent > 0) {
+        const span = document.createElement('span');
+        span.textContent = `Spent: ${formatDuration(task.timeSpent)}`;
+        meta.appendChild(span);
+      }
+
+      if (task.attemptCount > 0) {
+        const span = document.createElement('span');
+        span.textContent = `Attempts: ${task.attemptCount}`;
+        meta.appendChild(span);
+      }
+
+      if (task.status === 'done' && task.completedAt) {
+        const span = document.createElement('span');
+        span.textContent = `Done: ${task.completedAt}`;
+        meta.appendChild(span);
+      }
+
+      if (meta.children.length) {
+        card.appendChild(meta);
+      }
+
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+
+      const assigned = document.createElement('div');
+      assigned.className = 'assigned';
+      (task.assigned || [DEFAULT_ASSIGNEE]).forEach((name) => {
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.style.backgroundColor = hashStringToColor(name.trim() || DEFAULT_ASSIGNEE);
+        avatar.title = name.trim() || DEFAULT_ASSIGNEE;
+        avatar.textContent = (name.trim() || DEFAULT_ASSIGNEE).charAt(0).toUpperCase();
+        assigned.appendChild(avatar);
+      });
+      footer.appendChild(assigned);
+
+      const priority = document.createElement('span');
+      priority.className = 'priority-label';
+      priority.style.backgroundColor = getPriorityColor(task.priority);
+      priority.textContent = task.priority.toUpperCase();
+      footer.appendChild(priority);
+
+      card.appendChild(footer);
+
+      card.addEventListener('dblclick', () => openZoom(task.id));
+      card.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', task.id);
+      });
+
+      return card;
+    }
+
+    function getPriorityColor(priority) {
+      switch (priority) {
+        case 'urgent': return 'var(--priority-urgent)';
+        case 'high': return 'var(--priority-high)';
+        case 'medium': return 'var(--priority-medium)';
+        default: return 'var(--priority-low)';
+      }
+    }
+
+    function createIconButton(icon, title, handler) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = icon;
+      button.title = title;
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        handler();
+      });
+      return button;
+    }
+
+    function formatOngoingTimer(startedAt) {
+      const diff = Date.now() - startedAt;
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      return `${hrs > 0 ? `${hrs}h ` : ''}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function handleSubtaskToggle(event) {
+      const { id, index } = event.target.dataset;
+      const task = tasks.find((t) => t.id === id);
+      if (!task || !task.subtasks[index]) return;
+      task.subtasks[index].done = event.target.checked;
+      persistTasks();
+      renderBoard();
+    }
+
+    function moveTaskToDoing(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      if (!canEnterDoing(taskId)) return;
+      task.status = 'doing';
+      task.startedAt = Date.now();
+      persistTasks();
+      renderBoard();
+    }
+
+    function completeTask(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      if (task.startedAt) {
+        task.timeSpent = (task.timeSpent || 0) + (Date.now() - task.startedAt);
+        delete task.startedAt;
+      }
+      task.status = 'done';
+      task.completedAt = formatDateTime(new Date());
+      persistTasks();
+      renderBoard();
+    }
+
+    function markAttempt(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const delta = task.startedAt ? Date.now() - task.startedAt : 0;
+      task.timeSpent = (task.timeSpent || 0) + delta;
+      delete task.startedAt;
+      task.attemptCount = (task.attemptCount || 0) + 1;
+      task.status = 'todo';
+      persistTasks();
+      renderBoard();
+    }
+
+    function reopenTask(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      if (!canEnterDoing(taskId)) return;
+      task.status = 'doing';
+      task.startedAt = Date.now();
+      persistTasks();
+      renderBoard();
+    }
+
+    function deleteTask(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      if (!confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+      tasks = tasks.filter((t) => t.id !== taskId);
+      persistTasks();
+      renderBoard();
+    }
+
+    function openTaskEditor(taskId) {
+      editingTaskId = taskId;
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      elements.taskModalTitle.textContent = 'Edit Task';
+      document.getElementById('taskTitle').value = task.title;
+      document.getElementById('taskDesc').value = task.description || '';
+      document.getElementById('taskDueDate').value = task.dueDate || '';
+      document.getElementById('taskDueTime').value = task.dueTime || '';
+      document.getElementById('taskAssigned').value = task.assigned.join(', ');
+      setPrioritySelection(task.priority);
+      rebuildSubtasksInModal(task.subtasks || []);
+      elements.taskModal.style.display = 'flex';
+    }
+
+    function rebuildSubtasksInModal(subtasks) {
+      const container = elements.subtasksContainer;
+      Array.from(container.children).forEach((child) => {
+        if (!child.classList.contains('subtask-input')) child.remove();
+      });
+      subtasks.forEach((subtask) => {
+        const wrapper = document.createElement('div');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = Boolean(subtask.done);
+        const label = document.createElement('label');
+        label.textContent = subtask.title;
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        container.insertBefore(wrapper, container.querySelector('.subtask-input'));
+      });
+    }
+
+    function canEnterDoing(taskId) {
+      const limit = wipLimits.doing;
+      if (limit === null || limit === undefined || limit === '') return true;
+      const targetLimit = Number(limit);
+      if (Number.isNaN(targetLimit) || targetLimit < 0) return true;
+      const currentDoing = tasks.filter((t) => t.status === 'doing' && t.id !== taskId).length;
+      if (currentDoing >= targetLimit) {
+        alert(`Cannot move to DOING: WIP limit is ${targetLimit}.`);
+        return false;
+      }
+      return true;
+    }
+
+    function persistTasks() {
+      saveToStorage(STORAGE_KEYS.tasks, tasks);
+    }
+
+    function persistWipLimits() {
+      saveToStorage(STORAGE_KEYS.wip, wipLimits);
+    }
+
+    function shouldIncludeInNotifications(task, now = new Date()) {
+      if (task.status === 'done') return false;
+      if (task.priority === 'urgent') return true;
+      if (task.dueDate) {
+        const due = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
+        return (due - now) <= 3600000 && (due - now) >= -86400000;
+      }
       return false;
-    }).sort((a,b) => {
-      if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
-      if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
-      const aDue = a.dueDate ? new Date(`${a.dueDate}T${a.dueTime ? a.dueTime : '23:59'}:00`) : new Date(8640000000000000);
-      const bDue = b.dueDate ? new Date(`${b.dueDate}T${b.dueTime ? b.dueTime : '23:59'}:00`) : new Date(8640000000000000);
-      return aDue - bDue;
-    });
-    const countEl = document.getElementById('notifCount');
-    countEl.textContent = tasksForNotif.length; countEl.style.display = tasksForNotif.length > 0 ? 'inline-block' : 'none';
-    showNotificationsBtn.title = tasksForNotif.length > 0 ? `${tasksForNotif.length} urgent/due-soon task${tasksForNotif.length>1?'s':''}` : 'No urgent or due-soon tasks';
-    updateNotificationButtonVisual(tasksForNotif.length);
-  }
-  function updateNotificationButtonVisual(count) {
-    const num = typeof count === 'number' ? count : (parseInt(document.getElementById('notifCount').textContent) || 0);
-    const label = notificationsFilterActive ? 'Show All' : 'Notifications';
-    showNotificationsBtn.innerHTML = `${label}<span id="notifCount" class="notif-count" style="${num > 0 ? '' : 'display:none;'}">${num}</span>`;
-    showNotificationsBtn.classList.toggle('filter-active', notificationsFilterActive);
-  }
-  showNotificationsBtn.addEventListener('click', () => { notificationsFilterActive = !notificationsFilterActive; updateNotificationButtonVisual(); updateNotifications(); renderBoard(); });
-  setInterval(updateNotifications, 30000);
+    }
 
-  // Overdue banner
-  function updateOverdueNotice() {
-    const nowTime = new Date();
-    const overdueCount = tasks.filter(t => { if (!t.dueDate) return false; const due = new Date(`${t.dueDate}T${t.dueTime ? t.dueTime : '23:59'}:00`); return due < nowTime && (t.attemptCount || 0) === 0 && t.status !== 'done'; }).length;
-    const noticeEl = document.getElementById('overdueNotice'); if (!noticeEl) return;
-    if (overdueCount > 0) { noticeEl.innerHTML = `<span style="margin-right:6px;">⚠</span>${overdueCount} task${overdueCount > 1 ? 's' : ''} overdue and not attempted!`; noticeEl.style.backgroundColor = 'var(--color-danger)'; noticeEl.style.color = '#fff'; noticeEl.style.padding = '6px 10px'; noticeEl.style.borderRadius = '4px'; noticeEl.style.display = 'block'; }
-    else { noticeEl.innerHTML = ''; noticeEl.style.display = 'none'; }
-  }
-  setInterval(updateOverdueNotice, 30000);
+    function updateNotifications() {
+      const now = new Date();
+      const list = tasks.filter((task) => shouldIncludeInNotifications(task, now));
+      elements.notifCount.textContent = list.length;
+      elements.notifCount.style.display = list.length > 0 ? 'inline-block' : 'none';
+      elements.notifications.title = list.length
+        ? `${list.length} urgent or due-soon task${list.length > 1 ? 's' : ''}`
+        : 'No urgent tasks';
+      updateNotificationButtonVisual(list.length);
+    }
 
-  // Auto refresh board while filter is active
-  setInterval(() => { if (notificationsFilterActive) renderBoard(); }, 15000);
+    function updateNotificationButtonVisual(count) {
+      const label = notificationsFilterActive ? 'Show All' : 'Notifications';
+      elements.notifications.innerHTML = `${label}<span id="notifCount" class="notif-count" style="${count > 0 ? '' : 'display:none;'}">${count}</span>`;
+      elements.notifCount = document.getElementById('notifCount');
+      if (elements.notifCount) elements.notifCount.textContent = count;
+      elements.notifications.classList.toggle('filter-active', notificationsFilterActive);
+    }
 
-  // Conservative auto-reorder: re-render every second when safe (no active editing/modals)
-  function canAutoRender() {
-    const modalOpen = (document.getElementById('taskModal').style.display === 'flex') || (document.getElementById('cardZoomModal').style.display === 'flex');
-    if (modalOpen) return false;
-    const ae = document.activeElement;
-    if (!ae) return true;
-    // Avoid interrupting typing in text inputs or notes textarea; allow search input
-    const isTyping = ae.matches('input, textarea, select');
-    const isSearch = ae.id === 'taskSearch';
-    const isNotes = ae.classList && ae.classList.contains('notes-field');
-    if (isNotes) return false;
-    if (isTyping && !isSearch) return false;
-    return true;
-  }
-  setInterval(() => { if (canAutoRender()) renderBoard(); }, 1000);
+    function updateOverdueNotice() {
+      const now = new Date();
+      const overdueCount = tasks.filter((task) => {
+        if (!task.dueDate || task.status === 'done') return false;
+        const due = new Date(`${task.dueDate}T${task.dueTime || '23:59'}:00`);
+        return due < now && (task.attemptCount || 0) === 0;
+      }).length;
+      if (overdueCount > 0) {
+        elements.overdueNotice.innerHTML = `<strong>⚠ Focus:</strong> ${overdueCount} task${overdueCount > 1 ? 's' : ''} overdue and untouched.`;
+        elements.overdueNotice.style.display = 'block';
+      } else {
+        elements.overdueNotice.style.display = 'none';
+        elements.overdueNotice.textContent = '';
+      }
+    }
 
-  // Zoom modal
-  function showZoomModal(task) {
-    const modal = document.getElementById('cardZoomModal'); const content = document.getElementById('zoomContent');
-    let html = `<div style="display:flex;justify-content:space-between;align-items:center;"><h3>${escapeHtml(task.title)}</h3>` +
-      `<button id="closeZoomBtn" style="background:none;border:none;color:var(--color-danger);font-size:1.5rem;cursor:pointer;">&times;</button></div>`;
-    if (task.description) html += `<p style="margin-top:8px;">${escapeHtml(task.description)}</p>`;
-    if (Array.isArray(task.subtasks) && task.subtasks.length > 0) { html += '<ul style="margin-top:8px;padding-left:20px;">'; task.subtasks.forEach(sub => { const checked = sub.done ? 'checked' : ''; const style = sub.done ? 'text-decoration: line-through;' : ''; html += `<li><input type="checkbox" disabled ${checked}/> <span style="${style}">${escapeHtml(sub.title)}</span></li>`; }); html += '</ul>'; }
-    if (task.notes) html += `<p style="margin-top:8px;font-style:italic;color:var(--kanban-muted);">Notes: ${escapeHtml(task.notes)}</p>`;
-    html += '<div style="margin-top:10px;font-size:0.8rem;color:var(--kanban-muted);">';
-    if (task.dueDate) { let dueStr = task.dueDate; if (task.dueTime) dueStr += ' ' + task.dueTime; html += `<div><strong>Due:</strong> ${escapeHtml(dueStr)}</div>`; }
-    html += `<div><strong>Priority:</strong> ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</div>`;
-    if (task.timeSpent) html += `<div><strong>Time spent:</strong> ${escapeHtml(formatDuration(task.timeSpent))}</div>`;
-    if (task.attemptCount > 0) html += `<div><strong>Attempts:</strong> ${task.attemptCount}</div>`;
-    html += '</div>';
-    html += '<div class="zoom-actions">';
-    if (task.status === 'todo') { html += `<button class="start-btn" data-id="${task.id}">Start</button>`; html += `<button class="complete-btn" data-id="${task.id}">Complete</button>`; }
-    else if (task.status === 'doing') { html += `<button class="complete-btn" data-id="${task.id}">Complete</button>`; html += `<button class="attempt-btn" data-id="${task.id}">Incomplete</button>`; }
-    html += `<button class="edit-btn" data-id="${task.id}">Edit</button>`; html += `<button class="delete-btn" data-id="${task.id}">Delete</button>`; html += '</div>';
-    content.innerHTML = html; modal.style.display = 'flex';
+    function updateTimersLive() {
+      tasks.forEach((task) => {
+        if (task.status === 'doing' && task.startedAt) {
+          const card = document.querySelector(`.kanban-card[data-id="${task.id}"] .timer`);
+          if (card) card.textContent = formatOngoingTimer(task.startedAt);
+        }
+      });
+    }
 
-    const modalStartBtn = content.querySelector('.start-btn');
-    if (modalStartBtn) modalStartBtn.addEventListener('click', () => { const t = tasks.find(tt => tt.id === task.id); if (t && t.status === 'todo') { const doingLimit = wipLimits['doing']; if (doingLimit !== null && doingLimit !== undefined && doingLimit !== '' && doingLimit >= 0) { const currentDoing = tasks.filter(tt => tt.status === 'doing').length; if (currentDoing >= doingLimit) { alert(`Cannot start: WIP limit for DOING is ${doingLimit}`); return; } } t.status = 'doing'; t.startedAt = Date.now(); saveToStorage('tasks', tasks); renderBoard(); modal.style.display = 'none'; } });
-    const modalCompleteBtn = content.querySelector('.complete-btn');
-    if (modalCompleteBtn) modalCompleteBtn.addEventListener('click', () => { const t = tasks.find(tt => tt.id === task.id); if (t && t.status !== 'done') { let delta = 0; if (t.startedAt) delta = Date.now() - t.startedAt; t.timeSpent = (t.timeSpent || 0) + delta; delete t.startedAt; t.status = 'done'; t.completedAt = formatDateTime(new Date()); saveToStorage('tasks', tasks); renderBoard(); modal.style.display = 'none'; } });
-    const modalAttemptBtn = content.querySelector('.attempt-btn');
-    if (modalAttemptBtn) modalAttemptBtn.addEventListener('click', () => { const t = tasks.find(tt => tt.id === task.id); if (t && t.status === 'doing') { const delta = t.startedAt ? (Date.now() - t.startedAt) : 0; t.timeSpent = (t.timeSpent || 0) + delta; t.attemptCount = (t.attemptCount || 0) + 1; delete t.startedAt; t.status = 'todo'; saveToStorage('tasks', tasks); renderBoard(); modal.style.display = 'none'; } });
-    const modalEditBtn = content.querySelector('.edit-btn');
-    if (modalEditBtn) modalEditBtn.addEventListener('click', () => { editingTaskId = task.id; taskModalTitle.textContent = 'Edit Task'; document.getElementById('taskTitle').value = task.title; document.getElementById('taskDesc').value = task.description || ''; document.getElementById('taskDueDate').value = task.dueDate || ''; document.getElementById('taskDueTime').value = task.dueTime || ''; document.getElementById('taskAssigned').value = task.assigned.join(', '); const container = document.getElementById('subtasksContainer'); Array.from(container.children).forEach(ch => { if (!ch.classList.contains('subtask-input')) ch.remove(); }); if (Array.isArray(task.subtasks)) task.subtasks.forEach(sub => { const subDiv = document.createElement('div'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = sub.done; const label = document.createElement('label'); label.textContent = sub.title; subDiv.appendChild(cb); subDiv.appendChild(label); container.insertBefore(subDiv, container.querySelector('.subtask-input')); }); document.querySelectorAll('.priority-box').forEach(b => b.classList.remove('selected')); const sel = document.querySelector(`.priority-box[data-value="${task.priority}"]`); if (sel) sel.classList.add('selected'); document.getElementById('taskPriority').value = task.priority; taskModal.style.display = 'flex'; modal.style.display = 'none'; });
-    const modalDeleteBtn = content.querySelector('.delete-btn');
-    if (modalDeleteBtn) modalDeleteBtn.addEventListener('click', () => { if (confirm('Delete this task?')) { tasks = tasks.filter(t => t.id !== task.id); saveToStorage('tasks', tasks); renderBoard(); modal.style.display = 'none'; } });
-    document.getElementById('closeZoomBtn').addEventListener('click', () => { modal.style.display = 'none'; });
-    modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.style.display = 'none'; }, { once: true });
-  }
+    function updateHistoryButton() {
+      if (!elements.clearHistory) return;
+      const doneTasks = tasks.filter((task) => task.status === 'done');
+      elements.clearHistory.disabled = doneTasks.length === 0;
+      if (doneTasks.length === 0) {
+        historyStageIndex = 0;
+      }
+      const stage = HISTORY_STAGES[Math.min(historyStageIndex, HISTORY_STAGES.length - 1)];
+      elements.clearHistory.textContent = `Clear History (${stage.shortLabel})`;
+      elements.clearHistory.title = `Next: remove ${stage.description}. Double confirmation required.`;
+    }
 
-  // Header clock (live, with seconds)
-  const currentDateTimeEl = document.getElementById('currentDateTime');
-  function updateCurrentDateTime(){ const d=new Date(); const ymd=formatDate(d); const hh=String(d.getHours()).padStart(2,'0'); const mm=String(d.getMinutes()).padStart(2,'0'); const ss=String(d.getSeconds()).padStart(2,'0'); currentDateTimeEl.textContent = `${ymd} ${hh}:${mm}:${ss}`; }
-  updateCurrentDateTime(); setInterval(updateCurrentDateTime, 1000);
+    function clearHistory() {
+      const stage = HISTORY_STAGES[Math.min(historyStageIndex, HISTORY_STAGES.length - 1)];
+      if (!stage) return;
+      const doneTasks = tasks.filter((task) => task.status === 'done');
+      if (doneTasks.length === 0) {
+        alert('No completed tasks to clear.');
+        historyStageIndex = 0;
+        updateHistoryButton();
+        return;
+      }
+      const message = `Remove ${stage.description}?`;
+      if (!confirm(`${message}\n\nThis action cannot be undone.`)) return;
+      if (!confirm('Double-check: Are you absolutely sure?')) return;
+      const now = new Date();
+      const beforeCount = tasks.length;
+      tasks = tasks.filter((task) => {
+        if (task.status !== 'done') return true;
+        return !stage.predicate(task, now);
+      });
+      const removedCount = beforeCount - tasks.length;
+      if (removedCount === 0) {
+        alert('No tasks matched this stage. Advancing to the next threshold.');
+      }
+      historyStageIndex = Math.min(historyStageIndex + 1, HISTORY_STAGES.length - 1);
+      persistTasks();
+      renderBoard();
+    }
+
+    function resetTaskModal() {
+      editingTaskId = null;
+      elements.taskModalTitle.textContent = 'Add Task';
+      elements.taskForm.reset();
+      const tomorrow = new Date(Date.now() + 86400000);
+      document.getElementById('taskDueDate').value = formatDate(tomorrow);
+      document.getElementById('taskAssigned').value = DEFAULT_ASSIGNEE;
+      document.getElementById('taskDueTime').value = '';
+      setPrioritySelection('low');
+      rebuildSubtasksInModal([]);
+    }
+
+    function closeTaskModal() {
+      elements.taskModal.style.display = 'none';
+      resetTaskModal();
+    }
+
+    function setPrioritySelection(priority) {
+      document.getElementById('taskPriority').value = priority;
+      elements.priorityBoxes.forEach((box) => {
+        box.classList.toggle('selected', box.dataset.value === priority);
+      });
+    }
+
+    function handleTaskFormSubmit(event) {
+      event.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDesc').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+      const dueDateValue = document.getElementById('taskDueDate').value;
+      const dueTimeValue = document.getElementById('taskDueTime').value;
+      const assignedRaw = document.getElementById('taskAssigned').value;
+      let assigned = assignedRaw.split(',').map((name) => name.trim()).filter(Boolean);
+      if (assigned.length === 0) assigned = [DEFAULT_ASSIGNEE];
+      const subtasks = Array.from(elements.subtasksContainer.children)
+        .filter((node) => !node.classList.contains('subtask-input'))
+        .map((node) => {
+          const label = node.querySelector('label');
+          if (!label) return null;
+          const checkbox = node.querySelector('input[type="checkbox"]');
+          return {
+            title: label.textContent.trim(),
+            done: checkbox ? checkbox.checked : false
+          };
+        })
+        .filter(Boolean);
+
+      if (!title) {
+        alert('Title is required.');
+        return;
+      }
+
+      if (editingTaskId) {
+        const task = tasks.find((t) => t.id === editingTaskId);
+        if (task) {
+          task.title = title;
+          task.description = description;
+          task.priority = priority;
+          task.assigned = assigned;
+          task.dueDate = dueDateValue || '';
+          task.dueTime = dueTimeValue || '';
+          task.subtasks = subtasks;
+        }
+      } else {
+        tasks.push(normalizeTask({
+          id: generateId(),
+          title,
+          description,
+          priority,
+          assigned,
+          status: 'todo',
+          dueDate: dueDateValue || formatDate(new Date(Date.now() + 86400000)),
+          dueTime: dueTimeValue || '',
+          subtasks,
+          attemptCount: 0,
+          timeSpent: 0
+        }));
+      }
+
+      persistTasks();
+      closeTaskModal();
+      renderBoard();
+    }
+
+    function handleSubtaskInputKeyPress(event) {
+      if (!event.target.classList.contains('subtask-input')) return;
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const value = event.target.value.trim();
+      if (!value) return;
+      const wrapper = document.createElement('div');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = false;
+      const label = document.createElement('label');
+      label.textContent = value;
+      wrapper.appendChild(checkbox);
+      wrapper.appendChild(label);
+      elements.subtasksContainer.insertBefore(wrapper, event.target);
+      event.target.value = '';
+    }
+
+    function attachDropHandlers(element, status) {
+      element.addEventListener('dragover', (event) => {
+        event.preventDefault();
+      });
+      element.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const taskId = event.dataTransfer.getData('text/plain');
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task || task.status === status) return;
+        if (status === 'doing' && !canEnterDoing(taskId)) return;
+        if (task.status === 'doing' && status !== 'doing' && task.startedAt) {
+          task.timeSpent = (task.timeSpent || 0) + (Date.now() - task.startedAt);
+          delete task.startedAt;
+        }
+        if (status === 'doing') {
+          task.startedAt = Date.now();
+        } else {
+          delete task.startedAt;
+        }
+        task.status = status;
+        persistTasks();
+        renderBoard();
+      });
+    }
+
+    function showZoomModal(task) {
+      const modal = elements.zoomModal;
+      const content = elements.zoomContent;
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">` +
+        `<h3 style="margin:0;">${escapeHtml(task.title)}</h3>` +
+        `<button id="closeZoomBtn" class="ghost-button" style="padding:6px 10px;">&times;</button>` +
+        `</div>`;
+      if (task.description) {
+        html += `<p style="margin-top:8px;color:var(--color-muted);">${escapeHtml(task.description)}</p>`;
+      }
+      if (task.subtasks && task.subtasks.length) {
+        html += '<ul style="margin-top:10px;list-style:none;padding-left:0;display:flex;flex-direction:column;gap:6px;">';
+        task.subtasks.forEach((sub) => {
+          const checked = sub.done ? 'checked' : '';
+          const style = sub.done ? 'text-decoration:line-through;color:var(--color-muted);' : '';
+          html += `<li><label><input type="checkbox" disabled ${checked}/> <span style="${style}">${escapeHtml(sub.title)}</span></label></li>`;
+        });
+        html += '</ul>';
+      }
+      if (task.notes) {
+        html += `<p style="margin-top:10px;font-style:italic;color:var(--color-muted);">Notes: ${escapeHtml(task.notes)}</p>`;
+      }
+      html += '<div style="margin-top:12px;font-size:0.85rem;color:var(--color-muted);display:flex;flex-direction:column;gap:4px;">';
+      if (task.dueDate) {
+        html += `<span><strong>Due:</strong> ${escapeHtml(task.dueDate)}${task.dueTime ? ` ${escapeHtml(task.dueTime)}` : ''}</span>`;
+      }
+      html += `<span><strong>Priority:</strong> ${escapeHtml(task.priority)}</span>`;
+      if (task.timeSpent) {
+        html += `<span><strong>Time spent:</strong> ${escapeHtml(formatDuration(task.timeSpent))}</span>`;
+      }
+      if (task.attemptCount) {
+        html += `<span><strong>Attempts:</strong> ${task.attemptCount}</span>`;
+      }
+      if (task.completedAt) {
+        html += `<span><strong>Completed:</strong> ${escapeHtml(task.completedAt)}</span>`;
+      }
+      html += '</div>';
+
+      html += '<div class="zoom-actions">';
+      if (task.status === 'todo') {
+        html += `<button class="ghost-button" data-action="start" data-id="${task.id}">Start</button>`;
+        html += `<button class="ghost-button" data-action="complete" data-id="${task.id}">Complete</button>`;
+      } else if (task.status === 'doing') {
+        html += `<button class="ghost-button" data-action="complete" data-id="${task.id}">Complete</button>`;
+        html += `<button class="ghost-button" data-action="attempt" data-id="${task.id}">Mark Incomplete</button>`;
+      } else if (task.status === 'done') {
+        html += `<button class="ghost-button" data-action="reopen" data-id="${task.id}">Reopen</button>`;
+      }
+      html += `<button class="ghost-button" data-action="edit" data-id="${task.id}">Edit</button>`;
+      html += `<button class="danger-button" data-action="delete" data-id="${task.id}">Delete</button>`;
+      html += '</div>';
+
+      content.innerHTML = html;
+      modal.style.display = 'flex';
+
+      content.querySelectorAll('button[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+          switch (action) {
+            case 'start': moveTaskToDoing(id); break;
+            case 'complete': completeTask(id); break;
+            case 'attempt': markAttempt(id); break;
+            case 'reopen': reopenTask(id); break;
+            case 'edit': openTaskEditor(id); break;
+            case 'delete': deleteTask(id); break;
+            default: break;
+          }
+          modal.style.display = 'none';
+        });
+      });
+
+      const closeBtn = document.getElementById('closeZoomBtn');
+      if (closeBtn) closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) modal.style.display = 'none';
+      }, { once: true });
+    }
+
+    function openZoom(taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      showZoomModal(task);
+    }
+
+    const currentDateTimeEl = document.getElementById('currentDateTime');
+    function updateCurrentDateTime() {
+      const now = new Date();
+      const formatted = `${formatDate(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      currentDateTimeEl.textContent = formatted;
+    }
+
+    function exportTasksToFile() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        wipLimits,
+        tasks
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `own-your-prime-${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function importTasksFromFile(file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (!parsed || !Array.isArray(parsed.tasks)) throw new Error('Invalid file structure.');
+          tasks = parsed.tasks.map(normalizeTask);
+          wipLimits = parsed.wipLimits || wipLimits;
+          Object.entries(wipLimits).forEach(([status, value]) => {
+            const input = elements.limits[status];
+            if (input) input.value = value ?? '';
+          });
+          persistTasks();
+          persistWipLimits();
+          renderBoard();
+          alert('Kanban data imported successfully.');
+        } catch (error) {
+          console.error(error);
+          alert('Failed to import file. Ensure it is a valid Own Your Prime export.');
+        }
+      };
+      reader.onerror = () => {
+        alert('Unable to read the selected file.');
+      };
+      reader.readAsText(file);
+    }
+
+    const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+    const DRIVE_FILE_NAME = 'own-your-prime-kanban.json';
+
+    let googleClientId = loadFromStorage(STORAGE_KEYS.googleClientId) || '';
+    let tokenClient = null;
+    let gapiReady = false;
+    let gisReady = false;
+
+    function updateDriveUi() {
+      const hasClientId = Boolean(googleClientId);
+      const hasToken = !!(window.gapi && gapi.client && gapi.client.getToken && gapi.client.getToken());
+      const ready = hasClientId && gapiReady && gisReady;
+      elements.driveSignIn.disabled = !ready;
+      elements.driveSignOut.disabled = !hasToken;
+      elements.driveSave.disabled = !hasToken;
+      elements.driveLoad.disabled = !hasToken;
+      elements.driveStatus.textContent = hasToken ? 'Drive: Connected' : ready ? 'Drive: Ready' : 'Drive: Offline';
+    }
+
+    function promptForClientId() {
+      const input = prompt('Enter your Google OAuth Client ID (ending with .apps.googleusercontent.com):', googleClientId || '');
+      if (!input) return false;
+      googleClientId = input.trim();
+      saveToStorage(STORAGE_KEYS.googleClientId, googleClientId);
+      initializeTokenClient();
+      updateDriveUi();
+      return true;
+    }
+
+    function initializeTokenClient() {
+      if (!gisReady) return;
+      if (!googleClientId) return;
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: GOOGLE_SCOPE,
+        callback: (response) => {
+          if (response.error) {
+            console.error(response);
+            alert('Google authorization failed.');
+            return;
+          }
+          updateDriveUi();
+        }
+      });
+    }
+
+    async function ensureDriveReady() {
+      if (!gapiReady || !gisReady) {
+        alert('Google APIs are still loading. Please wait a moment.');
+        return false;
+      }
+      if (!googleClientId) {
+        return promptForClientId();
+      }
+      if (!tokenClient) {
+        initializeTokenClient();
+      }
+      return true;
+    }
+
+    async function ensureAuthorized() {
+      if (!await ensureDriveReady()) return false;
+      const token = gapi.client.getToken();
+      if (token) return true;
+      return new Promise((resolve) => {
+        tokenClient.callback = (response) => {
+          if (response.error) {
+            console.error(response);
+            alert('Authorization failed.');
+            resolve(false);
+            return;
+          }
+          updateDriveUi();
+          resolve(true);
+        };
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      });
+    }
+
+    async function signInToDrive() {
+      if (!await ensureDriveReady()) return;
+      const token = gapi.client.getToken();
+      if (token) {
+        updateDriveUi();
+        return;
+      }
+      tokenClient.callback = (response) => {
+        if (response.error) {
+          console.error(response);
+          alert('Authorization failed.');
+          return;
+        }
+        updateDriveUi();
+      };
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    function signOutOfDrive() {
+      const token = gapi.client.getToken();
+      if (token) {
+        google.accounts.oauth2.revoke(token.access_token, () => {
+          gapi.client.setToken('');
+          updateDriveUi();
+        });
+      }
+    }
+
+    async function saveToDrive() {
+      if (!await ensureAuthorized()) return;
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        wipLimits,
+        tasks
+      };
+      const fileContent = JSON.stringify(payload, null, 2);
+      const boundary = 'own-your-prime-boundary';
+      const delimiter = `\r\n--${boundary}\r\n`;
+      const closeDelimiter = `\r\n--${boundary}--`;
+      const metadata = {
+        name: DRIVE_FILE_NAME,
+        mimeType: 'application/json'
+      };
+
+      try {
+        const existing = await gapi.client.drive.files.list({
+          q: `name='${DRIVE_FILE_NAME}' and trashed=false`,
+          fields: 'files(id, name)',
+          spaces: 'drive'
+        });
+        const fileId = existing.result.files?.[0]?.id;
+        const body = delimiter
+          + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+          + JSON.stringify(metadata)
+          + delimiter
+          + 'Content-Type: application/json\r\n\r\n'
+          + fileContent
+          + closeDelimiter;
+
+        if (fileId) {
+          await gapi.client.request({
+            path: `/upload/drive/v3/files/${fileId}`,
+            method: 'PATCH',
+            params: { uploadType: 'multipart' },
+            headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+            body
+          });
+        } else {
+          await gapi.client.request({
+            path: '/upload/drive/v3/files',
+            method: 'POST',
+            params: { uploadType: 'multipart' },
+            headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+            body
+          });
+        }
+        alert('Board saved to Google Drive.');
+      } catch (error) {
+        console.error(error);
+        alert('Failed to save to Google Drive. Check console for details.');
+      }
+    }
+
+    async function loadFromDrive() {
+      if (!await ensureAuthorized()) return;
+      try {
+        const list = await gapi.client.drive.files.list({
+          q: `name='${DRIVE_FILE_NAME}' and trashed=false`,
+          fields: 'files(id, name)',
+          spaces: 'drive'
+        });
+        const file = list.result.files?.[0];
+        if (!file) {
+          alert('No Own Your Prime backup found on Drive.');
+          return;
+        }
+        const response = await gapi.client.drive.files.get({
+          fileId: file.id,
+          alt: 'media'
+        });
+        const data = response.body ? JSON.parse(response.body) : response.result;
+        if (!data || !Array.isArray(data.tasks)) {
+          throw new Error('Invalid file structure.');
+        }
+        tasks = data.tasks.map(normalizeTask);
+        wipLimits = data.wipLimits || wipLimits;
+        Object.entries(wipLimits).forEach(([status, value]) => {
+          const input = elements.limits[status];
+          if (input) input.value = value ?? '';
+        });
+        persistTasks();
+        persistWipLimits();
+        renderBoard();
+        alert('Board loaded from Google Drive.');
+      } catch (error) {
+        console.error(error);
+        alert('Failed to load from Google Drive.');
+      }
+    }
+
+    function setupGoogleApis() {
+      window.handleGapiLoad = () => {
+        try {
+          gapi.load('client', async () => {
+            try {
+              await gapi.client.init({
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+              });
+              gapiReady = true;
+              updateDriveUi();
+            } catch (error) {
+              console.error('GAPI init failed', error);
+            }
+          });
+        } catch (error) {
+          console.error('GAPI load failed', error);
+        }
+      };
+
+      window.handleGisLoad = () => {
+        gisReady = true;
+        if (googleClientId) {
+          initializeTokenClient();
+        }
+        updateDriveUi();
+      };
+    }
+
+    function setupEventListeners() {
+      elements.search.addEventListener('input', renderBoard);
+      elements.addTask.addEventListener('click', () => {
+        resetTaskModal();
+        elements.taskModal.style.display = 'flex';
+      });
+      elements.cancelTask.addEventListener('click', closeTaskModal);
+      elements.taskModal.addEventListener('click', (event) => {
+        if (event.target === elements.taskModal) closeTaskModal();
+      });
+      elements.taskForm.addEventListener('submit', handleTaskFormSubmit);
+      elements.subtasksContainer.addEventListener('keypress', handleSubtaskInputKeyPress);
+      elements.priorityBoxes.forEach((box) => {
+        box.addEventListener('click', () => {
+          setPrioritySelection(box.dataset.value);
+        });
+      });
+      Object.entries(elements.limits).forEach(([status, input]) => {
+        input.addEventListener('change', () => {
+          const value = input.value;
+          wipLimits[status] = value === '' ? null : Number(value);
+          persistWipLimits();
+        });
+      });
+      elements.notifications.addEventListener('click', () => {
+        notificationsFilterActive = !notificationsFilterActive;
+        const count = parseInt(elements.notifCount.textContent, 10) || 0;
+        updateNotificationButtonVisual(count);
+        renderBoard();
+      });
+      elements.export.addEventListener('click', exportTasksToFile);
+      elements.import.addEventListener('click', () => elements.importFile.click());
+      elements.importFile.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (file) importTasksFromFile(file);
+        elements.importFile.value = '';
+      });
+      elements.clearHistory.addEventListener('click', clearHistory);
+
+      elements.driveSignIn.addEventListener('click', async () => {
+        if (!googleClientId) {
+          if (!promptForClientId()) return;
+        }
+        await signInToDrive();
+      });
+      elements.driveSignOut.addEventListener('click', signOutOfDrive);
+      elements.driveSave.addEventListener('click', saveToDrive);
+      elements.driveLoad.addEventListener('click', loadFromDrive);
+
+      elements.zoomModal.addEventListener('click', (event) => {
+        if (event.target === elements.zoomModal) {
+          elements.zoomModal.style.display = 'none';
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          if (elements.taskModal.style.display === 'flex') closeTaskModal();
+          if (elements.zoomModal.style.display === 'flex') elements.zoomModal.style.display = 'none';
+        }
+      });
+
+      document.querySelectorAll('.kanban-column').forEach((column) => {
+        const status = column.dataset.status;
+        attachDropHandlers(column, status);
+        const tasksContainer = column.querySelector('.kanban-tasks');
+        if (tasksContainer) attachDropHandlers(tasksContainer, status);
+      });
+    }
+
+    function initializeBoard() {
+      setupEventListeners();
+      setupGoogleApis();
+      updateDriveUi();
+      renderBoard();
+      updateCurrentDateTime();
+      setInterval(updateCurrentDateTime, 1000);
+      setInterval(updateTimersLive, 1000);
+      setInterval(updateNotifications, 30000);
+      setInterval(updateOverdueNotice, 30000);
+      setInterval(() => {
+        if (document.activeElement && document.activeElement.closest('.modal')) return;
+        renderBoard();
+      }, 60000);
+    }
+
+    initializeBoard();
   </script>
+  <script src="https://apis.google.com/js/api.js" async defer onload="handleGapiLoad && handleGapiLoad()"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="handleGisLoad && handleGisLoad()"></script>
 </body>
 </html>
