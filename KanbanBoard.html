@@ -783,6 +783,8 @@
         <button type="button" id="driveDisconnectBtn" role="menuitem" disabled>Disconnect</button>
         <button type="button" id="driveSaveNowBtn" role="menuitem" disabled>Save snapshot now</button>
         <button type="button" id="driveLoadBtn" role="menuitem" disabled>Load latest backup</button>
+        <button type="button" id="driveDownloadLocalBtn" role="menuitem">Download local backup</button>
+        <button type="button" id="driveLoadLocalBtn" role="menuitem">Load local backup</button>
       </div>
     </div>
   </header>
@@ -910,7 +912,9 @@
       googleClientId: 'ownYourPrime.googleClientId',
       filters: 'ownYourPrime.filters',
       focusCollapsed: 'ownYourPrime.focusCollapsed',
-      focusSnoozeUntil: 'ownYourPrime.focusSnoozeUntil'
+      focusSnoozeUntil: 'ownYourPrime.focusSnoozeUntil',
+      localSnapshot: 'ownYourPrime.localSnapshot',
+      driveOfflineCache: 'ownYourPrime.driveOfflineCache'
     };
 
     const DEFAULT_ASSIGNEE = 'Prime Self';
@@ -945,6 +949,8 @@
       driveDisconnect: document.getElementById('driveDisconnectBtn'),
       driveSaveNow: document.getElementById('driveSaveNowBtn'),
       driveLoad: document.getElementById('driveLoadBtn'),
+      driveDownloadLocal: document.getElementById('driveDownloadLocalBtn'),
+      driveLoadLocal: document.getElementById('driveLoadLocalBtn'),
       clearHistory: document.getElementById('clearHistoryBtn'),
       overdueNotice: document.getElementById('overdueNotice'),
       overdueMessage: document.getElementById('overdueMessage'),
@@ -1012,6 +1018,85 @@
       } catch (error) {
         console.warn('Storage remove failed', error);
       }
+    }
+
+    function getLatestLocalSnapshot() {
+      if (latestLocalSnapshot && Array.isArray(latestLocalSnapshot.tasks)) {
+        return latestLocalSnapshot;
+      }
+      const stored = loadFromStorage(STORAGE_KEYS.localSnapshot);
+      if (stored && Array.isArray(stored.tasks)) {
+        latestLocalSnapshot = stored;
+        return latestLocalSnapshot;
+      }
+      latestLocalSnapshot = null;
+      return null;
+    }
+
+    function hasPendingOfflineSync() {
+      if (driveOfflineCache && driveOfflineCache.snapshot && Array.isArray(driveOfflineCache.snapshot.tasks)) {
+        return true;
+      }
+      const stored = loadFromStorage(STORAGE_KEYS.driveOfflineCache);
+      if (stored && stored.snapshot && Array.isArray(stored.snapshot.tasks)) {
+        driveOfflineCache = stored;
+        return true;
+      }
+      driveOfflineCache = null;
+      return false;
+    }
+
+    function clearDriveOfflineCache() {
+      driveOfflineCache = null;
+      removeFromStorage(STORAGE_KEYS.driveOfflineCache);
+      updateDriveStatusLabel();
+    }
+
+    function buildSnapshotObject() {
+      return JSON.parse(JSON.stringify({
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        wipLimits,
+        tasks
+      }));
+    }
+
+    function persistLocalSnapshot({ snapshot = null, queueForDrive = false } = {}) {
+      const snapshotData = snapshot ? JSON.parse(JSON.stringify(snapshot)) : buildSnapshotObject();
+      latestLocalSnapshot = snapshotData;
+      saveToStorage(STORAGE_KEYS.localSnapshot, snapshotData);
+      if (queueForDrive) {
+        driveOfflineCache = {
+          snapshot: snapshotData,
+          savedAt: snapshotData.exportedAt || new Date().toISOString()
+        };
+        saveToStorage(STORAGE_KEYS.driveOfflineCache, driveOfflineCache);
+      }
+      updateDriveStatusLabel();
+      return snapshotData;
+    }
+
+    function buildLocalBackupFilename(snapshot) {
+      const base = snapshot && snapshot.exportedAt ? new Date(snapshot.exportedAt) : new Date();
+      const safe = Number.isNaN(base.getTime()) ? new Date() : base;
+      const stamp = `${safe.getFullYear()}${String(safe.getMonth() + 1).padStart(2, '0')}${String(safe.getDate()).padStart(2, '0')}-${String(safe.getHours()).padStart(2, '0')}${String(safe.getMinutes()).padStart(2, '0')}${String(safe.getSeconds()).padStart(2, '0')}`;
+      return `own-your-prime-local-${stamp}.json`;
+    }
+
+    function downloadSnapshot(snapshot, filename = buildLocalBackupFilename(snapshot)) {
+      if (!snapshot || !Array.isArray(snapshot.tasks)) {
+        alert('No data available to download yet. Add a task to create a snapshot.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     function generateId() {
@@ -1175,6 +1260,15 @@
     let driveAutosavePending = false;
     let driveSavingInFlight = false;
     let lastDriveAutosave = null;
+    let latestLocalSnapshot = loadFromStorage(STORAGE_KEYS.localSnapshot);
+    if (!latestLocalSnapshot || !Array.isArray(latestLocalSnapshot.tasks)) {
+      latestLocalSnapshot = null;
+    }
+    let driveOfflineCache = loadFromStorage(STORAGE_KEYS.driveOfflineCache);
+    if (!driveOfflineCache || !driveOfflineCache.snapshot || !Array.isArray(driveOfflineCache.snapshot.tasks)) {
+      driveOfflineCache = null;
+    }
+    let driveOfflineSyncing = false;
 
     if (tasks.length === 0) {
       const tomorrow = formatDate(new Date(Date.now() + 86400000));
@@ -1700,12 +1794,14 @@
 
     function persistTasks() {
       saveToStorage(STORAGE_KEYS.tasks, tasks);
-      scheduleDriveAutosave();
+      const snapshot = persistLocalSnapshot();
+      scheduleDriveAutosave(snapshot);
     }
 
     function persistWipLimits() {
       saveToStorage(STORAGE_KEYS.wip, wipLimits);
-      scheduleDriveAutosave();
+      const snapshot = persistLocalSnapshot();
+      scheduleDriveAutosave(snapshot);
     }
 
     function persistFilters() {
@@ -2111,15 +2207,24 @@
       if (!elements.driveStatus) return;
       const hasToken = isDriveConnected();
       const ready = Boolean(googleClientId) && gapiReady && gisReady;
+      const offlinePending = hasPendingOfflineSync();
+      const localSnapshot = getLatestLocalSnapshot();
+      const online = typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
       let label = 'Google Drive: Offline';
-      if (hasToken && driveSavingInFlight) {
+      if (driveSavingInFlight) {
         label = 'Google Drive: Saving…';
+      } else if (driveOfflineSyncing) {
+        label = 'Google Drive: Syncing offline cache…';
       } else if (hasToken && driveAutosavePending) {
         label = 'Google Drive: Autosave queued';
       } else if (hasToken) {
         label = 'Google Drive: Autosave on';
+      } else if (offlinePending) {
+        label = online ? 'Google Drive: Offline backup ready' : 'Google Drive: Offline (backup ready)';
       } else if (ready) {
         label = 'Google Drive: Ready';
+      } else if (!online) {
+        label = 'Google Drive: Offline';
       }
       elements.driveStatus.textContent = label;
       elements.driveStatus.setAttribute('aria-expanded', driveMenuOpen ? 'true' : 'false');
@@ -2128,19 +2233,37 @@
       if (!googleClientId) {
         tooltip.push('Provide your OAuth client ID to enable Drive sync.');
       }
+      if (!online) {
+        tooltip.push('You appear to be offline. Changes will be cached locally.');
+      }
+      if (offlinePending) {
+        tooltip.push('Local changes will sync to Drive once reconnected.');
+      }
       if (hasToken && lastDriveAutosave) {
         tooltip.push(`Last autosave ${formatDateTimeDisplayFromDate(new Date(lastDriveAutosave))}`);
       }
+      if (localSnapshot?.exportedAt) {
+        tooltip.push(`Latest local backup ${formatDateTimeDisplayFromDate(new Date(localSnapshot.exportedAt))}`);
+      }
       elements.driveStatus.title = tooltip.join('\n') || 'Connect Google Drive for automatic backups.';
 
-      elements.driveConnect.disabled = !ready || hasToken;
-      elements.driveDisconnect.disabled = !hasToken || driveSavingInFlight;
-      elements.driveSaveNow.disabled = !hasToken || driveSavingInFlight;
-      elements.driveLoad.disabled = !hasToken || driveSavingInFlight;
+      if (elements.driveConnect) elements.driveConnect.disabled = !ready || hasToken;
+      if (elements.driveDisconnect) elements.driveDisconnect.disabled = !hasToken || driveSavingInFlight;
+      if (elements.driveSaveNow) elements.driveSaveNow.disabled = driveSavingInFlight;
+      if (elements.driveLoad) elements.driveLoad.disabled = !hasToken || driveSavingInFlight;
+      if (elements.driveDownloadLocal) {
+        elements.driveDownloadLocal.disabled = !localSnapshot;
+      }
+      if (elements.driveLoadLocal) {
+        elements.driveLoadLocal.disabled = !localSnapshot;
+      }
     }
 
     function updateDriveUi() {
       updateDriveStatusLabel();
+      if (isDriveConnected() && hasPendingOfflineSync() && !driveOfflineSyncing && !driveSavingInFlight) {
+        flushDriveOfflineCache().catch((error) => console.error('Failed to flush offline cache', error));
+      }
     }
 
     function promptForClientId() {
@@ -2171,7 +2294,11 @@
 
     async function ensureDriveReady() {
       if (!gapiReady || !gisReady) {
-        alert('Google APIs are still loading. Please wait a moment.');
+        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) {
+          alert('Google Drive is unavailable while offline. Local backups will continue until you reconnect.');
+        } else {
+          alert('Google APIs are still loading. Please wait a moment.');
+        }
         return false;
       }
       if (!googleClientId) {
@@ -2213,43 +2340,53 @@
       driveAutosavePending = false;
     }
 
-    function scheduleDriveAutosave() {
-      if (!isDriveConnected()) return;
+    function scheduleDriveAutosave(snapshot = null) {
+      cancelScheduledAutosave();
+      const snapshotData = snapshot ? JSON.parse(JSON.stringify(snapshot)) : persistLocalSnapshot();
+      if (!isDriveConnected()) {
+        persistLocalSnapshot({ snapshot: snapshotData, queueForDrive: true });
+        return;
+      }
       driveAutosavePending = true;
-      if (driveAutosaveTimer) clearTimeout(driveAutosaveTimer);
+      const snapshotForTimer = JSON.parse(JSON.stringify(snapshotData));
       driveAutosaveTimer = setTimeout(() => {
-        saveToDrive({ autosave: true }).catch((error) => console.error('Autosave failed', error));
+        saveSnapshotToDrive(snapshotForTimer, { autosave: true, queueOnFailure: true })
+          .then((result) => {
+            if (!result.success) {
+              console.warn('Autosave not uploaded to Drive', result.reason || 'unknown', result.error || '');
+            }
+          })
+          .catch((error) => console.error('Autosave failed', error));
       }, DRIVE_AUTOSAVE_DELAY);
       updateDriveStatusLabel();
     }
 
-    function buildDrivePayload() {
-      return JSON.stringify({
-        exportedAt: new Date().toISOString(),
-        version: 1,
-        wipLimits,
-        tasks
-      }, null, 2);
-    }
+    async function saveSnapshotToDrive(snapshotInput, { autosave = false, queueOnFailure = true } = {}) {
+      const snapshot = snapshotInput ? JSON.parse(JSON.stringify(snapshotInput)) : buildSnapshotObject();
 
-    async function saveToDrive({ autosave = false } = {}) {
       if (autosave) {
         if (!isDriveConnected()) {
           cancelScheduledAutosave();
-          updateDriveStatusLabel();
-          return;
+          if (queueOnFailure) {
+            persistLocalSnapshot({ snapshot, queueForDrive: true });
+          }
+          return { success: false, reason: 'offline', snapshot };
         }
       } else if (!await ensureAuthorized()) {
-        return;
+        if (queueOnFailure) {
+          persistLocalSnapshot({ snapshot, queueForDrive: true });
+        }
+        return { success: false, reason: 'auth', snapshot };
       }
 
       cancelScheduledAutosave();
       driveSavingInFlight = true;
       updateDriveStatusLabel();
 
-      const payload = buildDrivePayload();
-      const timestamp = new Date();
-      const stamp = `${timestamp.getFullYear()}${String(timestamp.getMonth() + 1).padStart(2, '0')}${String(timestamp.getDate()).padStart(2, '0')}-${String(timestamp.getHours()).padStart(2, '0')}${String(timestamp.getMinutes()).padStart(2, '0')}${String(timestamp.getSeconds()).padStart(2, '0')}`;
+      const payload = JSON.stringify(snapshot, null, 2);
+      const snapshotDate = snapshot.exportedAt ? new Date(snapshot.exportedAt) : new Date();
+      const safeDate = Number.isNaN(snapshotDate.getTime()) ? new Date() : snapshotDate;
+      const stamp = `${safeDate.getFullYear()}${String(safeDate.getMonth() + 1).padStart(2, '0')}${String(safeDate.getDate()).padStart(2, '0')}-${String(safeDate.getHours()).padStart(2, '0')}${String(safeDate.getMinutes()).padStart(2, '0')}${String(safeDate.getSeconds()).padStart(2, '0')}`;
       const metadata = {
         name: `${DRIVE_FILE_PREFIX}-${stamp}.json`,
         mimeType: DRIVE_MIME_TYPE
@@ -2273,15 +2410,15 @@
           headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
           body
         });
-        lastDriveAutosave = timestamp.getTime();
-        if (!autosave) {
-          alert('Board snapshot saved to Google Drive.');
-        }
+        lastDriveAutosave = safeDate.getTime();
+        clearDriveOfflineCache();
+        return { success: true, snapshot };
       } catch (error) {
         console.error(error);
-        if (!autosave) {
-          alert('Failed to save to Google Drive. Check console for details.');
+        if (queueOnFailure) {
+          persistLocalSnapshot({ snapshot, queueForDrive: true });
         }
+        return { success: false, reason: 'network', error, snapshot };
       } finally {
         driveSavingInFlight = false;
         driveAutosavePending = false;
@@ -2290,8 +2427,87 @@
       }
     }
 
+    async function saveToDrive({ autosave = false } = {}) {
+      if (autosave) {
+        return saveSnapshotToDrive(null, { autosave: true, queueOnFailure: true });
+      }
+      let snapshot = buildSnapshotObject();
+      snapshot = persistLocalSnapshot({ snapshot, queueForDrive: false });
+      const result = await saveSnapshotToDrive(snapshot, { autosave: false, queueOnFailure: true });
+      if (result.success) {
+        alert('Board snapshot saved to Google Drive.');
+      } else if (result.reason === 'auth' || result.reason === 'offline') {
+        downloadSnapshot(snapshot, buildLocalBackupFilename(snapshot));
+        alert('Google Drive unavailable. A local backup was downloaded and will sync when Drive reconnects.');
+      } else {
+        alert('Failed to save to Google Drive. A local backup is stored and will sync when possible.');
+      }
+      return result;
+    }
+
+    function applySnapshot(snapshot, { queueForDrive = false } = {}) {
+      if (!snapshot || !Array.isArray(snapshot.tasks)) {
+        throw new Error('Invalid snapshot payload.');
+      }
+      const sanitized = JSON.parse(JSON.stringify(snapshot));
+      tasks = sanitized.tasks.map(normalizeTask);
+      wipLimits = sanitized.wipLimits || { todo: null, doing: null, done: null };
+      Object.entries(wipLimits).forEach(([status, value]) => {
+        const input = elements.limits[status];
+        if (input) input.value = value ?? '';
+      });
+      saveToStorage(STORAGE_KEYS.tasks, tasks);
+      saveToStorage(STORAGE_KEYS.wip, wipLimits);
+      const storedSnapshot = persistLocalSnapshot({ snapshot: sanitized, queueForDrive });
+      renderBoard();
+      updateHistoryButton();
+      updateOverdueNotice();
+      updateFilterIndicators();
+      scheduleDriveAutosave(storedSnapshot);
+      return storedSnapshot;
+    }
+
+    function loadFromLocalCache({ silent = false } = {}) {
+      const snapshot = getLatestLocalSnapshot();
+      if (!snapshot) {
+        if (!silent) alert('No local backup found on this device yet.');
+        return false;
+      }
+      applySnapshot(snapshot, { queueForDrive: !isDriveConnected() });
+      if (!silent) alert('Board restored from local backup.');
+      return true;
+    }
+
+    function downloadLocalBackup() {
+      const snapshot = persistLocalSnapshot({ queueForDrive: !isDriveConnected() });
+      downloadSnapshot(snapshot, buildLocalBackupFilename(snapshot));
+    }
+
+    async function flushDriveOfflineCache() {
+      if (!driveOfflineCache || !driveOfflineCache.snapshot) return;
+      if (!isDriveConnected() || driveSavingInFlight) return;
+      driveOfflineSyncing = true;
+      updateDriveStatusLabel();
+      try {
+        const result = await saveSnapshotToDrive(driveOfflineCache.snapshot, { autosave: true, queueOnFailure: false });
+        if (!result.success) {
+          console.warn('Unable to sync offline cache to Drive', result.reason || 'unknown', result.error || '');
+        }
+      } catch (error) {
+        console.error('Unexpected error during offline cache sync', error);
+      } finally {
+        driveOfflineSyncing = false;
+        updateDriveStatusLabel();
+      }
+    }
+
     async function loadFromDrive() {
-      if (!await ensureAuthorized()) return;
+      if (!await ensureAuthorized()) {
+        if (loadFromLocalCache({ silent: true })) {
+          alert('Google Drive unavailable. Loaded the latest local backup instead.');
+        }
+        return;
+      }
       try {
         const list = await gapi.client.drive.files.list({
           q: `name contains '${DRIVE_FILE_PREFIX}' and trashed=false`,
@@ -2313,19 +2529,21 @@
         if (!data || !Array.isArray(data.tasks)) {
           throw new Error('Invalid file structure.');
         }
-        tasks = data.tasks.map(normalizeTask);
-        wipLimits = data.wipLimits || wipLimits;
-        Object.entries(wipLimits).forEach(([status, value]) => {
-          const input = elements.limits[status];
-          if (input) input.value = value ?? '';
-        });
-        persistTasks();
-        persistWipLimits();
-        renderBoard();
+        const snapshot = {
+          exportedAt: data.exportedAt || new Date().toISOString(),
+          version: data.version || 1,
+          wipLimits: data.wipLimits || wipLimits,
+          tasks: data.tasks
+        };
+        applySnapshot(snapshot, { queueForDrive: false });
         alert('Board loaded from Google Drive.');
       } catch (error) {
         console.error(error);
-        alert('Failed to load from Google Drive.');
+        if (loadFromLocalCache({ silent: true })) {
+          alert('Failed to load from Google Drive. Loaded the latest local backup instead.');
+        } else {
+          alert('Failed to load from Google Drive.');
+        }
       }
     }
 
@@ -2520,6 +2738,20 @@
         });
       }
 
+      if (elements.driveDownloadLocal) {
+        elements.driveDownloadLocal.addEventListener('click', () => {
+          downloadLocalBackup();
+          closeDriveMenu();
+        });
+      }
+
+      if (elements.driveLoadLocal) {
+        elements.driveLoadLocal.addEventListener('click', () => {
+          const loaded = loadFromLocalCache();
+          if (loaded) closeDriveMenu();
+        });
+      }
+
       if (elements.focusToggleBtn) {
         elements.focusToggleBtn.addEventListener('click', handleFocusToggle);
       }
@@ -2555,8 +2787,11 @@
     function initializeBoard() {
       setupEventListeners();
       setupGoogleApis();
-      updateDriveUi();
       renderBoard();
+      if (!getLatestLocalSnapshot()) {
+        persistLocalSnapshot();
+      }
+      updateDriveUi();
       updateCurrentDateTime();
       setInterval(updateCurrentDateTime, 1000);
       setInterval(updateTimersLive, 1000);
@@ -2566,6 +2801,12 @@
         if (document.activeElement && document.activeElement.closest('.modal')) return;
         renderBoard();
       }, 60000);
+      window.addEventListener('online', () => {
+        updateDriveUi();
+      });
+      window.addEventListener('offline', () => {
+        updateDriveUi();
+      });
     }
 
     initializeBoard();
