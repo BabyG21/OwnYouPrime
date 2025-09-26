@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GetYourSh@tTogether – All‑in‑One Tracker</title>
+  <style>
+    /*
+      Core styling for the entire application.  This page is designed to be fully
+      self contained so that it can be opened anywhere without requiring
+      external CSS or JavaScript.  CSS variables are defined on :root to
+      provide a coherent colour palette and make it easy to adjust colours.
+    */
+    :root {
+      --color-bg: #f9f9f9;
+      --color-surface: #ffffff;
+      --color-text: #2c3e50;
+      --color-primary: #4caf50;
+      --color-primary-dark: #388e3c;
+      --color-secondary: #2196f3;
+      --color-secondary-dark: #1976d2;
+      --color-danger: #e74c3c;
+      --color-warning: #f39c12;
+      --color-info: #9c27b0;
+      --kanban-todo: #e3f2fd;
+      --kanban-doing: #fffbe6;
+      --kanban-done: #e8f5e9;
+      --max-habits: 7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--color-secondary);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    nav button {
+      background-color: var(--color-secondary-dark);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s ease;
+    }
+
+    nav button:hover {
+      background-color: var(--color-primary-dark);
+    }
+
+    nav button.active {
+      background-color: var(--color-primary);
+    }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .app-section {
+      display: none;
+      padding: 20px;
+      min-height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .app-section.active {
+      display: block;
+    }
+
+    /* MEAL TRACKER STYLES */
+    #mealSection h2 {
+      margin-top: 0;
+      color: var(--color-primary-dark);
+    }
+
+    .meal-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      background-color: var(--color-surface);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .meal-form label {
+      display: flex;
+      flex-direction: column;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .meal-form input,
+    .meal-form textarea {
+      margin-top: 5px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+
+    .meal-form textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .meal-form button {
+      grid-column: 1 / -1;
+      align-self: start;
+      background-color: var(--color-primary);
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s ease;
+    }
+
+    .meal-form button:hover {
+      background-color: var(--color-primary-dark);
+    }
+
+    .meal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .meal-table th,
+    .meal-table td {
+      padding: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .meal-table th {
+      background-color: var(--color-secondary);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .meal-table tbody tr:nth-child(even) {
+      background-color: #f7f7f7;
+    }
+
+    .meal-icon {
+      font-size: 1.3rem;
+      margin-right: 6px;
+    }
+
+    .meal-delete {
+      color: var(--color-danger);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .summary-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .summary-list li {
+      margin: 3px 0;
+      font-size: 0.9rem;
+    }
+
+    /* KANBAN BOARD STYLES */
+    #kanbanSection h2 {
+      margin-top: 0;
+      color: var(--color-secondary-dark);
+    }
+
+    .kanban-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .kanban-controls input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .kanban-controls button {
+      background-color: var(--color-primary);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .kanban-controls button:hover {
+      background-color: var(--color-primary-dark);
+    }
+
+    .kanban-board {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+    }
+
+    .kanban-column {
+      background-color: var(--color-surface);
+      border-radius: 8px;
+      padding: 10px;
+      flex: 1;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 220px);
+    }
+
+    .kanban-column.todo {
+      background-color: var(--kanban-todo);
+    }
+
+    .kanban-column.doing {
+      background-color: var(--kanban-doing);
+    }
+
+    .kanban-column.done {
+      background-color: var(--kanban-done);
+    }
+
+    .kanban-column h3 {
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.1rem;
+    }
+
+    .kanban-column .limit-input {
+      width: 40px;
+      padding: 2px;
+      border: 1px solid #888;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .kanban-tasks {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .kanban-card {
+      background-color: var(--color-surface);
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: grab;
+      border-left: 5px solid transparent;
+    }
+
+    .kanban-card[data-priority="high"] {
+      border-left-color: var(--color-danger);
+    }
+
+    .kanban-card[data-priority="medium"] {
+      border-left-color: var(--color-warning);
+    }
+
+    .kanban-card[data-priority="low"] {
+      border-left-color: var(--color-primary);
+    }
+
+    .kanban-card h4 {
+      margin: 0 0 5px;
+      font-size: 0.95rem;
+    }
+
+    .kanban-card p {
+      margin: 0 0 8px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .kanban-card .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .kanban-card .assigned {
+      display: flex;
+      gap: 4px;
+    }
+
+    .kanban-card .avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .kanban-card .delete-btn {
+      color: var(--color-danger);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Modal styles (used for task and habit forms) */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: var(--color-surface);
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: var(--color-secondary-dark);
+    }
+
+    .modal-content form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-content form input,
+    .modal-content form textarea,
+    .modal-content form select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .modal-content form label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+
+    .modal-content .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .modal-content button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .modal-content button.primary {
+      background-color: var(--color-primary);
+      color: #fff;
+    }
+
+    .modal-content button.secondary {
+      background-color: #bbb;
+      color: #333;
+    }
+
+    .modal-content button.delete {
+      background-color: var(--color-danger);
+      color: #fff;
+    }
+
+    /* HABIT TRACKER STYLES */
+    #habitSection h2 {
+      margin-top: 0;
+      color: var(--color-info);
+    }
+
+    .habit-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .habit-controls button {
+      background-color: var(--color-secondary);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .habit-controls button:hover {
+      background-color: var(--color-secondary-dark);
+    }
+
+    .habit-table {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .habit-row {
+      display: grid;
+      /* four columns: name, chart, cells, actions */
+      grid-template-columns: 200px 100px 1fr auto;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: var(--color-surface);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .habit-name {
+      font-weight: bold;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .habit-name .color-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    .habit-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .habit-actions span {
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .habit-actions .edit-btn {
+      background-color: var(--color-primary);
+      color: #fff;
+    }
+
+    .habit-actions .delete-btn {
+      background-color: var(--color-danger);
+      color: #fff;
+    }
+
+    .habit-streak {
+      font-size: 0.8rem;
+      color: var(--color-primary-dark);
+    }
+
+    .habit-chart {
+      width: 100px;
+      height: 40px;
+    }
+
+    .habit-cells {
+      display: grid;
+      grid-template-columns: repeat(14, 24px);
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .habit-cell {
+      width: 24px;
+      height: 24px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      user-select: none;
+    }
+
+    .habit-cell.done {
+      background-color: var(--color-primary);
+      color: #fff;
+    }
+
+    .habit-cell.skip {
+      background-color: var(--color-warning);
+      color: #fff;
+    }
+
+    .habit-cell.none {
+      background-color: #ecf0f1;
+      color: #7f8c8d;
+    }
+
+    /* Responsive layout adjustments */
+    @media (max-width: 700px) {
+      nav button {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+      }
+      .kanban-column {
+        min-width: 250px;
+      }
+      .habit-row {
+        grid-template-columns: 150px 80px 1fr;
+        font-size: 0.8rem;
+      }
+      .habit-controls button {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>GetYourSh@tTogether</h1>
+    <nav>
+      <button id="navMeal" class="active">Meal Tracker</button>
+      <button id="navKanban">Kanban Board</button>
+      <button id="navHabit">Habit Tracker</button>
+    </nav>
+  </header>
+  <main>
+    <!-- Meal Tracker Section -->
+    <section id="mealSection" class="app-section active">
+      <h2>Healthy Meal Tracker</h2>
+      <form class="meal-form" id="mealForm">
+        <label>Date
+          <input type="date" id="mealDate" required />
+        </label>
+        <label>Meal Name
+          <input type="text" id="mealName" placeholder="Breakfast, Lunch..." required />
+        </label>
+        <label>Ingredients (comma separated)
+          <textarea id="mealIngredients" placeholder="e.g. eggs, bread, bacon"></textarea>
+        </label>
+        <label>Calories
+          <input type="number" id="mealCalories" min="0" placeholder="e.g. 500" required />
+        </label>
+        <button type="submit">Add Meal</button>
+      </form>
+      <table class="meal-table" id="mealTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Meal</th>
+            <th>Ingredients</th>
+            <th>Calories</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <h3>Daily Summary</h3>
+      <ul class="summary-list" id="summaryList"></ul>
+    </section>
+    <!-- Kanban Board Section -->
+    <section id="kanbanSection" class="app-section">
+      <h2>Kanban Board</h2>
+      <div class="kanban-controls">
+        <input type="text" id="taskSearch" placeholder="Search tasks..." />
+        <button id="addTaskBtn">Add Task</button>
+      </div>
+      <div class="kanban-board" id="kanbanBoard">
+        <div class="kanban-column todo" data-status="todo">
+          <h3>To&nbsp;Do <input type="number" class="limit-input" id="limit-todo" min="0" value="" placeholder="∞" /></h3>
+          <div class="kanban-tasks" id="tasks-todo"></div>
+        </div>
+        <div class="kanban-column doing" data-status="doing">
+          <h3>Doing <input type="number" class="limit-input" id="limit-doing" min="0" value="3" /></h3>
+          <div class="kanban-tasks" id="tasks-doing"></div>
+        </div>
+        <div class="kanban-column done" data-status="done">
+          <h3>Done <input type="number" class="limit-input" id="limit-done" min="0" value="" placeholder="∞" /></h3>
+          <div class="kanban-tasks" id="tasks-done"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Habit Tracker Section -->
+    <section id="habitSection" class="app-section">
+      <h2>Micro Habit Tracker</h2>
+      <div class="habit-controls">
+        <button id="addHabitBtn">Add Habit</button>
+        <button id="exportHabitsBtn">Export Habits</button>
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+          <span style="background-color: var(--color-secondary-dark); color: #fff; padding: 8px 14px; border-radius: 5px; font-size: 0.9rem;">Import Habits</span>
+          <input type="file" id="importHabitsInput" accept=".json" style="display:none;" />
+        </label>
+      </div>
+      <div class="habit-table" id="habitTable">
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for adding/editing tasks -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <h3 id="taskModalTitle">Add Task</h3>
+      <form id="taskForm">
+        <label for="taskTitle">Title</label>
+        <input type="text" id="taskTitle" required />
+        <label for="taskDesc">Description</label>
+        <textarea id="taskDesc" rows="3"></textarea>
+        <label for="taskPriority">Priority</label>
+        <select id="taskPriority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low" selected>Low</option>
+        </select>
+        <label for="taskAssigned">Assign to (comma separated names)</label>
+        <input type="text" id="taskAssigned" placeholder="e.g. Alice, Bob" />
+        <div class="modal-actions">
+          <button type="button" class="secondary" id="cancelTaskBtn">Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for adding/editing habits -->
+  <div class="modal" id="habitModal">
+    <div class="modal-content">
+      <h3 id="habitModalTitle">Add Habit</h3>
+      <form id="habitForm">
+        <label for="habitName">Habit Name</label>
+        <input type="text" id="habitName" required />
+        <div class="modal-actions">
+          <button type="button" class="secondary" id="cancelHabitBtn">Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /*
+      The JavaScript below implements the core logic for the multi‑purpose app.
+      It stores state in localStorage so that data persists across sessions.  If no
+      data exists when the page loads, default datasets will be created for
+      demonstration purposes.  Each section (meal tracker, kanban, habits) is
+      encapsulated with its own functions to keep logic organised.  The app
+      provides dynamic interactions such as drag‑and‑drop for the Kanban board,
+      habit streak calculations, JSON import/export, and responsive UI updates.
+    */
+
+    // ===== UTILITY FUNCTIONS =====
+    function saveToStorage(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+    function loadFromStorage(key) {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    }
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    // Generate a consistent pastel colour for a given string (used for avatars)
+    function hashStringToColor(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = hash % 360;
+      return `hsl(${hue}, 70%, 50%)`;
+    }
+    // Format date as YYYY‑MM‑DD
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // ===== NAVIGATION HANDLING =====
+    const navMealBtn = document.getElementById('navMeal');
+    const navKanbanBtn = document.getElementById('navKanban');
+    const navHabitBtn = document.getElementById('navHabit');
+    const sections = {
+      meal: document.getElementById('mealSection'),
+      kanban: document.getElementById('kanbanSection'),
+      habit: document.getElementById('habitSection'),
+    };
+
+    function showSection(name) {
+      for (const key in sections) {
+        sections[key].classList.toggle('active', key === name);
+      }
+      navMealBtn.classList.toggle('active', name === 'meal');
+      navKanbanBtn.classList.toggle('active', name === 'kanban');
+      navHabitBtn.classList.toggle('active', name === 'habit');
+    }
+
+    navMealBtn.addEventListener('click', () => showSection('meal'));
+    navKanbanBtn.addEventListener('click', () => showSection('kanban'));
+    navHabitBtn.addEventListener('click', () => showSection('habit'));
+
+    // ===== MEAL TRACKER =====
+    let meals = loadFromStorage('meals') || [];
+    // If there are no meals, set default example data for demonstration
+    if (meals.length === 0) {
+      const today = new Date();
+      const yesterday = new Date(Date.now() - 86400000);
+      meals = [
+        { id: generateId(), date: formatDate(today), name: 'Breakfast', ingredients: ['eggs', 'toast', 'avocado'], calories: 450 },
+        { id: generateId(), date: formatDate(today), name: 'Lunch', ingredients: ['salad', 'chicken breast'], calories: 600 },
+        { id: generateId(), date: formatDate(yesterday), name: 'Dinner', ingredients: ['pasta', 'tomato sauce'], calories: 700 },
+      ];
+      saveToStorage('meals', meals);
+    }
+
+    const mealForm = document.getElementById('mealForm');
+    const mealTableBody = document.querySelector('#mealTable tbody');
+    const summaryList = document.getElementById('summaryList');
+
+    function getMealIcon(name) {
+      const lc = name.toLowerCase();
+      if (lc.includes('breakfast')) return '🍳';
+      if (lc.includes('lunch')) return '🥪';
+      if (lc.includes('dinner')) return '🍝';
+      if (lc.includes('snack')) return '🍎';
+      if (lc.includes('salad')) return '🥗';
+      return '🍽️';
+    }
+
+    function renderMeals() {
+      mealTableBody.innerHTML = '';
+      meals.forEach(meal => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(meal.date)}</td>
+          <td><span class="meal-icon">${getMealIcon(meal.name)}</span>${escapeHtml(meal.name)}</td>
+          <td>${meal.ingredients.map(i => escapeHtml(i.trim())).join(', ')}</td>
+          <td>${meal.calories}</td>
+          <td><span class="meal-delete" data-id="${meal.id}">✕</span></td>
+        `;
+        mealTableBody.appendChild(tr);
+      });
+      renderSummary();
+    }
+
+    function renderSummary() {
+      // Compute total calories per date
+      const totals = {};
+      meals.forEach(m => {
+        totals[m.date] = (totals[m.date] || 0) + Number(m.calories);
+      });
+      summaryList.innerHTML = '';
+      Object.keys(totals).sort((a,b) => b.localeCompare(a)).forEach(date => {
+        const li = document.createElement('li');
+        li.textContent = `${date}: ${totals[date]} kcal`;
+        summaryList.appendChild(li);
+      });
+    }
+
+    mealForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('mealDate').value;
+      const name = document.getElementById('mealName').value.trim();
+      const ingredients = document.getElementById('mealIngredients').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+      const calories = Number(document.getElementById('mealCalories').value);
+      if (!date || !name || isNaN(calories)) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+      const meal = { id: generateId(), date, name, ingredients, calories };
+      meals.push(meal);
+      saveToStorage('meals', meals);
+      mealForm.reset();
+      // reset date to today after submission
+      document.getElementById('mealDate').value = formatDate(new Date());
+      renderMeals();
+    });
+
+    // Delegate deletion to table body
+    mealTableBody.addEventListener('click', (e) => {
+      if (e.target.classList.contains('meal-delete')) {
+        const id = e.target.getAttribute('data-id');
+        if (confirm('Delete this meal?')) {
+          meals = meals.filter(m => m.id !== id);
+          saveToStorage('meals', meals);
+          renderMeals();
+        }
+      }
+    });
+
+    // Initialize meal date input to today
+    document.getElementById('mealDate').value = formatDate(new Date());
+    renderMeals();
+
+    // ===== KANBAN BOARD =====
+    let tasks = loadFromStorage('tasks') || [];
+    if (tasks.length === 0) {
+      // Demo tasks
+      tasks = [
+        { id: generateId(), title: 'Setup project repo', description: 'Initialize repository and README.', priority: 'high', assigned: ['Alice'], status: 'todo' },
+        { id: generateId(), title: 'Design UI mockups', description: 'Create wireframes for the new app.', priority: 'medium', assigned: ['Bob', 'Clara'], status: 'doing' },
+        { id: generateId(), title: 'Review PR #42', description: 'Code review and merge changes.', priority: 'low', assigned: ['Dan'], status: 'done' },
+      ];
+      saveToStorage('tasks', tasks);
+    }
+    // WIP limits: default values loaded from storage or defaults
+    let wipLimits = loadFromStorage('wipLimits') || { todo: null, doing: 3, done: null };
+    document.getElementById('limit-todo').value = wipLimits.todo ?? '';
+    document.getElementById('limit-doing').value = wipLimits.doing ?? '';
+    document.getElementById('limit-done').value = wipLimits.done ?? '';
+
+    const taskSearchInput = document.getElementById('taskSearch');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const taskModal = document.getElementById('taskModal');
+    const taskForm = document.getElementById('taskForm');
+    const taskModalTitle = document.getElementById('taskModalTitle');
+    const cancelTaskBtn = document.getElementById('cancelTaskBtn');
+
+    let editingTaskId = null;
+
+    function renderBoard() {
+      // Clear existing tasks
+      ['todo','doing','done'].forEach(status => {
+        const container = document.getElementById(`tasks-${status}`);
+        container.innerHTML = '';
+      });
+      // Filter tasks by search
+      const searchTerm = taskSearchInput.value.toLowerCase();
+      tasks.forEach(task => {
+        if (searchTerm && !task.title.toLowerCase().includes(searchTerm) && !task.assigned.some(a => a.toLowerCase().includes(searchTerm))) {
+          return;
+        }
+        const card = document.createElement('div');
+        card.className = 'kanban-card';
+        card.setAttribute('draggable', 'true');
+        card.dataset.id = task.id;
+        card.dataset.priority = task.priority;
+        card.innerHTML = `
+          <h4>${escapeHtml(task.title)}</h4>
+          <p>${escapeHtml(task.description)}</p>
+          <div class="card-footer">
+            <div class="assigned">
+              ${task.assigned.map(name => {
+                const initial = escapeHtml(name.trim().charAt(0).toUpperCase());
+                const color = hashStringToColor(name.trim());
+                return `<div class="avatar" style="background-color:${color}" title="${escapeHtml(name.trim())}">${initial}</div>`;
+              }).join('')}
+            </div>
+            <span class="delete-btn" data-id="${task.id}">✕</span>
+          </div>
+        `;
+        // Drag events
+        card.addEventListener('dragstart', (ev) => {
+          ev.dataTransfer.setData('text/plain', task.id);
+        });
+        // Delete event
+        card.querySelector('.delete-btn').addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const id = ev.target.getAttribute('data-id');
+          if (confirm('Delete this task?')) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveToStorage('tasks', tasks);
+            renderBoard();
+          }
+        });
+        document.getElementById(`tasks-${task.status}`).appendChild(card);
+      });
+    }
+
+    // Column and container drop handlers
+    // Allow dropping on the column itself or the inner tasks container.  Without
+    // attaching handlers to the inner container, drops may not be recognised
+    // because events don’t bubble through overflow elements.
+    function attachDropHandlers(element, status) {
+      element.addEventListener('dragover', (ev) => {
+        ev.preventDefault();
+      });
+      element.addEventListener('drop', (ev) => {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData('text/plain');
+        const targetStatus = status;
+        const limit = wipLimits[targetStatus];
+        if (limit !== null && limit !== undefined && limit !== '' && limit >= 0) {
+          const currentCount = tasks.filter(t => t.status === targetStatus).length;
+          if (currentCount >= limit && tasks.find(t => t.id === id).status !== targetStatus) {
+            alert(`Cannot move: WIP limit for ${targetStatus.toUpperCase()} is ${limit}`);
+            return;
+          }
+        }
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.status = targetStatus;
+          saveToStorage('tasks', tasks);
+          renderBoard();
+        }
+      });
+    }
+    document.querySelectorAll('.kanban-column').forEach(column => {
+      const status = column.dataset.status;
+      attachDropHandlers(column, status);
+      const tasksContainer = column.querySelector('.kanban-tasks');
+      if (tasksContainer) attachDropHandlers(tasksContainer, status);
+    });
+
+    // Search filtering
+    taskSearchInput.addEventListener('input', renderBoard);
+
+    // Update WIP limits
+    ['limit-todo','limit-doing','limit-done'].forEach(inputId => {
+      const input = document.getElementById(inputId);
+      input.addEventListener('change', () => {
+        const status = inputId.split('-')[1];
+        const value = input.value;
+        wipLimits[status] = value ? Number(value) : null;
+        saveToStorage('wipLimits', wipLimits);
+      });
+    });
+
+    // Show task modal
+    addTaskBtn.addEventListener('click', () => {
+      editingTaskId = null;
+      taskModalTitle.textContent = 'Add Task';
+      taskForm.reset();
+      taskModal.style.display = 'flex';
+    });
+    cancelTaskBtn.addEventListener('click', () => {
+      taskModal.style.display = 'none';
+    });
+    taskModal.addEventListener('click', (ev) => {
+      if (ev.target === taskModal) taskModal.style.display = 'none';
+    });
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDesc').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+      const assigned = document.getElementById('taskAssigned').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+      if (!title) {
+        alert('Title is required.');
+        return;
+      }
+      if (editingTaskId) {
+        const task = tasks.find(t => t.id === editingTaskId);
+        if (task) {
+          task.title = title;
+          task.description = description;
+          task.priority = priority;
+          task.assigned = assigned;
+        }
+      } else {
+        tasks.push({ id: generateId(), title, description, priority, assigned, status: 'todo' });
+      }
+      saveToStorage('tasks', tasks);
+      taskModal.style.display = 'none';
+      renderBoard();
+    });
+
+    renderBoard();
+
+    // ===== HABIT TRACKER =====
+    let habits = loadFromStorage('habits') || [];
+    if (habits.length === 0) {
+      // Demo habits with example history for last few days
+      const today = new Date();
+      const dates = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86400000);
+        dates.push(formatDate(d));
+      }
+      habits = [
+        { id: generateId(), name: 'Morning Run', color: '#FF6F61', history: {} },
+        { id: generateId(), name: 'Drink Water', color: '#2AB7CA', history: {} },
+        { id: generateId(), name: 'Read Book', color: '#E5C454', history: {} },
+      ];
+      habits.forEach((habit, index) => {
+        dates.forEach((dateStr, idx) => {
+          // Fill in sample: alternate patterns
+          const mod = (index + idx) % 3;
+          if (mod === 0) habit.history[dateStr] = 'done';
+          else if (mod === 1) habit.history[dateStr] = 'skip';
+          else habit.history[dateStr] = 'none';
+        });
+      });
+      saveToStorage('habits', habits);
+    }
+
+    const habitTable = document.getElementById('habitTable');
+    const addHabitBtn = document.getElementById('addHabitBtn');
+    const exportHabitsBtn = document.getElementById('exportHabitsBtn');
+    const importHabitsInput = document.getElementById('importHabitsInput');
+    const habitModal = document.getElementById('habitModal');
+    const habitForm = document.getElementById('habitForm');
+    const habitModalTitle = document.getElementById('habitModalTitle');
+    const cancelHabitBtn = document.getElementById('cancelHabitBtn');
+
+    let editingHabitId = null;
+
+    function getLastNDates(n) {
+      const dates = [];
+      for (let i = n - 1; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86400000);
+        dates.push(formatDate(d));
+      }
+      return dates;
+    }
+
+    function calculateStreak(history) {
+      let streak = 0;
+      let date = new Date();
+      while (true) {
+        const key = formatDate(date);
+        const state = history[key];
+        if (state === 'done' || state === 'skip') {
+          if (state === 'done') streak++;
+          date = new Date(date.getTime() - 86400000);
+          continue;
+        }
+        break;
+      }
+      return streak;
+    }
+
+    function renderHabits() {
+      habitTable.innerHTML = '';
+      const dates = getLastNDates(14);
+      // Table header row for dates (if needed) can be implemented separately
+      habits.forEach(habit => {
+        const row = document.createElement('div');
+        row.className = 'habit-row';
+        // Name and actions
+        const nameCol = document.createElement('div');
+        nameCol.className = 'habit-name';
+        const colorIndicator = document.createElement('span');
+        colorIndicator.className = 'color-indicator';
+        colorIndicator.style.backgroundColor = habit.color;
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = habit.name;
+        const streakSpan = document.createElement('span');
+        streakSpan.className = 'habit-streak';
+        streakSpan.textContent = `Streak: ${calculateStreak(habit.history)}`;
+        nameCol.appendChild(colorIndicator);
+        nameCol.appendChild(nameSpan);
+        nameCol.appendChild(streakSpan);
+        row.appendChild(nameCol);
+        // Chart
+        const chartCol = document.createElement('div');
+        const canvas = document.createElement('canvas');
+        canvas.className = 'habit-chart';
+        canvas.width = 100;
+        canvas.height = 40;
+        chartCol.appendChild(canvas);
+        row.appendChild(chartCol);
+        // Cells
+        const cellsCol = document.createElement('div');
+        cellsCol.className = 'habit-cells';
+        dates.forEach(dateStr => {
+          const cell = document.createElement('div');
+          const state = habit.history[dateStr] || 'none';
+          cell.className = `habit-cell ${state}`;
+          cell.dataset.date = dateStr;
+          cell.dataset.habitId = habit.id;
+          cell.textContent = state === 'skip' ? 'S' : (state === 'done' ? '✔' : '');
+          cell.addEventListener('click', () => {
+            cycleHabitState(habit.id, dateStr);
+          });
+          cellsCol.appendChild(cell);
+        });
+        row.appendChild(cellsCol);
+        // Actions
+        const actionsCol = document.createElement('div');
+        actionsCol.className = 'habit-actions';
+        const editBtn = document.createElement('span');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => {
+          editingHabitId = habit.id;
+          habitModalTitle.textContent = 'Edit Habit';
+          document.getElementById('habitName').value = habit.name;
+          habitModal.style.display = 'flex';
+        });
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('Delete this habit?')) {
+            habits = habits.filter(h => h.id !== habit.id);
+            saveToStorage('habits', habits);
+            renderHabits();
+          }
+        });
+        actionsCol.appendChild(editBtn);
+        actionsCol.appendChild(deleteBtn);
+        row.appendChild(actionsCol);
+        habitTable.appendChild(row);
+      });
+      drawAllCharts();
+    }
+
+    function cycleHabitState(habitId, dateStr) {
+      const habit = habits.find(h => h.id === habitId);
+      if (!habit) return;
+      const current = habit.history[dateStr] || 'none';
+      let next;
+      if (current === 'none') next = 'done';
+      else if (current === 'done') next = 'skip';
+      else next = 'none';
+      habit.history[dateStr] = next;
+      saveToStorage('habits', habits);
+      renderHabits();
+    }
+
+    function drawAllCharts() {
+      const dates = getLastNDates(14);
+      habits.forEach(habit => {
+        const row = habitTable.querySelector(`[data-habit-id]`);
+      });
+      // For each canvas
+      const canvases = document.querySelectorAll('.habit-chart');
+      canvases.forEach((canvas, index) => {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const habit = habits[index];
+        if (!habit) return;
+        const data = dates.map(d => {
+          const state = habit.history[d] || 'none';
+          return state === 'done' ? 1 : (state === 'skip' ? 0.5 : 0);
+        });
+        const barWidth = canvas.width / data.length;
+        data.forEach((val, i) => {
+          const x = i * barWidth;
+          const h = val * canvas.height;
+          ctx.fillStyle = habit.color;
+          ctx.globalAlpha = val === 0.5 ? 0.5 : 1;
+          ctx.fillRect(x + 1, canvas.height - h, barWidth - 2, h);
+        });
+        // Draw baseline line
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, canvas.height - 1, canvas.width, 1);
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    addHabitBtn.addEventListener('click', () => {
+      if (habits.length >= parseInt(getComputedStyle(document.documentElement).getPropertyValue('--max-habits'))) {
+        alert('Maximum number of habits reached.');
+        return;
+      }
+      editingHabitId = null;
+      habitModalTitle.textContent = 'Add Habit';
+      habitForm.reset();
+      habitModal.style.display = 'flex';
+    });
+
+    cancelHabitBtn.addEventListener('click', () => {
+      habitModal.style.display = 'none';
+    });
+    habitModal.addEventListener('click', (ev) => {
+      if (ev.target === habitModal) habitModal.style.display = 'none';
+    });
+
+    habitForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('habitName').value.trim();
+      if (!name) {
+        alert('Habit name is required.');
+        return;
+      }
+      if (editingHabitId) {
+        const h = habits.find(hab => hab.id === editingHabitId);
+        if (h) h.name = name;
+      } else {
+        // Assign a colour from a preset palette or random pastel
+        const palette = ['#FF6F61','#6B5B95','#88B04B','#F7CAC9','#92A8D1','#955251','#B565A7'];
+        const color = palette[habits.length % palette.length];
+        habits.push({ id: generateId(), name, color, history: {} });
+      }
+      saveToStorage('habits', habits);
+      habitModal.style.display = 'none';
+      renderHabits();
+    });
+
+    exportHabitsBtn.addEventListener('click', () => {
+      const dataStr = JSON.stringify(habits, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'habits.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importHabitsInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            habits = imported;
+            saveToStorage('habits', habits);
+            renderHabits();
+          } else {
+            alert('Invalid file format.');
+          }
+        } catch (err) {
+          alert('Failed to import habits: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      // Reset input so the same file can be uploaded again later
+      importHabitsInput.value = '';
+    });
+
+    renderHabits();
+  </script>
+</body>
+</html>
