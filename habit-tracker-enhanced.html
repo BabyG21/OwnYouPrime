@@ -84,9 +84,8 @@
       padding: 26px 32px;
       border-radius: var(--radius);
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 18px;
       box-shadow: var(--shadow);
       position: relative;
       overflow: hidden;
@@ -111,11 +110,42 @@
       color: rgba(255,255,255,0.85);
       margin-top: 6px;
     }
+    header .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+    }
+
     header .right-controls {
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+    }
+
+    .momentum-chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .momentum-chip {
+      background: rgba(10, 15, 43, 0.28);
+      padding: 10px 18px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+      font-size: 0.85rem;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .momentum-chip small {
+      display: block;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.75rem;
     }
     header .right-controls .today-date {
       font-size: 0.9rem;
@@ -250,6 +280,61 @@
       border-radius: var(--radius);
       border: 1px solid rgba(148,163,184,0.14);
       box-shadow: 0 12px 28px rgba(5, 8, 30, 0.35);
+    }
+
+    .date-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 18px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .date-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .month-label {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+      padding: 4px 12px;
+      align-self: flex-end;
+    }
+
+    .date-chip {
+      min-width: 56px;
+      padding: 10px 12px;
+      text-align: center;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.52);
+      border: 1px solid rgba(143, 211, 244, 0.18);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      line-height: 1.2;
+      font-size: 0.8rem;
+    }
+
+    .date-chip .day-name {
+      display: block;
+      font-weight: 600;
+    }
+
+    .date-chip .day-number {
+      display: block;
+      font-size: 1rem;
+    }
+
+    .date-chip.selected {
+      background: linear-gradient(135deg, rgba(109, 77, 252, 0.9), rgba(236, 92, 154, 0.85));
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 28px rgba(5, 8, 30, 0.48);
+    }
+
+    .date-chip.today {
+      border-color: rgba(255, 255, 255, 0.45);
     }
     .tracker-toolbar .toolbar-group {
       display: flex;
@@ -449,37 +534,42 @@
     /* Modals */
     .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
+      inset: 0;
+      background: rgba(5, 8, 18, 0.78);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 200;
+      backdrop-filter: blur(12px);
     }
+
     .modal.active {
       display: flex;
     }
+
     .modal-box {
       background: rgba(11, 17, 38, 0.92);
-      padding: 24px 26px;
-      border-radius: var(--radius);
+      padding: 28px;
+      border-radius: 20px;
       box-shadow: 0 30px 60px rgba(5, 8, 30, 0.65);
-      width: 90%;
-      max-width: 440px;
+      width: min(520px, 92vw);
       border: 1px solid rgba(143, 211, 244, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
+
     .modal-box h3 {
-      margin-bottom: 12px;
+      margin: 0;
     }
+
     .modal-box label {
       font-size: 0.8rem;
       color: var(--muted-text);
       margin-top: 10px;
       display: block;
     }
+
     .modal-box input[type="text"],
     .modal-box input[type="time"],
     .modal-box input[type="color"] {
@@ -492,12 +582,14 @@
       margin-top: 4px;
       box-shadow: inset 0 0 0 1px rgba(109, 77, 252, 0.15);
     }
+
     .modal-box .modal-actions {
       margin-top: 20px;
       display: flex;
       justify-content: flex-end;
       gap: 10px;
     }
+
     .modal-box .modal-actions button {
       background: var(--gradient-start);
       border: none;
@@ -507,8 +599,95 @@
       cursor: pointer;
       font-weight: 600;
     }
+
     .modal-box .modal-actions .delete-btn {
       background: var(--miss-color);
+    }
+
+    .habit-popup-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .habit-popup-tabs button {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 211, 244, 0.2);
+      background: rgba(15, 23, 42, 0.55);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .habit-popup-tabs button.active {
+      background: linear-gradient(130deg, rgba(109, 77, 252, 0.85), rgba(236, 92, 154, 0.85));
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    .habit-popup-content {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .habit-popup-content.active {
+      display: flex;
+    }
+
+    #habitReminderDays {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    #habitReminderDays button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 211, 244, 0.25);
+      background: rgba(15, 23, 42, 0.55);
+      color: white;
+      cursor: pointer;
+    }
+
+    #habitReminderDays button.active {
+      background: linear-gradient(130deg, rgba(109, 77, 252, 0.85), rgba(236, 92, 154, 0.85));
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    #habitReminderDays button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .quick-reasons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .quick-reasons button {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 211, 244, 0.25);
+      background: rgba(10, 15, 43, 0.45);
+      color: white;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .quick-reasons button:hover {
+      background: rgba(109, 77, 252, 0.35);
+    }
+
+    .inline-banner {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(143,211,244,0.22);
+      background: rgba(10, 15, 43, 0.55);
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.82);
     }
     /* Settings page */
     #settingsSection .settings-group {
@@ -551,32 +730,61 @@
       box-shadow: 0 12px 24px rgba(255, 93, 122, 0.28);
     }
     /* Analytics layout */
-    #analyticsSection .chart-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+    #analyticsSection .analytics-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
       margin-top: 20px;
     }
-    .chart-box {
+
+    .analytics-card {
       background: rgba(11, 17, 38, 0.78);
-      padding: 22px;
-      border-radius: var(--radius);
-      box-shadow: 0 24px 45px rgba(5, 8, 30, 0.55);
-      border: 1px solid rgba(143, 211, 244, 0.22);
-      flex: 1 1 320px;
+      border-radius: 16px;
+      border: 1px solid rgba(143, 211, 244, 0.18);
+      padding: 20px;
+      box-shadow: 0 24px 45px rgba(5, 8, 30, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
       position: relative;
-      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .chart-box::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(150deg, rgba(109, 77, 252, 0.18), transparent 65%);
-      pointer-events: none;
+
+    .analytics-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 28px 52px rgba(5, 8, 30, 0.55);
     }
-    .chart-box canvas {
+
+    .analytics-card h4 {
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+      margin: 0;
+    }
+
+    .analytics-card canvas {
       width: 100% !important;
-      height: 230px !important;
+      height: 160px !important;
+    }
+
+    .analytics-card .card-hint {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+    }
+
+    .analytics-detail {
+      margin-top: 28px;
+      background: rgba(10, 15, 43, 0.55);
+      padding: 22px;
+      border-radius: 16px;
+      border: 1px solid rgba(143, 211, 244, 0.18);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .analytics-detail.active {
+      display: flex;
     }
     /* Responsive */
     @media (max-width: 800px) {
@@ -612,18 +820,23 @@
   <div class="background-gradient"></div>
   <div class="app-shell">
     <header>
-      <div class="title">
-        <span class="icon" style="font-size:1.4rem;">✨</span>
-        <div>
-          Habit Tracker
-          <div class="subtitle">Design your daily rhythm with clarity and celebration.</div>
+      <div class="top-row">
+        <div class="title">
+          <span class="icon" style="font-size:1.4rem;">✨</span>
+          <div>
+            Habit Tracker
+            <div class="subtitle">Design your daily rhythm with clarity and celebration.</div>
+          </div>
+        </div>
+        <div class="right-controls">
+          <div class="today-date" id="todayDisplay">Today</div>
+          <button id="exportBtn">Export JSON</button>
+          <button id="importBtn">Import JSON</button>
+          <input type="file" id="importInput" accept="application/json" style="display:none">
         </div>
       </div>
-      <div class="right-controls">
-        <div class="today-date" id="todayDisplay">Today</div>
-        <button id="exportBtn">Export JSON</button>
-        <button id="importBtn">Import JSON</button>
-        <input type="file" id="importInput" accept="application/json" style="display:none">
+      <div class="momentum-chips" id="momentumChips">
+        <!-- populated dynamically -->
       </div>
     </header>
     <nav>
@@ -650,6 +863,7 @@
             <button id="clearDayBtn" class="small-btn">Clear selected day</button>
           </div>
         </div>
+        <div class="date-strip" id="dateStrip"></div>
         <div style="overflow-x:auto;">
           <table class="tracker-table" id="trackerTable">
             <thead id="trackerHead"></thead>
@@ -664,42 +878,80 @@
       </section>
       <!-- Analytics Section -->
       <section id="analyticsSection">
-        <h3>Habit Summary</h3>
-        <table class="tracker-table" id="analyticsTable" style="margin-top:10px;">
-          <thead>
-            <tr>
-              <th>Habit</th>
-              <th>Done</th>
-              <th>Skipped</th>
-              <th>Missed</th>
-              <th>Streak</th>
-            </tr>
-          </thead>
-          <tbody id="analyticsBody"></tbody>
-        </table>
-        <div class="chart-container">
-          <div class="chart-box">
-            <h4 style="margin-bottom:8px;">Last 7 Days Completion</h4>
-            <canvas id="completionChart"></canvas>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:18px; flex-wrap:wrap;">
+          <h3 style="margin:0; font-size:1.3rem;">Analytics</h3>
+          <div class="momentum-chips" id="celebrationChips"></div>
+        </div>
+        <div class="analytics-card-grid" id="analyticsCardGrid">
+          <div class="analytics-card" data-zoom="CompletionDetail">
+            <h4>7-day completion</h4>
+            <canvas id="completionCard"></canvas>
+            <span class="card-hint">Tap to see daily breakdown</span>
           </div>
-          <div class="chart-box">
-            <h4 style="margin-bottom:8px;">Missed Reasons Distribution</h4>
-            <canvas id="reasonsChart"></canvas>
+          <div class="analytics-card" data-zoom="ReasonsDetail">
+            <h4>Reasons (top 5)</h4>
+            <canvas id="reasonsCard"></canvas>
+            <span class="card-hint">Tap for full reason board</span>
+          </div>
+          <div class="analytics-card" data-zoom="StreaksDetail">
+            <h4>Streaks</h4>
+            <canvas id="streaksCard"></canvas>
+            <span class="card-hint">Tap to view streak ladder</span>
+          </div>
+          <div class="analytics-card" data-zoom="MomentumDetail">
+            <h4>Momentum (30d)</h4>
+            <canvas id="momentumCard"></canvas>
+            <span class="card-hint">Tap for momentum timeline</span>
+          </div>
+        </div>
+        <div id="analyticsDetails">
+          <div class="analytics-detail" data-detail="CompletionDetail">
+            <h4>Completion detail</h4>
+            <canvas id="completionDetail"></canvas>
+            <div id="completionList"></div>
+          </div>
+          <div class="analytics-detail" data-detail="ReasonsDetail">
+            <h4>Miss reasons</h4>
+            <canvas id="reasonsDetail"></canvas>
+            <div id="reasonBreakdown"></div>
+          </div>
+          <div class="analytics-detail" data-detail="StreaksDetail">
+            <h4>Streak distribution</h4>
+            <canvas id="streaksDetail"></canvas>
+            <div id="streakBreakdown"></div>
+          </div>
+          <div class="analytics-detail" data-detail="MomentumDetail">
+            <h4>Momentum timeline</h4>
+            <canvas id="momentumDetail"></canvas>
+            <div id="momentumBreakdown"></div>
           </div>
         </div>
       </section>
       <!-- Settings Section -->
       <section id="settingsSection">
         <div class="settings-group">
-          <h4>Missed Habit Reasons</h4>
-          <ul id="reasonsList"></ul>
-          <div style="display:flex; gap:8px; margin-top:10px;">
-            <input type="text" id="newReasonInput" placeholder="Add new reason" style="flex:1; background:var(--card-bg-light); border:none; padding:6px 10px; border-radius:var(--radius); color:var(--text-color);">
+          <h4>Desktop notifications</h4>
+          <p style="font-size:0.85rem; color:var(--muted-text);">Keep reminders on track with desktop notifications. Grant permission and enable to schedule reminders.</p>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
+              <input type="checkbox" id="desktopNotificationToggle" style="transform:scale(1.3);">
+              Enable desktop notifications
+            </label>
+            <button id="requestPermissionBtn" class="small-btn">Grant permission</button>
+          </div>
+          <div id="notificationBanner" class="inline-banner" style="display:none; margin-top:12px;"></div>
+        </div>
+        <div class="settings-group">
+          <h4>Miss reason chips</h4>
+          <p style="font-size:0.85rem; color:var(--muted-text);">Customize the quick reasons that appear when you mark a miss.</p>
+          <div id="reasonsChipList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <input type="text" id="newReasonInput" placeholder="Add new reason" style="flex:1; background:var(--card-bg-light);border:none; padding:6px 10px; border-radius:var(--radius); color:var(--text-color);">
             <button id="addReasonBtn" class="small-btn">Add</button>
           </div>
         </div>
         <div class="settings-group">
-          <h4>Data Management</h4>
+          <h4>Data management</h4>
           <p style="font-size:0.85rem; color:var(--muted-text);">Export your data as a JSON file or import previously exported data.</p>
           <button id="settingsExportBtn" class="small-btn">Export JSON</button>
           <button id="settingsImportBtn" class="small-btn">Import JSON</button>
@@ -708,798 +960,1244 @@
       </section>
     </main>
   </div>
-  <!-- Habit Edit/Add Modal -->
-  <div class="modal" id="habitModal">
+  <!-- Habit Focus Popup -->
+  <div class="modal" id="habitPopup">
     <div class="modal-box">
-      <h3 id="habitModalTitle">Edit Habit</h3>
-      <label for="habitNameInput">Name</label>
-      <input type="text" id="habitNameInput" />
-      <label for="habitColorInput">Color</label>
-      <input type="color" id="habitColorInput" />
-      <label for="habitReminderInput">Reminder (optional)</label>
-      <input type="time" id="habitReminderInput" />
-      <div class="modal-actions">
-        <button id="saveHabitBtn">Save</button>
-        <button id="deleteHabitBtn" class="delete-btn">Delete</button>
-        <button id="cancelHabitBtn">Cancel</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <h3 id="habitPopupTitle"></h3>
+        <button id="closeHabitPopup" class="small-btn" style="padding:6px 12px;">Close</button>
+      </div>
+      <div class="habit-popup-tabs">
+        <button data-tab="details" class="active">Details</button>
+        <button data-tab="reminder">Reminder</button>
+        <button data-tab="history">History</button>
+      </div>
+      <div class="habit-popup-content active" data-content="details">
+        <label>Name</label>
+        <input type="text" id="habitDetailName" />
+        <label>Color</label>
+        <input type="color" id="habitDetailColor" />
+        <label>Notes</label>
+        <textarea id="habitDetailNotes" rows="3" style="background:rgba(20,28,63,0.85); border:1px solid rgba(143,211,244,0.25); border-radius:var(--radius); color:var(--text-color); padding:10px;"></textarea>
+        <div class="modal-actions" style="margin-top:12px; justify-content:space-between;">
+          <button id="deleteHabitBtn" class="delete-btn">Delete habit</button>
+          <button id="saveHabitDetailsBtn">Save changes</button>
+        </div>
+      </div>
+      <div class="habit-popup-content" data-content="reminder">
+        <label style="display:flex; gap:8px; align-items:center;">
+          <input type="checkbox" id="habitReminderToggle" style="transform:scale(1.2);">
+          Enable reminder
+        </label>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <div>
+            <label for="habitReminderTime">Reminder time</label>
+            <input type="time" id="habitReminderTime" />
+          </div>
+          <div style="flex:1;">
+            <label>Reminder days</label>
+            <div id="habitReminderDays" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="small-btn" data-snooze="5">Snooze 5m</button>
+          <button class="small-btn" data-snooze="15">Snooze 15m</button>
+          <button class="small-btn" data-snooze="60">Snooze 1h</button>
+          <button class="small-btn" id="customSnoozeBtn">Custom…</button>
+          <button class="small-btn" id="endTodayBtn">End today</button>
+        </div>
+        <div class="modal-actions" style="margin-top:20px; justify-content:flex-end;">
+          <button id="saveHabitReminderBtn">Save reminder</button>
+        </div>
+      </div>
+      <div class="habit-popup-content" data-content="history">
+        <div id="habitHistoryList" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </div>
   </div>
-  <!-- Missed Reason Modal -->
-  <div class="modal" id="reasonModal">
+  <!-- Quick reason picker -->
+  <div class="modal" id="quickReasonsModal">
     <div class="modal-box">
-      <h3>Why did you miss your habits yesterday?</h3>
-      <div id="reasonListContainer"></div>
-      <div class="modal-actions" style="justify-content:flex-end; margin-top:20px;">
-        <button id="submitReasonsBtn">Submit</button>
+      <h3>Select a reason</h3>
+      <div class="quick-reasons" id="quickReasonsContainer"></div>
+      <div class="modal-actions" style="justify-content:flex-end;">
+        <button id="cancelReasonsBtn">Cancel</button>
       </div>
     </div>
   </div>
+  <div id="toastContainer" style="position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:10px; z-index:300;"></div>
   <script>
-    // Data constants
-    const MAX_HABITS = 14;
-    const STORAGE_KEY = 'habitTrackerData_v2';
-    // Variables for date range and selected date
-    let currentStartDate; // beginning of 14-day range (Date object)
-    let selectedDate; // currently selected date (string YYYY-MM-DD)
+(function() {
+  const STORAGE_KEY = 'habitTracker.v3';
+  const LEGACY_KEY = 'habitTrackerData_v2';
+  const MARK_SEQUENCE = ['NONE', 'DONE', 'SKIP', 'MISS'];
+  const DEFAULT_MISS_REASONS = ['Not logged', 'Lazy', 'Forgot', 'Work', 'Medical', 'Travel', 'Social'];
+  const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const CELEBRATION_LEVELS = [
+    { value: 3, message: '🎉 3-Day Start' },
+    { value: 21, message: '🏁 3-Week Routine' },
+    { value: 90, message: '🏆 3-Month Lifestyle' }
+  ];
 
-    // Load or initialize data
-    function loadData() {
-      let data = localStorage.getItem(STORAGE_KEY);
-      if (!data) {
-        data = initDefaultData();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } else {
-        data = JSON.parse(data);
-      }
-      return data;
-    }
+  let appState = loadAppState();
+  let currentStartDate = getInitialRangeStart();
+  let selectedDate = formatDate(new Date());
+  const chartRegistry = new Map();
+  const detailChartRegistry = new Map();
+  const reminderTimeouts = new Map();
+  let pendingMissSelection = null;
+  let activeHabitId = null;
 
-    // Initialize default data with a few example habits and logs
-    function initDefaultData() {
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(today.getDate() - 2);
-      const data = {
-        habits: [
-          { id: 1, name: 'Move 10 minutes', color: '#4dd0e1', reminder: null, created: formatDate(twoDaysAgo) },
-          { id: 2, name: 'Read 5 pages', color: '#ba68c8', reminder: null, created: formatDate(twoDaysAgo) },
-          { id: 3, name: 'Mindful breaths', color: '#ffb74d', reminder: null, created: formatDate(twoDaysAgo) }
-        ],
-        logs: {},
-        reasons: ['Lazy', 'Forgot', 'Work', 'Medical'],
-        missedReasonsLog: {}
-      };
-      // Example logs: two days ago
-      data.logs[formatDate(twoDaysAgo)] = {
-        1: { status: 'done' },
-        2: { status: 'done' },
-        3: { status: 'missed' }
-      };
-      // Example logs: yesterday
-      data.logs[formatDate(yesterday)] = {
-        1: { status: 'done' },
-        2: { status: 'missed' },
-        3: { status: 'done' }
-      };
-      return data;
-    }
+  ensureEndOfDayCatchup();
+  recomputeStreaks();
+  rebuildAnalyticsCache();
+  renderAll();
+  bindEvents();
+  scheduleAllReminders();
 
-    // Save data to localStorage
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-    }
+  function renderAll() {
+    renderHeaderMetrics();
+    renderDateStrip();
+    renderTracker();
+    renderAnalytics();
+    renderCelebrations();
+    renderSettings();
+  }
 
-    // Format date as YYYY-MM-DD
-    function formatDate(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
+  function bindEvents() {
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchSection(tab.dataset.target));
+    });
 
-    // Parse YYYY-MM-DD to Date
-    function parseDate(str) {
-      const [y, m, d] = str.split('-').map(Number);
-      return new Date(y, m - 1, d);
-    }
-
-    // Global data variable
-    let appData = loadData();
-
-    // Initialize date range and selected date
-    function initDateRange() {
-      // Start range on the Monday of the current week (for better grouping)
-      const today = new Date();
-      selectedDate = formatDate(today);
-      const start = new Date(today);
-      // Move to previous Monday (Monday = 1, Sunday = 0 in getDay())
-      const dayOfWeek = start.getDay();
-      const diffToMonday = (dayOfWeek + 6) % 7; // number of days since Monday
-      start.setDate(start.getDate() - diffToMonday);
-      currentStartDate = start;
-    }
-
-    // Render the tracker table (header + body)
-    function renderTracker() {
-      const headEl = document.getElementById('trackerHead');
-      const bodyEl = document.getElementById('trackerBody');
-      headEl.innerHTML = '';
-      bodyEl.innerHTML = '';
-      // Build header row
-      const headRow = document.createElement('tr');
-      // First cell: label
-      const habitHeader = document.createElement('th');
-      habitHeader.textContent = 'Habit / Streak';
-      headRow.appendChild(habitHeader);
-      // Build 14 date headers
-      for (let i = 0; i < 14; i++) {
-        const date = new Date(currentStartDate);
-        date.setDate(date.getDate() + i);
-        const dateStr = formatDate(date);
-        const th = document.createElement('th');
-        th.className = 'date-header';
-        th.dataset.date = dateStr;
-        th.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        // Mark selected
-        if (dateStr === selectedDate) {
-          th.classList.add('selected');
-        }
-        // Mark today
-        const todayStr = formatDate(new Date());
-        if (dateStr === todayStr) {
-          th.classList.add('today');
-        }
-        // Add click event to select date
-        th.addEventListener('click', () => {
-          selectedDate = dateStr;
-          renderTracker();
-        });
-        headRow.appendChild(th);
-      }
-      headEl.appendChild(headRow);
-      // Build body rows per habit
-      appData.habits.forEach(habit => {
-        const tr = document.createElement('tr');
-        // Habit name cell
-        const nameTd = document.createElement('td');
-        nameTd.className = 'habit-name-cell';
-        // Color dot
-        const dot = document.createElement('span');
-        dot.className = 'color-dot';
-        dot.style.backgroundColor = habit.color;
-        nameTd.appendChild(dot);
-        // Name span
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = habit.name;
-        nameTd.appendChild(nameSpan);
-        // Streak
-        const streakSpan = document.createElement('span');
-        streakSpan.className = 'streak';
-        const streak = calculateStreak(habit.id);
-        streakSpan.textContent = streak > 0 ? `🔥 ${streak}` : '';
-        nameTd.appendChild(streakSpan);
-        // Add click to edit habit
-        nameTd.style.cursor = 'pointer';
-        nameTd.addEventListener('click', () => openHabitModal(habit.id));
-        tr.appendChild(nameTd);
-        // Date cells
-        for (let i = 0; i < 14; i++) {
-          const date = new Date(currentStartDate);
-          date.setDate(date.getDate() + i);
-          const dateStr = formatDate(date);
-          const td = document.createElement('td');
-          const cell = document.createElement('div');
-          cell.className = 'habit-cell';
-          cell.dataset.date = dateStr;
-          cell.dataset.habitId = habit.id;
-          // Determine status
-          const status = getHabitStatus(dateStr, habit.id);
-          if (status === 'done') {
-            cell.classList.add('done');
-            cell.innerHTML = '<i class="fa-solid fa-check"></i>';
-          } else if (status === 'skip') {
-            cell.classList.add('skip');
-            cell.innerHTML = '<i class="fa-solid fa-forward"></i>';
-          } else if (status === 'missed') {
-            cell.classList.add('missed');
-            cell.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-          }
-          cell.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cycleCellStatus(dateStr, habit.id);
-          });
-          td.appendChild(cell);
-          tr.appendChild(td);
-        }
-        bodyEl.appendChild(tr);
-      });
-      // Update labels and controls
-      updateRangeLabel();
-      updateSelectedLabel();
-      updateHabitCountLabel();
-      // Update skip day checkbox
-      updateSkipDayCheckbox();
-    }
-
-    // Update the range label (e.g., "Sep 5 — Sep 18")
-    function updateRangeLabel() {
-      const start = new Date(currentStartDate);
-      const end = new Date(currentStartDate);
-      end.setDate(end.getDate() + 13);
-      const startStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      const endStr = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      document.getElementById('rangeLabel').textContent = `${startStr} — ${endStr}`;
-    }
-
-    // Update selected date label
-    function updateSelectedLabel() {
-      const dateObj = parseDate(selectedDate);
-      document.getElementById('selectedLabel').textContent = `Selected: ${dateObj.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' })}`;
-    }
-
-    // Update habit count label (remaining habits)
-    function updateHabitCountLabel() {
-      document.getElementById('habitCountLabel').textContent = `(${appData.habits.length} / ${MAX_HABITS})`;
-    }
-
-    // Get status of habit on a particular date
-    function getHabitStatus(dateStr, habitId) {
-      const logs = appData.logs[dateStr];
-      if (logs && logs[habitId]) {
-        return logs[habitId].status;
-      }
-      return null;
-    }
-
-    // Set status of habit on date
-    function setHabitStatus(dateStr, habitId, status) {
-      if (!appData.logs[dateStr]) {
-        appData.logs[dateStr] = {};
-      }
-      if (status) {
-        appData.logs[dateStr][habitId] = { status: status };
-      } else {
-        // Remove entry
-        if (appData.logs[dateStr][habitId]) {
-          delete appData.logs[dateStr][habitId];
-        }
-      }
-      saveData();
-    }
-
-    // Cycle cell status through null -> done -> skip -> null
-    function cycleCellStatus(dateStr, habitId) {
-      const current = getHabitStatus(dateStr, habitId);
-      let next;
-      if (current === 'done') {
-        next = 'skip';
-      } else if (current === 'skip') {
-        next = null;
-      } else {
-        next = 'done';
-      }
-      setHabitStatus(dateStr, habitId, next);
+    document.getElementById('prevRangeBtn').addEventListener('click', () => {
+      currentStartDate = addDays(currentStartDate, -14);
+      renderDateStrip();
       renderTracker();
-    }
+    });
 
-    // Calculate streak for habit (number of consecutive done days including yesterday)
-    function calculateStreak(habitId) {
-      let streak = 0;
-      let date = parseDate(selectedDate);
-      // don't count the selected date; start from currentDate or previous day? We'll count from latest day including today.
-      while (true) {
-        const dateStr = formatDate(date);
-        const status = getHabitStatus(dateStr, habitId);
-        if (status === 'done') {
-          streak++;
-          date.setDate(date.getDate() - 1);
-        } else if (status === 'skip') {
-          // Skip doesn't break streak
-          date.setDate(date.getDate() - 1);
-        } else {
-          break;
+    document.getElementById('nextRangeBtn').addEventListener('click', () => {
+      currentStartDate = addDays(currentStartDate, 14);
+      renderDateStrip();
+      renderTracker();
+    });
+
+    document.getElementById('jumpTodayBtn').addEventListener('click', () => {
+      selectedDate = formatDate(new Date());
+      currentStartDate = getInitialRangeStart();
+      renderDateStrip();
+      renderTracker();
+    });
+
+    document.getElementById('clearDayBtn').addEventListener('click', () => {
+      appState.habits.forEach(habit => {
+        if (habit.entries[selectedDate]) {
+          delete habit.entries[selectedDate];
         }
-      }
-      return streak;
-    }
+      });
+      persistAndRefresh();
+    });
 
-    // Add a new habit
-    function addHabit() {
+    document.getElementById('skipDayCheckbox').addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      appState.habits.forEach(habit => {
+        ensureEntries(habit);
+        const entry = habit.entries[selectedDate];
+        if (checked) {
+          habit.entries[selectedDate] = buildEntry(selectedDate, 'SKIP');
+        } else if (entry && entry.mark === 'SKIP') {
+          delete habit.entries[selectedDate];
+        }
+      });
+      persistAndRefresh();
+    });
+
+    document.getElementById('addHabitBtn').addEventListener('click', () => {
       const nameInput = document.getElementById('newHabitInput');
       const colorInput = document.getElementById('newHabitColor');
       const name = nameInput.value.trim();
-      const color = colorInput.value;
       if (!name) {
         alert('Please enter a habit name.');
         return;
       }
-      if (appData.habits.length >= MAX_HABITS) {
-        alert(`You can only track up to ${MAX_HABITS} habits.`);
-        return;
-      }
-      const newId = appData.habits.length > 0 ? Math.max(...appData.habits.map(h => h.id)) + 1 : 1;
-      appData.habits.push({ id: newId, name: name, color: color, reminder: null, created: selectedDate });
+      addHabit({
+        name,
+        color: colorInput.value,
+      });
       nameInput.value = '';
-      saveData();
-      renderTracker();
-    }
+    });
 
-    // Open habit modal for editing/adding
-    let editingHabitId = null;
-    function openHabitModal(habitId) {
-      const modal = document.getElementById('habitModal');
-      const title = document.getElementById('habitModalTitle');
-      const nameInput = document.getElementById('habitNameInput');
-      const colorInput = document.getElementById('habitColorInput');
-      const reminderInput = document.getElementById('habitReminderInput');
-      const deleteBtn = document.getElementById('deleteHabitBtn');
-      if (habitId) {
-        editingHabitId = habitId;
-        const habit = appData.habits.find(h => h.id === habitId);
-        if (!habit) return;
-        title.textContent = 'Edit Habit';
-        nameInput.value = habit.name;
-        colorInput.value = habit.color;
-        reminderInput.value = habit.reminder || '';
-        deleteBtn.style.display = 'inline-block';
-      } else {
-        editingHabitId = null;
-        title.textContent = 'Add Habit';
-        nameInput.value = '';
-        colorInput.value = '#00bfff';
-        reminderInput.value = '';
-        deleteBtn.style.display = 'none';
-      }
-      modal.classList.add('active');
-    }
-    function closeHabitModal() {
-      document.getElementById('habitModal').classList.remove('active');
-    }
-    // Save habit from modal
-    function saveHabit() {
-      const name = document.getElementById('habitNameInput').value.trim();
-      const color = document.getElementById('habitColorInput').value;
-      const reminder = document.getElementById('habitReminderInput').value || null;
-      if (!name) {
-        alert('Please enter a habit name.');
-        return;
-      }
-      if (editingHabitId) {
-        const habit = appData.habits.find(h => h.id === editingHabitId);
-        if (habit) {
-          habit.name = name;
-          habit.color = color;
-          habit.reminder = reminder;
-        }
-      } else {
-        if (appData.habits.length >= MAX_HABITS) {
-          alert(`You can only track up to ${MAX_HABITS} habits.`);
-          return;
-        }
-        const newId = appData.habits.length > 0 ? Math.max(...appData.habits.map(h => h.id)) + 1 : 1;
-        appData.habits.push({ id: newId, name, color, reminder, created: selectedDate });
-      }
-      saveData();
-      closeHabitModal();
-      renderTracker();
-    }
-    // Delete habit
-    function deleteHabit() {
-      if (!editingHabitId) return;
-      if (!confirm('Delete this habit? This cannot be undone.')) return;
-      appData.habits = appData.habits.filter(h => h.id !== editingHabitId);
-      // Remove logs
-      for (const date in appData.logs) {
-        if (appData.logs[date][editingHabitId]) {
-          delete appData.logs[date][editingHabitId];
-        }
-      }
-      // Remove missed reasons logs
-      for (const date in appData.missedReasonsLog) {
-        if (appData.missedReasonsLog[date][editingHabitId]) {
-          delete appData.missedReasonsLog[date][editingHabitId];
-        }
-      }
-      saveData();
-      closeHabitModal();
-      renderTracker();
-    }
-
-    // Update skip day checkbox state
-    function updateSkipDayCheckbox() {
-      const checkbox = document.getElementById('skipDayCheckbox');
-      // Check if all habits are skipped on selectedDate
-      const logs = appData.logs[selectedDate];
-      let allSkipped = true;
-      if (!logs) {
-        allSkipped = false;
-      } else {
-        for (const habit of appData.habits) {
-          const status = logs[habit.id]?.status;
-          if (status !== 'skip') {
-            allSkipped = false;
-            break;
-          }
-        }
-      }
-      checkbox.checked = allSkipped;
-    }
-    // Toggle skip day (skip/unskip all habits)
-    function toggleSkipDay() {
-      const isChecked = document.getElementById('skipDayCheckbox').checked;
-      for (const habit of appData.habits) {
-        setHabitStatus(selectedDate, habit.id, isChecked ? 'skip' : null);
-      }
-      renderTracker();
-    }
-    // Jump to today
-    function jumpToToday() {
-      const todayStr = formatDate(new Date());
-      selectedDate = todayStr;
-      // If today is outside current range, shift range
-      const todayDate = parseDate(todayStr);
-      const start = new Date(currentStartDate);
-      const end = new Date(currentStartDate);
-      end.setDate(end.getDate() + 13);
-      if (todayDate < start || todayDate > end) {
-        // Recompute currentStartDate to the Monday of today's week
-        const d = new Date(todayDate);
-        const dayOfWeek = d.getDay();
-        const diff = (dayOfWeek + 6) % 7;
-        d.setDate(d.getDate() - diff);
-        currentStartDate = d;
-      }
-      renderTracker();
-    }
-    // Clear logs for selected day
-    function clearSelectedDay() {
-      if (confirm('Clear all statuses for the selected day?')) {
-        delete appData.logs[selectedDate];
-        saveData();
-        renderTracker();
-      }
-    }
-    // Navigate date range
-    function shiftRange(offsetDays) {
-      currentStartDate.setDate(currentStartDate.getDate() + offsetDays);
-      // adjust selected date into new range if outside; set to start date + index; but we keep same selected date if still visible; else update selected to start of new range
-      const start = new Date(currentStartDate);
-      const end = new Date(currentStartDate);
-      end.setDate(end.getDate() + 13);
-      const sel = parseDate(selectedDate);
-      if (sel < start || sel > end) {
-        selectedDate = formatDate(start);
-      }
-      renderTracker();
-    }
-
-    // Export data as JSON
-    function exportData() {
-      const dataStr = JSON.stringify(appData, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'habit_tracker_data.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    // Import data from file input
-    function importData(fileInput) {
-      const file = fileInput.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported.habits && imported.logs && imported.reasons) {
-            appData = imported;
-            saveData();
-            initDateRange();
-            renderTracker();
-            renderSettings();
-            document.querySelector('.nav-tab[data-target="trackerSection"]').click();
-          } else {
-            alert('Invalid data format.');
-          }
-        } catch (err) {
-          alert('Failed to parse JSON.');
-        }
-      };
-      reader.readAsText(file);
-      // reset input so same file triggers change event next time
-      fileInput.value = '';
-    }
-    // Render analytics
-    let completionChartInstance = null;
-    let reasonsChartInstance = null;
-    function renderAnalytics() {
-      // Build table
-      const bodyEl = document.getElementById('analyticsBody');
-      bodyEl.innerHTML = '';
-      appData.habits.forEach(habit => {
-        let done = 0;
-        let skip = 0;
-        let missed = 0;
-        for (const date in appData.logs) {
-          const entry = appData.logs[date][habit.id];
-          if (entry) {
-            if (entry.status === 'done') done++;
-            else if (entry.status === 'skip') skip++;
-            else if (entry.status === 'missed') missed++;
-          }
-        }
-        const streak = calculateStreak(habit.id);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="color:${habit.color}; font-weight:600; text-align:left; padding-left:10px;">${habit.name}</td>
-          <td>${done}</td>
-          <td>${skip}</td>
-          <td>${missed}</td>
-          <td>${streak}</td>
-        `;
-        bodyEl.appendChild(tr);
-      });
-      // Chart: completion for last 7 days across all habits
-      const last7Labels = [];
-      const doneCounts = [];
-      const today = new Date();
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateStr = formatDate(date);
-        last7Labels.push(date.toLocaleDateString(undefined, { month:'short', day:'numeric' }));
-        let count = 0;
-        if (appData.logs[dateStr]) {
-          for (const habit of appData.habits) {
-            if (appData.logs[dateStr][habit.id]?.status === 'done') {
-              count++;
-            }
-          }
-        }
-        doneCounts.push(count);
-      }
-      const completionCtx = document.getElementById('completionChart').getContext('2d');
-      if (completionChartInstance) completionChartInstance.destroy();
-      completionChartInstance = new Chart(completionCtx, {
-        type: 'bar',
-        data: {
-          labels: last7Labels,
-          datasets: [{
-            label: '# Habits Completed',
-            data: doneCounts,
-            backgroundColor: 'rgba(108, 99, 255, 0.7)',
-            borderColor: 'rgba(108, 99, 255, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#ffffff' },
-              grid: { color: 'rgba(255,255,255,0.1)' }
-            },
-            x: {
-              ticks: { color: '#ffffff' },
-              grid: { display: false }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (context) => `${context.parsed.y} habits completed`
-              }
-            }
-          }
-        }
-      });
-      // Chart: reasons distribution (pie)
-      const reasonCounts = {};
-      for (const date in appData.missedReasonsLog) {
-        for (const habitId in appData.missedReasonsLog[date]) {
-          const reason = appData.missedReasonsLog[date][habitId];
-          reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
-        }
-      }
-      const reasons = Object.keys(reasonCounts);
-      const counts = reasons.map(r => reasonCounts[r]);
-      const reasonsCtx = document.getElementById('reasonsChart').getContext('2d');
-      if (reasonsChartInstance) reasonsChartInstance.destroy();
-      reasonsChartInstance = new Chart(reasonsCtx, {
-        type: 'pie',
-        data: {
-          labels: reasons,
-          datasets: [{
-            data: counts,
-            backgroundColor: reasons.map((_, idx) => `hsla(${(idx*60)%360},70%,50%,0.8)`),
-            borderColor: reasons.map((_, idx) => `hsla(${(idx*60)%360},70%,50%,1)`),
-            borderWidth: 1
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: '#ffffff' }
-            }
-          }
-        }
-      });
-    }
-
-    // Colors for Chart.js axes
-    const varColors = function(context) {
-      return '#ffffff';
-    };
-
-    // Render settings page
-    function renderSettings() {
-      const listEl = document.getElementById('reasonsList');
-      listEl.innerHTML = '';
-      appData.reasons.forEach((reason, idx) => {
-        const li = document.createElement('li');
-        li.textContent = reason;
-        const btn = document.createElement('button');
-        btn.textContent = 'Remove';
-        btn.addEventListener('click', () => {
-          removeReason(idx);
-        });
-        li.appendChild(btn);
-        listEl.appendChild(li);
-      });
-      // update today display in header
-      document.getElementById('todayDisplay').textContent = 'Today: ' + new Date().toLocaleDateString();
-    }
-    // Add reason
-    function addReason() {
-      const input = document.getElementById('newReasonInput');
-      const val = input.value.trim();
-      if (val) {
-        appData.reasons.push(val);
-        input.value = '';
-        saveData();
-        renderSettings();
-      }
-    }
-    // Remove reason
-    function removeReason(index) {
-      appData.reasons.splice(index, 1);
-      saveData();
-      renderSettings();
-    }
-
-    // Check missed habits from previous day and prompt reasons
-    function checkMissedHabits() {
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-      const yStr = formatDate(yesterday);
-      const logs = appData.logs[yStr];
-      if (!logs) return;
-      const missedHabits = [];
-      appData.habits.forEach(habit => {
-        const entry = logs[habit.id];
-        if (!entry || (entry.status !== 'done' && entry.status !== 'skip')) {
-          missedHabits.push(habit);
-        }
-      });
-      if (missedHabits.length === 0) return;
-      // Build reason selection list
-      const container = document.getElementById('reasonListContainer');
-      container.innerHTML = '';
-      missedHabits.forEach(habit => {
-        const div = document.createElement('div');
-        div.style.marginBottom = '16px';
-        const title = document.createElement('div');
-        title.style.fontWeight = '600';
-        title.textContent = habit.name;
-        const optionsDiv = document.createElement('div');
-        optionsDiv.style.display = 'flex';
-        optionsDiv.style.flexWrap = 'wrap';
-        optionsDiv.style.gap = '6px';
-        appData.reasons.forEach(reason => {
-          const btn = document.createElement('button');
-          btn.textContent = reason;
-          btn.style.background = 'var(--card-bg-light)';
-          btn.style.color = '#fff';
-          btn.style.border = 'none';
-          btn.style.padding = '6px 10px';
-          btn.style.borderRadius = 'var(--radius)';
-          btn.style.cursor = 'pointer';
-          btn.addEventListener('click', function() {
-            // Unselect others
-            Array.from(optionsDiv.children).forEach(c => c.style.background = 'var(--card-bg-light)');
-            this.style.background = 'var(--accent-color)';
-            this.dataset.selected = 'true';
-          });
-          optionsDiv.appendChild(btn);
-        });
-        div.appendChild(title);
-        div.appendChild(optionsDiv);
-        div.dataset.habitId = habit.id;
-        container.appendChild(div);
-      });
-      document.getElementById('reasonModal').classList.add('active');
-      document.getElementById('submitReasonsBtn').onclick = function() {
-        // Save selected reasons
-        const items = container.children;
-        Array.from(items).forEach(item => {
-          const habitId = parseInt(item.dataset.habitId);
-          const options = item.querySelectorAll('button');
-          let selectedReason = null;
-          options.forEach(btn => {
-            if (btn.style.background === 'var(--accent-color)' || btn.dataset.selected === 'true') {
-              selectedReason = btn.textContent;
-            }
-          });
-          if (selectedReason) {
-            if (!appData.missedReasonsLog[yStr]) {
-              appData.missedReasonsLog[yStr] = {};
-            }
-            appData.missedReasonsLog[yStr][habitId] = selectedReason;
-            // mark as missed
-            if (!appData.logs[yStr]) appData.logs[yStr] = {};
-            appData.logs[yStr][habitId] = { status: 'missed' };
-          }
-        });
-        saveData();
-        document.getElementById('reasonModal').classList.remove('active');
-        renderTracker();
-      };
-    }
-
-    // Event listeners and initialization
-    document.getElementById('addHabitBtn').addEventListener('click', addHabit);
-    document.getElementById('prevRangeBtn').addEventListener('click', () => shiftRange(-14));
-    document.getElementById('nextRangeBtn').addEventListener('click', () => shiftRange(14));
-    document.getElementById('jumpTodayBtn').addEventListener('click', jumpToToday);
-    document.getElementById('clearDayBtn').addEventListener('click', clearSelectedDay);
-    document.getElementById('skipDayCheckbox').addEventListener('change', toggleSkipDay);
-    document.getElementById('saveHabitBtn').addEventListener('click', saveHabit);
-    document.getElementById('deleteHabitBtn').addEventListener('click', deleteHabit);
-    document.getElementById('cancelHabitBtn').addEventListener('click', closeHabitModal);
     document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
-    document.getElementById('importInput').addEventListener('change', () => importData(document.getElementById('importInput')));
+    document.getElementById('importInput').addEventListener('change', handleImportFile);
+
     document.getElementById('settingsExportBtn').addEventListener('click', exportData);
     document.getElementById('settingsImportBtn').addEventListener('click', () => document.getElementById('settingsImportInput').click());
-    document.getElementById('settingsImportInput').addEventListener('change', () => importData(document.getElementById('settingsImportInput')));
-    document.getElementById('addReasonBtn').addEventListener('click', addReason);
-    // Navigation tabs switching
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.getAttribute('data-target');
-        document.querySelectorAll('main section').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(target).classList.add('active');
-        if (target === 'analyticsSection') {
-          renderAnalytics();
-        } else if (target === 'settingsSection') {
-          renderSettings();
-        } else if (target === 'trackerSection') {
-          renderTracker();
+    document.getElementById('settingsImportInput').addEventListener('change', handleImportFile);
+
+    document.getElementById('requestPermissionBtn').addEventListener('click', requestNotificationPermission);
+    document.getElementById('desktopNotificationToggle').addEventListener('change', (e) => {
+      appState.settings.enableDesktopNotifications = e.target.checked;
+      persistAndRefresh();
+      scheduleAllReminders();
+    });
+
+    document.getElementById('addReasonBtn').addEventListener('click', () => {
+      const input = document.getElementById('newReasonInput');
+      const value = input.value.trim();
+      if (!value) return;
+      if (!appState.settings.missReasons.includes(value)) {
+        appState.settings.missReasons.push(value);
+        persistAndRefresh();
+      }
+      input.value = '';
+    });
+
+    document.getElementById('closeHabitPopup').addEventListener('click', closeHabitPopup);
+    document.getElementById('saveHabitDetailsBtn').addEventListener('click', saveHabitDetails);
+    document.getElementById('saveHabitReminderBtn').addEventListener('click', saveHabitReminder);
+    document.getElementById('deleteHabitBtn').addEventListener('click', deleteActiveHabit);
+    document.getElementById('customSnoozeBtn').addEventListener('click', () => handleSnoozeAction('CUSTOM'));
+    document.getElementById('endTodayBtn').addEventListener('click', () => handleSnoozeAction('END'));
+    document.getElementById('cancelReasonsBtn').addEventListener('click', () => {
+      closeQuickReasonModal(true);
+    });
+
+    document.getElementById('habitReminderDays').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-day]');
+      if (!button) return;
+      button.classList.toggle('active');
+    });
+
+    document.querySelectorAll('#habitPopup .habit-popup-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => switchHabitTab(btn.dataset.tab));
+    });
+
+    document.getElementById('habitPopup').addEventListener('click', (event) => {
+      if (event.target.id === 'habitPopup') {
+        closeHabitPopup();
+      }
+    });
+
+    document.getElementById('quickReasonsModal').addEventListener('click', (event) => {
+      if (event.target.id === 'quickReasonsModal') {
+        closeQuickReasonModal(true);
+      }
+    });
+
+    document.getElementById('habitReminderToggle').addEventListener('change', (e) => {
+      document.getElementById('habitReminderTime').disabled = !e.target.checked;
+      Array.from(document.querySelectorAll('#habitReminderDays button')).forEach(btn => {
+        btn.disabled = !e.target.checked;
+      });
+    });
+
+    document.getElementById('todayDisplay').textContent = 'Today: ' + new Date().toLocaleDateString();
+  }
+
+  function switchSection(target) {
+    document.querySelectorAll('section').forEach(section => {
+      section.classList.toggle('active', section.id === target);
+    });
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.target === target);
+    });
+    if (target === 'analyticsSection') {
+      renderAnalytics(true);
+    } else if (target === 'settingsSection') {
+      renderSettings();
+    }
+  }
+
+  function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function parseDate(str) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function addDays(date, amount) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + amount);
+    return result;
+  }
+
+  function addMinutes(date, minutes) {
+    const result = new Date(date);
+    result.setMinutes(result.getMinutes() + minutes);
+    return result;
+  }
+
+  function getInitialRangeStart() {
+    const today = new Date();
+    const start = new Date(today);
+    const diffToMonday = (today.getDay() + 6) % 7;
+    start.setDate(today.getDate() - diffToMonday);
+    return start;
+  }
+
+  function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'habit-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function loadAppState() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return normalizeState(JSON.parse(stored));
+    }
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const migrated = migrateLegacyData(JSON.parse(legacy));
+      saveState(migrated);
+      return migrated;
+    }
+    const fresh = createDefaultState();
+    saveState(fresh);
+    return fresh;
+  }
+
+  function createDefaultState() {
+    const today = new Date();
+    const twoDaysAgo = addDays(today, -2);
+    return {
+      habits: [
+        buildHabit({ name: 'Hydrate', color: '#4dd0e1', created: formatDate(twoDaysAgo) }),
+        buildHabit({ name: 'Read 5 pages', color: '#ba68c8', created: formatDate(twoDaysAgo) }),
+        buildHabit({ name: 'Stretch', color: '#ffb74d', created: formatDate(twoDaysAgo) })
+      ],
+      settings: {
+        enableDesktopNotifications: false,
+        missReasons: DEFAULT_MISS_REASONS.slice()
+      },
+      analyticsCache: null,
+      reminderState: {},
+      lastEndOfDayRun: null
+    };
+  }
+
+  function buildHabit({ name, color, created }) {
+    return {
+      id: generateId(),
+      name,
+      color,
+      notes: '',
+      reminderEnabled: false,
+      reminderTime: null,
+      reminderDays: [],
+      entries: {},
+      currentStreak: 0,
+      bestStreak: 0,
+      lastCelebration: 0,
+      created
+    };
+  }
+
+  function normalizeState(state) {
+    state.settings = state.settings || {};
+    if (!Array.isArray(state.settings.missReasons)) {
+      state.settings.missReasons = DEFAULT_MISS_REASONS.slice();
+    }
+    if (!state.settings.missReasons.includes('Not logged')) {
+      state.settings.missReasons.unshift('Not logged');
+    }
+    state.settings.missReasons = Array.from(new Set(state.settings.missReasons));
+    state.settings.enableDesktopNotifications = Boolean(state.settings.enableDesktopNotifications);
+    state.analyticsCache = state.analyticsCache || null;
+    state.reminderState = state.reminderState || {};
+    state.lastEndOfDayRun = state.lastEndOfDayRun || null;
+    state.habits = (state.habits || []).map(habit => {
+      habit.id = habit.id || generateId();
+      habit.color = habit.color || '#4dd0e1';
+      habit.notes = habit.notes || '';
+      habit.reminderEnabled = Boolean(habit.reminderEnabled);
+      habit.reminderTime = habit.reminderTime || null;
+      habit.reminderDays = Array.isArray(habit.reminderDays) ? habit.reminderDays : [];
+      habit.entries = habit.entries || {};
+      habit.currentStreak = habit.currentStreak || 0;
+      habit.bestStreak = habit.bestStreak || 0;
+      habit.lastCelebration = habit.lastCelebration || 0;
+      habit.created = habit.created || formatDate(new Date());
+      return habit;
+    });
+    return state;
+  }
+
+  function migrateLegacyData(legacy) {
+    const state = createDefaultState();
+    state.habits = (legacy.habits || []).map(oldHabit => {
+      const habit = buildHabit({ name: oldHabit.name || 'Habit', color: oldHabit.color || '#4dd0e1', created: oldHabit.created || formatDate(new Date()) });
+      habit.id = String(oldHabit.id || generateId());
+      if (legacy.logs) {
+        for (const [date, log] of Object.entries(legacy.logs)) {
+          const entry = log[habit.id];
+          if (!entry) continue;
+          if (entry.status === 'done') {
+            habit.entries[date] = buildEntry(date, 'DONE');
+          } else if (entry.status === 'skip') {
+            habit.entries[date] = buildEntry(date, 'SKIP');
+          } else if (entry.status === 'missed') {
+            habit.entries[date] = buildEntry(date, 'MISS', 'Legacy miss');
+          }
+        }
+      }
+      return habit;
+    });
+    state.settings.missReasons = legacy.reasons ? Array.from(new Set(['Not logged', ...legacy.reasons])) : DEFAULT_MISS_REASONS.slice();
+    return normalizeState(state);
+  }
+
+  function ensureEntries(habit) {
+    if (!habit.entries) {
+      habit.entries = {};
+    }
+  }
+
+  function buildEntry(date, mark, reason) {
+    return {
+      date,
+      mark,
+      reasonMiss: mark === 'MISS' ? (reason || 'Not logged') : undefined,
+      reasonAutofilled: mark === 'MISS' && (reason || 'Not logged') === 'Not logged',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  function saveState(state = appState) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function persistAndRefresh() {
+    recomputeStreaks();
+    rebuildAnalyticsCache();
+    saveState();
+    renderAll();
+    scheduleAllReminders();
+  }
+
+  function renderDateStrip() {
+    const strip = document.getElementById('dateStrip');
+    strip.innerHTML = '';
+    const dates = [];
+    for (let i = 0; i < 14; i++) {
+      dates.push(addDays(currentStartDate, i));
+    }
+    let currentMonth = null;
+    dates.forEach(date => {
+      if (date.getDate() === 1 || currentMonth === null) {
+        currentMonth = date.getMonth();
+        const label = document.createElement('div');
+        label.className = 'month-label';
+        label.textContent = date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+        strip.appendChild(label);
+      }
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'date-chip';
+      const iso = formatDate(date);
+      chip.dataset.date = iso;
+      chip.innerHTML = `<span class="day-name">${DAY_LABELS[date.getDay()]}</span><span class="day-number">${date.getDate()}</span>`;
+      if (iso === selectedDate) chip.classList.add('selected');
+      if (iso === formatDate(new Date())) chip.classList.add('today');
+      chip.addEventListener('click', () => {
+        selectedDate = iso;
+        renderDateStrip();
+        renderTracker();
+      });
+      strip.appendChild(chip);
+    });
+  }
+
+  function renderTracker() {
+    const headEl = document.getElementById('trackerHead');
+    const bodyEl = document.getElementById('trackerBody');
+    headEl.innerHTML = '';
+    bodyEl.innerHTML = '';
+    const headRow = document.createElement('tr');
+    const habitHeader = document.createElement('th');
+    habitHeader.textContent = 'Habit / Streak';
+    headRow.appendChild(habitHeader);
+
+    const dates = [];
+    for (let i = 0; i < 14; i++) {
+      const date = addDays(currentStartDate, i);
+      const iso = formatDate(date);
+      const th = document.createElement('th');
+      th.className = 'date-header';
+      th.dataset.date = iso;
+      th.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      if (iso === selectedDate) th.classList.add('selected');
+      if (iso === formatDate(new Date())) th.classList.add('today');
+      th.addEventListener('click', () => {
+        selectedDate = iso;
+        renderDateStrip();
+        renderTracker();
+      });
+      headRow.appendChild(th);
+      dates.push(iso);
+    }
+    headEl.appendChild(headRow);
+
+    appState.habits.forEach(habit => {
+      ensureEntries(habit);
+      const tr = document.createElement('tr');
+      const nameTd = document.createElement('td');
+      nameTd.className = 'habit-name-cell';
+      nameTd.style.cursor = 'pointer';
+      const dot = document.createElement('span');
+      dot.className = 'color-dot';
+      dot.style.backgroundColor = habit.color;
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = habit.name;
+      const streakSpan = document.createElement('span');
+      streakSpan.className = 'streak';
+      if (habit.currentStreak > 0) {
+        streakSpan.textContent = `🔥 ${habit.currentStreak}`;
+      }
+      nameTd.append(dot, nameSpan, streakSpan);
+      nameTd.addEventListener('click', () => openHabitPopup(habit.id));
+      tr.appendChild(nameTd);
+
+      dates.forEach(iso => {
+        const td = document.createElement('td');
+        const cell = document.createElement('div');
+        cell.className = 'habit-cell';
+        cell.dataset.habitId = habit.id;
+        cell.dataset.date = iso;
+        const entry = habit.entries[iso];
+        if (entry) applyCellMark(cell, entry.mark);
+        cell.addEventListener('click', (event) => {
+          event.stopPropagation();
+          cycleCellState(habit.id, iso);
+        });
+        td.appendChild(cell);
+        tr.appendChild(td);
+      });
+      bodyEl.appendChild(tr);
+    });
+
+    updateRangeLabel();
+    updateSelectedLabel();
+    document.getElementById('habitCountLabel').textContent = `(${appState.habits.length})`;
+    updateSkipDayCheckbox();
+  }
+
+  function applyCellMark(cell, mark) {
+    cell.classList.remove('done', 'skip', 'missed');
+    if (mark === 'DONE') {
+      cell.classList.add('done');
+      cell.innerHTML = '<i class="fa-solid fa-check"></i>';
+    } else if (mark === 'SKIP') {
+      cell.classList.add('skip');
+      cell.innerHTML = '<i class="fa-solid fa-forward"></i>';
+    } else if (mark === 'MISS') {
+      cell.classList.add('missed');
+      cell.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    } else {
+      cell.innerHTML = '';
+    }
+  }
+
+  function updateRangeLabel() {
+    const start = currentStartDate;
+    const end = addDays(currentStartDate, 13);
+    document.getElementById('rangeLabel').textContent = `${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} — ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  }
+
+  function updateSelectedLabel() {
+    document.getElementById('selectedLabel').textContent = `Selected: ${parseDate(selectedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`;
+  }
+
+  function updateSkipDayCheckbox() {
+    const checkbox = document.getElementById('skipDayCheckbox');
+    const allSkip = appState.habits.length > 0 && appState.habits.every(habit => {
+      const entry = habit.entries[selectedDate];
+      return entry && entry.mark === 'SKIP';
+    });
+    checkbox.checked = allSkip;
+  }
+
+  function cycleCellState(habitId, dateStr) {
+    const habit = appState.habits.find(h => h.id === habitId);
+    if (!habit) return;
+    ensureEntries(habit);
+    const current = habit.entries[dateStr]?.mark || 'NONE';
+    const idx = MARK_SEQUENCE.indexOf(current);
+    const next = MARK_SEQUENCE[(idx + 1) % MARK_SEQUENCE.length];
+    if (next === 'NONE') {
+      if (habit.entries[dateStr]?.reasonAutofilled) {
+        habit.entries[dateStr].mark = 'MISS';
+        return;
+      }
+      delete habit.entries[dateStr];
+      persistAndRefresh();
+      return;
+    }
+    if (next === 'MISS') {
+      habit.entries[dateStr] = buildEntry(dateStr, 'MISS');
+      pendingMissSelection = { habitId, dateStr };
+      openQuickReasonModal();
+    } else {
+      habit.entries[dateStr] = buildEntry(dateStr, next);
+      persistAndRefresh();
+    }
+  }
+
+  function openQuickReasonModal() {
+    const container = document.getElementById('quickReasonsContainer');
+    container.innerHTML = '';
+    appState.settings.missReasons.forEach(reason => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = reason;
+      button.addEventListener('click', () => setMissReason(reason));
+      container.appendChild(button);
+    });
+    document.getElementById('quickReasonsModal').classList.add('active');
+  }
+
+  function closeQuickReasonModal(cancelled) {
+    document.getElementById('quickReasonsModal').classList.remove('active');
+    if (cancelled && pendingMissSelection) {
+      const { habitId, dateStr } = pendingMissSelection;
+      const habit = appState.habits.find(h => h.id === habitId);
+      if (habit && habit.entries[dateStr] && habit.entries[dateStr].mark === 'MISS' && !habit.entries[dateStr].reasonAutofilled) {
+        delete habit.entries[dateStr];
+        persistAndRefresh();
+      }
+    }
+    pendingMissSelection = null;
+  }
+
+  function setMissReason(reason) {
+    if (!pendingMissSelection) return;
+    const { habitId, dateStr } = pendingMissSelection;
+    const habit = appState.habits.find(h => h.id === habitId);
+    if (!habit) return;
+    ensureEntries(habit);
+    const entry = habit.entries[dateStr];
+    if (entry) {
+      entry.reasonMiss = reason;
+      entry.reasonAutofilled = reason === 'Not logged';
+      entry.timestamp = new Date().toISOString();
+    }
+    pendingMissSelection = null;
+    closeQuickReasonModal(false);
+    persistAndRefresh();
+  }
+
+  function addHabit({ name, color }) {
+    appState.habits.push(buildHabit({ name, color, created: formatDate(new Date()) }));
+    persistAndRefresh();
+  }
+
+  function openHabitPopup(habitId) {
+    activeHabitId = habitId;
+    const habit = appState.habits.find(h => h.id === habitId);
+    if (!habit) return;
+    document.getElementById('habitPopupTitle').textContent = habit.name;
+    document.getElementById('habitDetailName').value = habit.name;
+    document.getElementById('habitDetailColor').value = habit.color;
+    document.getElementById('habitDetailNotes').value = habit.notes || '';
+    document.getElementById('habitReminderToggle').checked = habit.reminderEnabled;
+    const timeInput = document.getElementById('habitReminderTime');
+    timeInput.value = habit.reminderTime || '';
+    timeInput.disabled = !habit.reminderEnabled;
+    renderReminderDays(habit.reminderDays, !habit.reminderEnabled);
+    renderHabitHistory(habit);
+    switchHabitTab('details');
+    document.getElementById('habitPopup').classList.add('active');
+  }
+
+  function renderReminderDays(selectedDays, disabled) {
+    const container = document.getElementById('habitReminderDays');
+    container.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.day = String(i);
+      button.textContent = DAY_LABELS[i];
+      if (selectedDays.includes(i)) button.classList.add('active');
+      button.disabled = disabled;
+      container.appendChild(button);
+    }
+  }
+
+  function renderHabitHistory(habit) {
+    const historyEl = document.getElementById('habitHistoryList');
+    historyEl.innerHTML = '';
+    const entries = Object.values(habit.entries)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 60);
+    if (entries.length === 0) {
+      historyEl.innerHTML = '<p style="color:var(--muted-text);">No history yet.</p>';
+      return;
+    }
+    entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      const left = document.createElement('div');
+      left.innerHTML = `<strong>${entry.date}</strong> — ${entry.mark}`;
+      const right = document.createElement('div');
+      if (entry.mark === 'MISS' && entry.reasonMiss) {
+        right.textContent = entry.reasonMiss;
+      }
+      row.append(left, right);
+      historyEl.appendChild(row);
+    });
+  }
+
+  function switchHabitTab(tab) {
+    document.querySelectorAll('#habitPopup .habit-popup-tabs button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('#habitPopup .habit-popup-content').forEach(panel => {
+      panel.classList.toggle('active', panel.dataset.content === tab);
+    });
+  }
+
+  function closeHabitPopup() {
+    document.getElementById('habitPopup').classList.remove('active');
+    activeHabitId = null;
+  }
+
+  function saveHabitDetails() {
+    if (!activeHabitId) return;
+    const habit = appState.habits.find(h => h.id === activeHabitId);
+    if (!habit) return;
+    habit.name = document.getElementById('habitDetailName').value.trim() || habit.name;
+    habit.color = document.getElementById('habitDetailColor').value || habit.color;
+    habit.notes = document.getElementById('habitDetailNotes').value || '';
+    document.getElementById('habitPopupTitle').textContent = habit.name;
+    persistAndRefresh();
+  }
+
+  function saveHabitReminder() {
+    if (!activeHabitId) return;
+    const habit = appState.habits.find(h => h.id === activeHabitId);
+    if (!habit) return;
+    const enabled = document.getElementById('habitReminderToggle').checked;
+    const time = document.getElementById('habitReminderTime').value;
+    const days = Array.from(document.querySelectorAll('#habitReminderDays button.active')).map(btn => Number(btn.dataset.day));
+    habit.reminderEnabled = enabled;
+    habit.reminderTime = enabled ? time : null;
+    habit.reminderDays = enabled ? days : [];
+    persistAndRefresh();
+    scheduleAllReminders();
+  }
+
+  function deleteActiveHabit() {
+    if (!activeHabitId) return;
+    if (!confirm('Delete this habit?')) return;
+    appState.habits = appState.habits.filter(h => h.id !== activeHabitId);
+    closeHabitPopup();
+    persistAndRefresh();
+  }
+
+  function exportData() {
+    const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `habit-tracker-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        appState = normalizeState(data);
+        persistAndRefresh();
+        scheduleAllReminders();
+        showToast('Import successful', 'Your data has been loaded.');
+      } catch (err) {
+        alert('Unable to import data: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  function renderHeaderMetrics() {
+    const container = document.getElementById('momentumChips');
+    container.innerHTML = '';
+    const totalHabits = appState.habits.length;
+    const totalStreak = appState.habits.reduce((sum, habit) => sum + (habit.currentStreak || 0), 0);
+    const momentum = totalHabits * totalStreak;
+    const leader = appState.analyticsCache?.leaders;
+    const topHabit = leader?.topStreakHabitId ? appState.habits.find(h => h.id === leader.topStreakHabitId) : null;
+    const topReason = leader?.topMissReason || 'Not logged';
+    container.appendChild(buildChip(`Momentum: ${momentum}`));
+    if (topHabit) {
+      container.appendChild(buildChip(`Leader: ${topHabit.name} (${topHabit.currentStreak}d)`));
+    }
+    container.appendChild(buildChip(`Top reason: ${topReason}`));
+  }
+
+  function renderCelebrations() {
+    const container = document.getElementById('celebrationChips');
+    if (!container) return;
+    container.innerHTML = '';
+    const counts = [0, 0, 0];
+    appState.habits.forEach(habit => {
+      if (habit.currentStreak >= 90) counts[2]++;
+      else if (habit.currentStreak >= 21) counts[1]++;
+      else if (habit.currentStreak >= 3) counts[0]++;
+    });
+    container.appendChild(buildChip(`3-day starters: ${counts[0]}`));
+    container.appendChild(buildChip(`3-week routines: ${counts[1]}`));
+    container.appendChild(buildChip(`3-month lifestyles: ${counts[2]}`));
+  }
+
+  function buildChip(text) {
+    const chip = document.createElement('div');
+    chip.className = 'momentum-chip';
+    chip.textContent = text;
+    return chip;
+  }
+
+  function renderAnalytics(force) {
+    if (!force && !document.getElementById('analyticsSection').classList.contains('active')) return;
+    const cache = appState.analyticsCache;
+    if (!cache) return;
+    renderCardChart('completionCard', 'line', buildLineDataset(cache.last7Completion, { labels: cache.last7Dates, tension: 0.4 }), chartRegistry, {
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    });
+    const topReasons = Object.entries(cache.reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    renderCardChart('reasonsCard', 'doughnut', {
+      labels: topReasons.map(([label]) => label),
+      datasets: [{ data: topReasons.map(([, count]) => count), backgroundColor: generatePalette(topReasons.length) }]
+    }, chartRegistry, { plugins: { legend: { display: false } } });
+    const streakEntries = Object.entries(cache.streakHistogram).sort((a, b) => Number(a[0]) - Number(b[0]));
+    renderCardChart('streaksCard', 'bar', {
+      labels: streakEntries.map(([label]) => `${label}d`),
+      datasets: [{ data: streakEntries.map(([, count]) => count), backgroundColor: 'rgba(109,77,252,0.6)' }]
+    }, chartRegistry, {
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.1)' } } }
+    });
+    const momentumEntries = Object.entries(cache.momentumByDay).sort((a, b) => a[0].localeCompare(b[0])).slice(-30);
+    renderCardChart('momentumCard', 'line', buildLineDataset(momentumEntries.map(([, v]) => v), { labels: momentumEntries.map(([d]) => d.slice(5)), tension: 0.3, fill: true }), chartRegistry, {
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    });
+
+    document.querySelectorAll('.analytics-card').forEach(card => {
+      card.addEventListener('click', () => openAnalyticsDetail(card.dataset.zoom));
+    });
+  }
+
+  function openAnalyticsDetail(detailId) {
+    document.querySelectorAll('.analytics-detail').forEach(detail => {
+      detail.classList.toggle('active', detail.dataset.detail === detailId);
+    });
+    const cache = appState.analyticsCache;
+    if (!cache) return;
+    if (detailId === 'CompletionDetail') {
+      renderDetailChart('completionDetail', 'line', buildLineDataset(cache.last7Completion, { labels: cache.last7Dates, tension: 0.4, fill: true }), detailChartRegistry, {});
+      document.getElementById('completionList').innerHTML = cache.last7Dates.map((date, idx) => `<div>${date}: ${cache.last7Completion[idx].toFixed(0)}% done</div>`).join('');
+    } else if (detailId === 'ReasonsDetail') {
+      const entries = Object.entries(cache.reasonCounts).sort((a, b) => b[1] - a[1]);
+      renderDetailChart('reasonsDetail', 'doughnut', {
+        labels: entries.map(([label]) => label),
+        datasets: [{ data: entries.map(([, count]) => count), backgroundColor: generatePalette(entries.length) }]
+      }, detailChartRegistry, {});
+      document.getElementById('reasonBreakdown').innerHTML = entries.map(([reason, count]) => `<div>${reason}: ${count}</div>`).join('');
+    } else if (detailId === 'StreaksDetail') {
+      const entries = Object.entries(cache.streakHistogram).sort((a, b) => Number(a[0]) - Number(b[0]));
+      renderDetailChart('streaksDetail', 'bar', {
+        labels: entries.map(([label]) => `${label}d`),
+        datasets: [{ data: entries.map(([, count]) => count), backgroundColor: 'rgba(143,211,244,0.6)' }]
+      }, detailChartRegistry, { scales: { y: { beginAtZero: true } } });
+      document.getElementById('streakBreakdown').innerHTML = entries.map(([streak, count]) => `<div>${streak} day streak: ${count}</div>`).join('');
+    } else if (detailId === 'MomentumDetail') {
+      const entries = Object.entries(cache.momentumByDay).sort((a, b) => a[0].localeCompare(b[0])).slice(-60);
+      renderDetailChart('momentumDetail', 'line', buildLineDataset(entries.map(([, v]) => v), { labels: entries.map(([d]) => d), tension: 0.3, fill: true }), detailChartRegistry, {});
+      if (entries.length) {
+        const values = entries.map(([, v]) => v);
+        const latest = values[values.length - 1];
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        document.getElementById('momentumBreakdown').innerHTML = `<div>Latest momentum: ${latest}</div><div>Peak momentum: ${max}</div><div>Low momentum: ${min}</div>`;
+      } else {
+        document.getElementById('momentumBreakdown').innerHTML = '<div>No momentum data yet.</div>';
+      }
+    }
+  }
+
+  function buildLineDataset(data, { labels, tension = 0.4, fill = false } = {}) {
+    return {
+      labels: labels || [],
+      datasets: [{
+        data,
+        borderColor: 'rgba(236,92,154,0.9)',
+        backgroundColor: 'rgba(236,92,154,0.35)',
+        tension,
+        fill
+      }]
+    };
+  }
+
+  function renderCardChart(id, type, data, registry, options = {}) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    if (registry.has(id)) registry.get(id).destroy();
+    registry.set(id, new Chart(canvas.getContext('2d'), {
+      type,
+      data,
+      options: Object.assign({
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { x: { ticks: { color: '#9da8c7' } }, y: { ticks: { color: '#9da8c7' } } },
+        plugins: { legend: { labels: { color: '#f5f7fa' } } }
+      }, options)
+    }));
+  }
+
+  function renderDetailChart(id, type, data, registry, options = {}) {
+    renderCardChart(id, type, data, registry, options);
+  }
+
+  function generatePalette(count) {
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+      colors.push(`hsla(${(i * 57) % 360}, 70%, 60%, 0.85)`);
+    }
+    return colors;
+  }
+
+  function renderSettings() {
+    document.getElementById('desktopNotificationToggle').checked = appState.settings.enableDesktopNotifications;
+    const banner = document.getElementById('notificationBanner');
+    const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+    if (appState.settings.enableDesktopNotifications && permission !== 'granted') {
+      banner.style.display = 'block';
+      banner.textContent = 'Notifications enabled. Grant browser permission to receive alerts.';
+    } else if (permission === 'denied') {
+      banner.style.display = 'block';
+      banner.textContent = 'Browser notifications blocked. Update your browser settings to allow them.';
+    } else if (appState.settings.enableDesktopNotifications && permission === 'granted') {
+      banner.style.display = 'block';
+      banner.textContent = 'Desktop notifications are active.';
+    } else {
+      banner.style.display = 'none';
+    }
+    const list = document.getElementById('reasonsChipList');
+    list.innerHTML = '';
+    appState.settings.missReasons.forEach(reason => {
+      const chip = buildChip(reason);
+      if (reason !== 'Not logged') {
+        const remove = document.createElement('button');
+        remove.className = 'small-btn';
+        remove.textContent = 'Remove';
+        remove.style.marginLeft = '8px';
+        remove.addEventListener('click', () => {
+          appState.settings.missReasons = appState.settings.missReasons.filter(r => r !== reason);
+          persistAndRefresh();
+        });
+        chip.appendChild(remove);
+      }
+      list.appendChild(chip);
+    });
+  }
+
+  function requestNotificationPermission() {
+    if (typeof Notification === 'undefined') {
+      alert('Notifications are not supported in this environment.');
+      return;
+    }
+    Notification.requestPermission().then(() => {
+      renderSettings();
+      scheduleAllReminders();
+    });
+  }
+
+  function ensureEndOfDayCatchup() {
+    const today = formatDate(new Date());
+    const lastRun = appState.lastEndOfDayRun;
+    let cursor = lastRun ? addDays(parseDate(lastRun), 1) : addDays(new Date(), -1);
+    const yesterday = addDays(new Date(), -1);
+    while (formatDate(cursor) <= formatDate(yesterday)) {
+      runEndOfDayFor(formatDate(cursor));
+      cursor = addDays(cursor, 1);
+    }
+    appState.lastEndOfDayRun = formatDate(yesterday);
+    saveState();
+  }
+
+  function runEndOfDayFor(dateStr) {
+    appState.habits.forEach(habit => {
+      ensureEntries(habit);
+      if (!habit.entries[dateStr]) {
+        habit.entries[dateStr] = buildEntry(dateStr, 'MISS', 'Not logged');
+      }
+    });
+    recomputeStreaks();
+    rebuildAnalyticsCache();
+  }
+
+  function recomputeStreaks() {
+    appState.habits.forEach(habit => {
+      let streak = 0;
+      let pointer = parseDate(formatDate(new Date()));
+      while (true) {
+        const iso = formatDate(pointer);
+        const entry = habit.entries[iso];
+        if (entry && entry.mark === 'DONE') {
+          streak += 1;
+        } else if (entry && entry.mark === 'SKIP') {
+          // neutral
+        } else {
+          break;
+        }
+        pointer = addDays(pointer, -1);
+      }
+      const previous = habit.currentStreak || 0;
+      habit.currentStreak = streak;
+      habit.bestStreak = Math.max(habit.bestStreak || 0, streak);
+      checkCelebrations(habit, streak, previous);
+    });
+  }
+
+  function rebuildAnalyticsCache() {
+    const reasonCounts = {};
+    const streakHistogram = {};
+    const today = formatDate(new Date());
+    const last7Dates = [];
+    for (let i = 6; i >= 0; i--) {
+      last7Dates.push(formatDate(addDays(new Date(), -i)));
+    }
+    const last7Completion = last7Dates.map(dateStr => {
+      if (appState.habits.length === 0) return 0;
+      const doneCount = appState.habits.reduce((count, habit) => {
+        const entry = habit.entries[dateStr];
+        return count + (entry && entry.mark === 'DONE' ? 1 : 0);
+      }, 0);
+      return (doneCount / appState.habits.length) * 100;
+    });
+
+    appState.habits.forEach(habit => {
+      streakHistogram[habit.currentStreak] = (streakHistogram[habit.currentStreak] || 0) + 1;
+      Object.values(habit.entries).forEach(entry => {
+        if (entry.mark === 'MISS') {
+          const reason = entry.reasonMiss || 'Not logged';
+          reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
         }
       });
     });
-    // Close modal on outside click
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
+
+    const momentumByDay = {};
+    for (let i = 59; i >= 0; i--) {
+      const dateStr = formatDate(addDays(new Date(), -i));
+      const totalStreak = appState.habits.reduce((sum, habit) => sum + calculateStreakAsOf(habit, dateStr), 0);
+      momentumByDay[dateStr] = appState.habits.length * totalStreak;
+    }
+
+    const leaders = calcLeaders(appState.habits, reasonCounts);
+    appState.analyticsCache = {
+      reasonCounts,
+      streakHistogram,
+      momentumByDay,
+      leaders,
+      last7Completion,
+      last7Dates
+    };
+  }
+
+  function calculateStreakAsOf(habit, dateStr) {
+    let streak = 0;
+    let pointer = parseDate(dateStr);
+    while (true) {
+      const iso = formatDate(pointer);
+      const entry = habit.entries[iso];
+      if (entry && entry.mark === 'DONE') {
+        streak += 1;
+      } else if (entry && entry.mark === 'SKIP') {
+        // neutral
+      } else {
+        break;
+      }
+      pointer = addDays(pointer, -1);
+    }
+    return streak;
+  }
+
+  function calcLeaders(habits, reasonCounts) {
+    const topHabit = habits.reduce((best, habit) => {
+      if (!best || habit.currentStreak > best.currentStreak) return habit;
+      return best;
+    }, null);
+    const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Not logged';
+    return {
+      topStreakHabitId: topHabit ? topHabit.id : null,
+      topMissReason: topReason
+    };
+  }
+
+  function scheduleAllReminders() {
+    reminderTimeouts.forEach(timeout => clearTimeout(timeout));
+    reminderTimeouts.clear();
+    const permissionGranted = typeof Notification === 'undefined' || Notification.permission === 'granted';
+    if (!appState.settings.enableDesktopNotifications || !permissionGranted) return;
+    appState.habits.forEach(habit => {
+      if (habit.reminderEnabled && habit.reminderTime) {
+        const next = computeNextReminderDate(habit);
+        if (next) scheduleReminder(habit.id, next);
+      }
     });
-    // Initialize
-    initDateRange();
-    renderTracker();
-    renderSettings();
-    checkMissedHabits();
+  }
+
+  function computeNextReminderDate(habit) {
+    if (!habit.reminderEnabled || !habit.reminderTime) return null;
+    const [hour, minute] = habit.reminderTime.split(':').map(Number);
+    const now = new Date();
+    const snoozeInfo = appState.reminderState?.[habit.id];
+    if (snoozeInfo && new Date(snoozeInfo.snoozedUntil) < now) {
+      delete appState.reminderState[habit.id];
+      saveState();
+    }
+    for (let i = 0; i < 14; i++) {
+      const candidate = addDays(new Date(), i);
+      if (habit.reminderDays.length && !habit.reminderDays.includes(candidate.getDay())) continue;
+      candidate.setHours(hour, minute, 0, 0);
+      if (candidate > now) {
+        const snooze = appState.reminderState?.[habit.id]?.snoozedUntil;
+        if (snooze && new Date(snooze) > candidate) continue;
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  function scheduleReminder(habitId, when) {
+    const delay = when.getTime() - Date.now();
+    if (delay <= 0) return;
+    if (reminderTimeouts.has(habitId)) {
+      clearTimeout(reminderTimeouts.get(habitId));
+    }
+    const timeout = setTimeout(() => ReminderEngine_onFire(habitId), delay);
+    reminderTimeouts.set(habitId, timeout);
+  }
+
+  function ReminderEngine_onFire(habitId) {
+    const habit = appState.habits.find(h => h.id === habitId);
+    if (!habit || !habit.reminderEnabled) return;
+    showReminderNotification(habit);
+    const next = computeNextReminderDate(habit);
+    if (next) scheduleReminder(habit.id, next);
+  }
+
+  function showReminderNotification(habit) {
+    const actions = [
+      { label: 'Snooze 5m', action: () => scheduleReminder(habit.id, addMinutes(new Date(), 5)) },
+      { label: 'Snooze 15m', action: () => scheduleReminder(habit.id, addMinutes(new Date(), 15)) },
+      { label: 'Snooze 1h', action: () => scheduleReminder(habit.id, addMinutes(new Date(), 60)) },
+      { label: 'Custom…', action: () => {
+        const minutes = parseInt(prompt('Snooze for how many minutes?', '30'), 10);
+        if (Number.isFinite(minutes) && minutes > 0) {
+          scheduleReminder(habit.id, addMinutes(new Date(), minutes));
+          showToast('Reminder snoozed', `Next ping in ${minutes} minutes.`);
+        }
+      } },
+      { label: 'End today', action: () => dismissFurtherReminders(habit.id, formatDate(new Date())) }
+    ];
+    showToast(`Time for ${habit.name}`, 'Reminder', actions);
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      new Notification(`Time for ${habit.name}`, { body: 'Tap to snooze or mark it done.' });
+    }
+  }
+
+  function dismissFurtherReminders(habitId, dateStr) {
+    appState.reminderState[habitId] = { snoozedUntil: addDays(parseDate(dateStr), 1).toISOString() };
+    saveState();
+    if (reminderTimeouts.has(habitId)) {
+      clearTimeout(reminderTimeouts.get(habitId));
+      reminderTimeouts.delete(habitId);
+    }
+  }
+
+  function showToast(title, subtitle = '', actions = []) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.style.background = 'rgba(11,17,38,0.92)';
+    toast.style.border = '1px solid rgba(143,211,244,0.25)';
+    toast.style.borderRadius = '14px';
+    toast.style.padding = '12px 16px';
+    toast.style.minWidth = '240px';
+    toast.style.boxShadow = '0 18px 30px rgba(5,8,30,0.45)';
+    const titleEl = document.createElement('div');
+    titleEl.style.fontWeight = '700';
+    titleEl.textContent = title;
+    toast.appendChild(titleEl);
+    if (subtitle) {
+      const sub = document.createElement('div');
+      sub.style.fontSize = '0.85rem';
+      sub.style.color = 'var(--muted-text)';
+      sub.textContent = subtitle;
+      toast.appendChild(sub);
+    }
+    if (actions.length) {
+      const actionRow = document.createElement('div');
+      actionRow.style.display = 'flex';
+      actionRow.style.flexWrap = 'wrap';
+      actionRow.style.gap = '8px';
+      actionRow.style.marginTop = '10px';
+      actions.forEach(({ label, action }) => {
+        const btn = document.createElement('button');
+        btn.className = 'small-btn';
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          action();
+          container.removeChild(toast);
+        });
+        actionRow.appendChild(btn);
+      });
+      toast.appendChild(actionRow);
+    }
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentElement === container) {
+        container.removeChild(toast);
+      }
+    }, 8000);
+  }
+
+  function checkCelebrations(habit, newStreak, previousStreak) {
+    if (newStreak === previousStreak) return;
+    for (const level of CELEBRATION_LEVELS) {
+      if (newStreak >= level.value && (!habit.lastCelebration || habit.lastCelebration < level.value)) {
+        habit.lastCelebration = level.value;
+        showToast(level.message, `${habit.name} is on a roll!`);
+      }
+    }
+    if (!CELEBRATION_LEVELS.some(level => level.value <= newStreak) && habit.lastCelebration && newStreak < habit.lastCelebration) {
+      habit.lastCelebration = newStreak;
+    }
+  }
+
+  function renderSettingsIfNeeded() {
+    if (document.getElementById('settingsSection').classList.contains('active')) {
+      renderSettings();
+    }
+  }
+
+  renderSettingsIfNeeded();
+})();
+
   </script>
 </body>
 </html>
