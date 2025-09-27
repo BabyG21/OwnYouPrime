@@ -568,55 +568,37 @@
       color: var(--text-muted);
     }
 
-    .weight-projection-timeline {
+    .weight-projection-chart {
       position: relative;
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 22px 12px 12px;
       border-radius: calc(var(--radius) - 6px);
       background: linear-gradient(160deg, rgba(32, 36, 54, 0.65), rgba(18, 21, 34, 0.8));
       border: 1px solid rgba(255, 255, 255, 0.05);
-      min-height: 160px;
-    }
-
-    .weight-projection-timeline.timeline--has-data::before {
-      content: '';
-      position: absolute;
-      top: 34px;
-      left: 32px;
-      right: 32px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(21, 197, 163, 0.15), rgba(92, 124, 250, 0.25));
-    }
-
-    .timeline-item {
-      position: relative;
-      flex: 1;
-      min-width: 0;
-      text-align: center;
-      padding: 38px 12px 12px;
+      padding: 18px 18px 12px;
+      min-height: 260px;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      align-items: center;
+      justify-content: center;
     }
 
-    .timeline-item::before {
-      content: '';
+    .weight-projection-chart canvas {
+      width: 100%;
+    }
+
+    .weight-chart-empty {
       position: absolute;
-      top: 26px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(21, 197, 163, 0.18);
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 32px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
 
-    .timeline-item--inactive::before {
-      background: rgba(255, 255, 255, 0.28);
-      box-shadow: none;
+    .weight-chart-empty.hidden {
+      display: none;
     }
 
     .timeline-label {
@@ -660,34 +642,13 @@
         padding: 20px;
       }
 
-      .weight-projection-timeline {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
+      .weight-projection-chart {
+        min-height: 220px;
         padding: 16px;
       }
 
-      .weight-projection-timeline.timeline--has-data::before {
-        display: none;
-      }
-
-      .timeline-item {
-        align-items: flex-start;
-        text-align: left;
-        padding: 18px 18px 16px 44px;
-        border-radius: var(--radius);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(8, 9, 15, 0.25);
-      }
-
-      .timeline-item::before {
-        top: 22px;
-        left: 20px;
-        transform: none;
-      }
-
-      .timeline-period {
-        font-size: 0.85rem;
+      .weight-chart-empty {
+        padding: 0 24px;
       }
     }
 
@@ -1784,18 +1745,19 @@
             <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
           </div>
           <canvas id="mealSplitChart" height="220"></canvas>
-          <div class="chart-note" id="mealSplitInfo">Tap to zoom for average meal times.</div>
+          <div class="chart-note" id="mealSplitInfo">Add meal times to unlock scheduling insights.</div>
         </div>
         <div class="card analytics-card weight-projection-card" data-chart="weight" tabindex="0" role="button">
           <div class="analytics-card-header">
             <div>
               <h3><i class="fa-solid fa-scale-balanced"></i> Weight projection</h3>
-              <p class="analytics-card-subtitle">Current → projected → goal</p>
+              <p class="analytics-card-subtitle">Current · projected · goal</p>
             </div>
             <span class="chart-hint"><i class="fa-solid fa-circle-info"></i> Details</span>
           </div>
-          <div class="weight-projection-timeline" id="weightTimeline">
-            <div class="timeline-empty">Log meals with calories and weight entries to unlock projections.</div>
+          <div class="weight-projection-chart">
+            <canvas id="weightChart" height="240" aria-label="Weight trajectory"></canvas>
+            <div class="weight-chart-empty" id="weightChartEmpty">Log meals with calories and weight entries to unlock projections.</div>
           </div>
           <div class="chart-note" id="weightCardSummary">Log meals with calories and weight entries to unlock projections.</div>
         </div>
@@ -2045,7 +2007,8 @@
     const weightRemainingLabel = document.getElementById('weightRemainingLabel');
     const targetCountdownValue = document.getElementById('targetCountdownValue');
     const weightCardSummary = document.getElementById('weightCardSummary');
-    const weightTimeline = document.getElementById('weightTimeline');
+    const weightChartCanvas = document.getElementById('weightChart');
+    const weightChartEmpty = document.getElementById('weightChartEmpty');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -3492,8 +3455,8 @@
           .map(({ key, label }) => (averages[key] ? `${label} ~ ${averages[key]}` : null))
           .filter(Boolean);
         mealSplitInfo.textContent = timeEntries.length
-          ? `Averages: ${timeEntries.join(' · ')} · Zoom for full breakdown.`
-          : 'Tap to zoom for average meal times.';
+          ? `Average meal timing · ${timeEntries.join(' · ')}`
+          : 'Add meal times to unlock scheduling insights.';
       }
 
       const mealSplitCanvas = document.getElementById('mealSplitChart');
@@ -3525,7 +3488,7 @@
       const weightAnalytics = computeWeightAnalytics();
       analyticsCache.weight = weightAnalytics;
       updateWeightSummary(weightAnalytics);
-      renderWeightTimeline(weightAnalytics);
+      renderWeightChart(weightAnalytics);
     }
 
     function minutesToDisplay(minutes) {
@@ -3573,7 +3536,7 @@
       const targets = getTargets();
       const profile = getProfile();
       const validEntries = entries.filter(entry => Number(entry.weight) > 0);
-      const hasEntries = validEntries.length > 0;
+      const hasRealEntries = validEntries.length > 0;
       const paceKey = targets.goalPace || 'normal';
       const paceMeta = paceRates[paceKey] || null;
       const rawTargetWeight = Number(targets.weightTarget);
@@ -3584,41 +3547,68 @@
       const averageLoggedCalories = Number(calorieInsights.loggedAverage) || 0;
       const maintenanceCalories = Number(calorieInsights.maintenance) || Math.round(calculateTDEE(profile)) || 0;
       const averageDailyDelta = Number(calorieInsights.averageDelta) || (maintenanceCalories ? averageLoggedCalories - maintenanceCalories : 0);
-      const weeklyDeltaKg = Number(calorieInsights.weeklyDeltaKg) || 0;
+      let weeklyTrendKg = Number(calorieInsights.weeklyDeltaKg) || 0;
       const loggedCalorieDays = Number(calorieInsights.loggedDays) || 0;
-      let startWeight;
-      let startDate;
-      let latestWeight;
-      let latestDate;
 
-      if (hasEntries) {
-        const first = validEntries[0];
-        const last = validEntries[validEntries.length - 1];
-        startWeight = Number(first.weight || 0);
-        startDate = first.date;
-        latestWeight = Number(last.weight || 0);
-        latestDate = last.date;
-      } else if (profile.weight) {
-        startWeight = Number(profile.weight);
-        latestWeight = Number(profile.weight);
-        const today = new Date().toISOString().split('T')[0];
-        startDate = today;
-        latestDate = today;
-      } else {
-        const fallback = targetWeight || 0;
-        startWeight = fallback;
-        latestWeight = fallback;
-        const today = new Date().toISOString().split('T')[0];
-        startDate = today;
-        latestDate = today;
+      let historyEntries = validEntries.slice();
+      let usingSyntheticHistory = false;
+
+      if (!historyEntries.length) {
+        const baseWeight = Number(profile.weight) || targetWeight || 0;
+        const baseDate = new Date().toISOString().split('T')[0];
+        if (baseWeight > 0) {
+          historyEntries = generateSyntheticHistory(baseWeight, baseDate, targetWeight, paceMeta);
+          usingSyntheticHistory = historyEntries.length > 0;
+        }
       }
 
-      const labels = hasEntries
-        ? validEntries.map(entry => new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
-        : ['Current'];
-      const data = hasEntries
-        ? validEntries.map(entry => Number(entry.weight || 0))
-        : [latestWeight || 0];
+      if (!historyEntries.length && profile.weight) {
+        const today = new Date().toISOString().split('T')[0];
+        historyEntries = [{ date: today, weight: Number(profile.weight) }];
+      }
+
+      historyEntries = historyEntries
+        .filter(entry => Number(entry.weight) > 0 && entry.date)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const startEntry = historyEntries[0] || null;
+      const latestEntry = historyEntries[historyEntries.length - 1] || null;
+
+      let startWeight = startEntry ? Number(startEntry.weight || 0) : 0;
+      let startDate = startEntry ? startEntry.date : null;
+      let latestWeight = latestEntry ? Number(latestEntry.weight || 0) : 0;
+      let latestDate = latestEntry ? latestEntry.date : null;
+
+      if (!latestWeight && profile.weight) {
+        latestWeight = Number(profile.weight);
+      }
+      if (!latestDate && historyEntries.length === 0) {
+        latestDate = new Date().toISOString().split('T')[0];
+      }
+      if (!startWeight && latestWeight) {
+        startWeight = latestWeight;
+      }
+      if (!startDate && latestDate) {
+        startDate = latestDate;
+      }
+
+      const labels = historyEntries.length
+        ? historyEntries.map(entry => {
+            const parts = entry.date.split('-').map(Number);
+            if (parts.length === 3 && parts.every(num => !Number.isNaN(num))) {
+              return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            }
+            const parsed = new Date(entry.date);
+            return Number.isNaN(parsed.getTime())
+              ? entry.date
+              : parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          })
+        : [];
+      const data = historyEntries.length
+        ? historyEntries.map(entry => Number(entry.weight || 0))
+        : latestWeight
+          ? [latestWeight]
+          : [];
 
       const totalChange = (latestWeight || 0) - (startWeight || 0);
       const totalChangeAbs = Math.abs(totalChange);
@@ -3655,6 +3645,10 @@
           summaryParts.push('Goal met');
         }
       }
+      if (usingSyntheticHistory && !hasRealEntries) {
+        summaryParts.push('Preview data — add logs to personalize');
+      }
+
       let daysElapsed = 0;
       if (startDate && latestDate) {
         const start = new Date(startDate);
@@ -3672,22 +3666,38 @@
       if (totalObjective > 0.05) objectiveDirection = 'gain';
       else if (totalObjective < -0.05) objectiveDirection = 'loss';
 
+      if (!weeklyTrendKg && paceMeta && paceMeta.rate && latestWeight) {
+        if (hasGoal && targetWeight && Math.abs(targetWeight - latestWeight) >= 0.05) {
+          weeklyTrendKg = (targetWeight < latestWeight ? -1 : 1) * paceMeta.rate;
+        }
+      }
+      const dailyTrendKg = weeklyTrendKg ? weeklyTrendKg / 7 : 0;
+
       let projectionWeeks = 0;
-      if (loggedCalorieDays && weeklyDeltaKg) {
+      if (weeklyTrendKg) {
         if (timelineWeeks > 0) {
           projectionWeeks = timelineWeeks;
         } else if (remainingAbs > 0.05) {
-          projectionWeeks = Math.max(1, Math.ceil(remainingAbs / Math.abs(weeklyDeltaKg)));
-        } else {
-          projectionWeeks = Math.max(1, Math.min(4, loggedCalorieDays));
+          projectionWeeks = Math.max(1, Math.ceil(remainingAbs / Math.abs(weeklyTrendKg)));
+        } else if (loggedCalorieDays) {
+          projectionWeeks = Math.max(1, Math.min(4, Math.ceil(loggedCalorieDays / 7)));
         }
+      } else if (timelineWeeks > 0) {
+        projectionWeeks = timelineWeeks;
       }
 
       let projectedWeight = latestWeight || 0;
       let projectedChange = 0;
       if (projectionWeeks && latestWeight) {
-        projectedChange = weeklyDeltaKg * projectionWeeks;
+        projectedChange = weeklyTrendKg * projectionWeeks;
         projectedWeight = Math.max(0, latestWeight + projectedChange);
+        if (hasGoal) {
+          if (remaining < 0) {
+            projectedWeight = Math.max(projectedWeight, targetWeight);
+          } else if (remaining > 0) {
+            projectedWeight = Math.min(projectedWeight, targetWeight);
+          }
+        }
       }
 
       let projectionNote = '';
@@ -3695,10 +3705,10 @@
         projectionNote = 'Log weight entries to unlock projections.';
       } else if (!loggedCalorieDays) {
         projectionNote = 'Log meals with calories to project your trajectory.';
-      } else if (!weeklyDeltaKg) {
+      } else if (!weeklyTrendKg) {
         projectionNote = 'Current intake trends toward maintenance.';
       } else if (!projectionWeeks) {
-        const directionLabel = weeklyDeltaKg > 0 ? 'gain' : 'loss';
+        const directionLabel = weeklyTrendKg > 0 ? 'gain' : 'loss';
         projectionNote = `Recent intake suggests a ${directionLabel}, set a goal timeline for a projection.`;
       } else {
         const changeAbs = Math.abs(projectedChange);
@@ -3714,6 +3724,22 @@
         summaryParts.push(`Projected ${formatNumber(projectedWeight, 1)} kg (${projectionWeeks} wk)`);
       }
       const summaryNote = summaryParts.join(' · ');
+
+      const chartData = buildWeightChartData({
+        historyEntries,
+        latestWeight,
+        latestDate,
+        targetWeight,
+        hasGoal,
+        dailyTrendKg,
+        remaining,
+        remainingAbs,
+        timelineWeeks,
+        projectionWeeks,
+        projectionNote,
+        usingSyntheticHistory,
+        hasRealEntries
+      });
 
       return {
         labels,
@@ -3735,7 +3761,7 @@
         daysToTarget,
         paceLabel,
         daysElapsed,
-        hasEntries,
+        hasEntries: hasRealEntries,
         hasGoal,
         paceRate: paceMeta ? paceMeta.rate : 0,
         summaryNote,
@@ -3745,9 +3771,240 @@
         projectionNote,
         averageDailyDelta,
         maintenanceCalories,
-        weeklyDeltaKg,
-        loggedCalorieDays
+        weeklyDeltaKg: weeklyTrendKg,
+        loggedCalorieDays,
+        usingSyntheticHistory,
+        chartLabels: chartData.labels,
+        chartDates: chartData.dates,
+        historySeries: chartData.historySeries,
+        projectionSeries: chartData.projectionSeries,
+        goalSeries: chartData.goalSeries,
+        projectionStartIndex: chartData.projectionStartIndex,
+        hasHistorySeries: chartData.hasHistory,
+        hasProjectionSeries: chartData.hasProjection,
+        chartMessage: chartData.message
       };
+    }
+
+    function buildWeightChartData({
+      historyEntries,
+      latestWeight,
+      latestDate,
+      targetWeight,
+      hasGoal,
+      dailyTrendKg,
+      remaining,
+      remainingAbs,
+      timelineWeeks,
+      projectionWeeks,
+      projectionNote,
+      usingSyntheticHistory,
+      hasRealEntries
+    }) {
+      const toISODate = value => {
+        if (!value) return null;
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        const dateObj = new Date(value);
+        if (Number.isNaN(dateObj.getTime())) return null;
+        return dateObj.toISOString().split('T')[0];
+      };
+
+      const roundWeight = value => (value === null || value === undefined ? null : Number(Number(value).toFixed(2)));
+
+      const entryMap = new Map();
+      historyEntries.forEach(entry => {
+        const iso = toISODate(entry.date);
+        if (!iso) return;
+        entryMap.set(iso, Number(entry.weight || 0));
+      });
+
+      let baseIso = toISODate(latestDate);
+      if (!baseIso && historyEntries.length) {
+        baseIso = toISODate(historyEntries[historyEntries.length - 1].date);
+      }
+      if (!baseIso && entryMap.size) {
+        const sorted = Array.from(entryMap.keys()).sort((a, b) => new Date(a) - new Date(b));
+        baseIso = sorted[sorted.length - 1];
+      }
+      if (!baseIso && latestWeight) {
+        baseIso = toISODate(new Date());
+      }
+
+      if (!baseIso) {
+        return {
+          labels: [],
+          dates: [],
+          historySeries: [],
+          projectionSeries: [],
+          goalSeries: [],
+          projectionStartIndex: 0,
+          hasHistory: false,
+          hasProjection: false,
+          message: 'Log meals with calories and weight entries to unlock projections.'
+        };
+      }
+
+      const baseDate = new Date(baseIso);
+      if (Number.isNaN(baseDate.getTime())) {
+        return {
+          labels: [],
+          dates: [],
+          historySeries: [],
+          projectionSeries: [],
+          goalSeries: [],
+          projectionStartIndex: 0,
+          hasHistory: false,
+          hasProjection: false,
+          message: 'Log meals with calories and weight entries to unlock projections.'
+        };
+      }
+
+      const historyDatesSet = new Set();
+      historyEntries.forEach(entry => {
+        const iso = toISODate(entry.date);
+        if (iso) historyDatesSet.add(iso);
+      });
+
+      for (let i = 0; i <= 6; i++) {
+        const date = new Date(baseDate);
+        date.setDate(date.getDate() - i);
+        const iso = toISODate(date);
+        if (iso) historyDatesSet.add(iso);
+      }
+
+      if (!historyDatesSet.size) {
+        const iso = toISODate(baseDate);
+        if (iso) historyDatesSet.add(iso);
+      }
+
+      const historyDates = Array.from(historyDatesSet).sort((a, b) => new Date(a) - new Date(b));
+
+      let lastKnown = null;
+      const historySeries = historyDates.map(date => {
+        if (entryMap.has(date)) {
+          lastKnown = Number(entryMap.get(date));
+          return roundWeight(lastKnown);
+        }
+        if (lastKnown !== null) {
+          return roundWeight(lastKnown);
+        }
+        if (latestWeight) {
+          lastKnown = Number(latestWeight);
+          return roundWeight(lastKnown);
+        }
+        return null;
+      });
+
+      const historyHasData = historySeries.some(value => value !== null);
+      const historyEndDate = historyDates.length ? new Date(historyDates[historyDates.length - 1]) : baseDate;
+      const baseline = historySeries.length ? historySeries[historySeries.length - 1] : (latestWeight ? roundWeight(latestWeight) : null);
+
+      const futureDates = [];
+      let projectionDays = 0;
+      const defaultFutureDays = 14;
+
+      if (baseline !== null) {
+        if (dailyTrendKg) {
+          const derivedDays = projectionWeeks ? Math.round(Math.max(1, projectionWeeks * 7)) : 0;
+          const goalDays = hasGoal && remainingAbs > 0.05 ? Math.ceil(remainingAbs / Math.abs(dailyTrendKg)) : 0;
+          projectionDays = Math.max(derivedDays, goalDays, 7);
+          projectionDays = Math.min(projectionDays, 84);
+        } else if (hasGoal && remainingAbs > 0.05) {
+          const fallback = timelineWeeks ? Math.round(Math.max(1, timelineWeeks * 7)) : defaultFutureDays;
+          projectionDays = Math.min(Math.max(fallback, 7), 84);
+        } else {
+          projectionDays = defaultFutureDays;
+        }
+      }
+
+      for (let i = 1; i <= projectionDays; i++) {
+        const date = new Date(historyEndDate);
+        date.setDate(date.getDate() + i);
+        const iso = toISODate(date);
+        if (iso) futureDates.push(iso);
+      }
+
+      const chartDates = [...historyDates, ...futureDates];
+      const projectionStartIndex = historyDates.length ? historyDates.length - 1 : 0;
+
+      const projectionSeries = chartDates.map((date, index) => {
+        if (baseline === null) return null;
+        if (index < projectionStartIndex) return null;
+        const daysAhead = index - projectionStartIndex;
+        if (daysAhead === 0) return roundWeight(baseline);
+        let value = baseline + dailyTrendKg * daysAhead;
+        if (!dailyTrendKg) {
+          value = baseline;
+        }
+        if (hasGoal && remainingAbs > 0.05) {
+          if (remaining < 0) {
+            value = Math.max(value, targetWeight);
+          } else if (remaining > 0) {
+            value = Math.min(value, targetWeight);
+          }
+        }
+        return roundWeight(value);
+      });
+
+      const historySeriesFull = chartDates.map((date, index) => (index < historySeries.length ? historySeries[index] : null));
+      const goalSeries = hasGoal ? chartDates.map(() => roundWeight(targetWeight)) : chartDates.map(() => null);
+
+      const formatChartLabel = iso => {
+        if (!iso) return '';
+        const parts = iso.split('-').map(Number);
+        if (parts.length === 3 && parts.every(num => !Number.isNaN(num))) {
+          return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+        const parsed = new Date(iso);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+        return iso;
+      };
+
+      const labels = chartDates.map(formatChartLabel);
+      const hasProjection = projectionSeries.some((value, index) => index >= projectionStartIndex && value !== null);
+
+      const message = !historyHasData
+        ? 'Log meals with calories and weight entries to unlock projections.'
+        : usingSyntheticHistory && !hasRealEntries
+          ? 'Preview uses sample data — add weight logs to personalize.'
+          : projectionNote || 'Keep logging calories and weight for sharper projections.';
+
+      return {
+        labels,
+        dates: chartDates,
+        historySeries: historySeriesFull,
+        projectionSeries,
+        goalSeries,
+        projectionStartIndex,
+        hasHistory: historyHasData,
+        hasProjection,
+        message
+      };
+    }
+
+    function generateSyntheticHistory(latestWeight, latestDate, targetWeight, paceMeta) {
+      if (!latestWeight || latestWeight <= 0) return [];
+      const base = latestDate ? new Date(latestDate) : new Date();
+      if (Number.isNaN(base.getTime())) return [];
+      const weeklyShift = paceMeta && paceMeta.rate ? paceMeta.rate : 0.6;
+      const direction = targetWeight && Math.abs(targetWeight - latestWeight) >= 0.05
+        ? (latestWeight > targetWeight ? 1 : -1)
+        : 1;
+      const dailyShift = (weeklyShift / 7) * direction;
+      const history = [];
+      for (let i = 7; i >= 1; i--) {
+        const date = new Date(base);
+        date.setDate(date.getDate() - i);
+        const jitter = Math.sin(i) * 0.08 * direction;
+        const weight = Math.max(0, Number((latestWeight + dailyShift * i + jitter).toFixed(1)));
+        history.push({ date: date.toISOString().split('T')[0], weight });
+      }
+      history.push({ date: base.toISOString().split('T')[0], weight: Number(latestWeight.toFixed(1)) });
+      return history;
     }
 
     function updateWeightSummary(weightAnalytics) {
@@ -3765,7 +4022,10 @@
         daysToTarget,
         summaryNote,
         objectiveDirection,
-        projectionNote
+        projectionNote,
+        usingSyntheticHistory,
+        hasEntries,
+        chartMessage
       } = weightAnalytics;
 
       if (!latestWeight || latestWeight <= 0) {
@@ -3777,7 +4037,9 @@
           : formatSignedValue(totalChange, 1, 'kg');
         const since = startDate ? formatDateLabel(startDate) : '';
         const latest = latestDate ? formatDateLabel(latestDate) : '';
-        if (since && latest && since !== latest) {
+        if (usingSyntheticHistory && !hasEntries) {
+          weightChangeDirection.textContent = 'Preview data shown — log weight entries to personalize.';
+        } else if (since && latest && since !== latest) {
           weightChangeDirection.textContent = `Since ${since} · Latest update ${latest}`;
         } else if (since) {
           weightChangeDirection.textContent = `Since ${since}`;
@@ -3808,91 +4070,112 @@
       }
 
       if (weightCardSummary) {
-        weightCardSummary.textContent = projectionNote || summaryNote || 'Log meals with calories and weight entries to unlock projections.';
+        weightCardSummary.textContent = chartMessage || projectionNote || summaryNote || 'Log meals with calories and weight entries to unlock projections.';
       }
     }
 
-    function renderWeightTimeline(weightAnalytics) {
-      if (!weightTimeline) return;
-      weightTimeline.innerHTML = '';
+    function getWeightDatasets(weightAnalytics) {
+      const historySeries = Array.isArray(weightAnalytics.historySeries) ? weightAnalytics.historySeries : [];
+      const projectionSeries = Array.isArray(weightAnalytics.projectionSeries) ? weightAnalytics.projectionSeries : [];
+      const goalSeries = Array.isArray(weightAnalytics.goalSeries) ? weightAnalytics.goalSeries : [];
+      const projectionStartIndex = Number(weightAnalytics.projectionStartIndex || 0);
 
-      const {
-        latestWeight,
-        latestDate,
-        projectedWeight,
-        projectedChange,
-        projectionWeeks,
-        projectionNote,
-        hasGoal,
-        targetWeight,
-        daysToTarget,
-        paceLabel
-      } = weightAnalytics;
+      const datasets = [];
 
-      if (!latestWeight || latestWeight <= 0) {
-        weightTimeline.classList.remove('timeline--has-data');
-        weightTimeline.innerHTML = '<div class="timeline-empty">Log weight entries to unlock projections.</div>';
+      if (historySeries.some(value => value !== null)) {
+        datasets.push({
+          label: 'Current weight',
+          data: historySeries.map(value => value),
+          borderColor: '#15c5a3',
+          backgroundColor: 'rgba(21, 197, 163, 0.18)',
+          tension: 0.35,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          fill: false,
+          spanGaps: true,
+          borderWidth: 2
+        });
+      }
+
+      if (projectionSeries.some((value, index) => index >= projectionStartIndex && value !== null)) {
+        datasets.push({
+          label: 'Projected weight',
+          data: projectionSeries.map(value => value),
+          borderColor: '#5c7cfa',
+          backgroundColor: 'rgba(92, 124, 250, 0.12)',
+          borderDash: [6, 4],
+          tension: 0.25,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: false,
+          spanGaps: true,
+          borderWidth: 2
+        });
+      }
+
+      if (goalSeries.some(value => value !== null)) {
+        datasets.push({
+          label: 'Goal weight',
+          data: goalSeries.map(value => value),
+          borderColor: '#ffb347',
+          borderDash: [2, 6],
+          fill: false,
+          tension: 0,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          borderWidth: 2
+        });
+      }
+
+      return datasets;
+    }
+
+    function renderWeightChart(weightAnalytics) {
+      if (!weightChartCanvas) return;
+
+      if (weightChart) {
+        weightChart.destroy();
+        weightChart = null;
+      }
+
+      const labels = Array.isArray(weightAnalytics.chartLabels) ? weightAnalytics.chartLabels : [];
+      const datasets = getWeightDatasets(weightAnalytics);
+      const hasChartData = labels.length && datasets.length;
+
+      if (!hasChartData) {
+        weightChartCanvas.style.display = 'none';
+        if (weightChartEmpty) {
+          weightChartEmpty.textContent = weightAnalytics.chartMessage || 'Log meals with calories and weight entries to unlock projections.';
+          weightChartEmpty.classList.remove('hidden');
+        }
         return;
       }
 
-      const items = [];
-      const latestLabel = latestDate ? formatDateLabel(latestDate) : 'Latest log';
-      items.push({
-        label: 'Current',
-        value: `${formatNumber(latestWeight, 1)} kg`,
-        period: latestLabel || 'Latest log'
-      });
-
-      if (projectionWeeks && Math.abs(projectedChange || 0) >= 0.05 && projectedWeight > 0) {
-        items.push({
-          label: 'Projected',
-          value: `${formatNumber(projectedWeight, 1)} kg`,
-          period: formatProjectionPeriod(projectionWeeks)
-        });
-      } else {
-        items.push({
-          label: 'Projected',
-          value: '—',
-          period: projectionNote || 'Add calorie logs to project ahead',
-          inactive: true
-        });
+      weightChartCanvas.style.display = 'block';
+      if (weightChartEmpty) {
+        weightChartEmpty.textContent = weightAnalytics.chartMessage || '';
+        weightChartEmpty.classList.add('hidden');
       }
 
-      if (hasGoal && targetWeight > 0) {
-        const countdown = daysToTarget ? formatDaysToTarget(daysToTarget) : '';
-        const hasCountdown = countdown && countdown !== '—';
-        const timelineParts = [];
-        if (hasCountdown) timelineParts.push(`in ${countdown}`);
-        if (paceLabel) timelineParts.push(`${paceLabel.toLowerCase()} pace`);
-        const period = timelineParts.length ? timelineParts.join(' · ') : 'Goal set';
-        items.push({
-          label: 'Goal',
-          value: `${formatNumber(targetWeight, 1)} kg`,
-          period
-        });
-      } else {
-        items.push({
-          label: 'Goal',
-          value: '—',
-          period: 'Set a goal weight in Settings',
-          inactive: true
-        });
-      }
+      const ctx = weightChartCanvas.getContext('2d');
+      if (!ctx) return;
 
-      weightTimeline.classList.toggle('timeline--has-data', items.length > 0);
+      const options = getChartOptions('Weight trajectory');
+      options.maintainAspectRatio = false;
+      options.plugins.legend.display = true;
+      options.plugins.legend.labels = { color: '#d9deff' };
+      options.plugins.title.text = 'Weight trajectory';
+      options.scales.y.title = { display: true, text: 'kg', color: '#b5bdd6' };
+      options.scales.y.beginAtZero = false;
+      options.interaction = { mode: 'index', intersect: false };
 
-      items.forEach(item => {
-        const container = document.createElement('div');
-        container.className = 'timeline-item';
-        if (item.inactive) {
-          container.classList.add('timeline-item--inactive');
-        }
-        container.innerHTML = `
-          <div class="timeline-label">${item.label}</div>
-          <div class="timeline-value">${item.value}</div>
-          <div class="timeline-period">${item.period}</div>
-        `;
-        weightTimeline.appendChild(container);
+      weightChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets
+        },
+        options
       });
     }
 
@@ -3910,7 +4193,7 @@
         macro: '<i class="fa-solid fa-utensils"></i> Macro balance',
         water: '<i class="fa-solid fa-droplet"></i> Hydration',
         mealSplit: '<i class="fa-solid fa-clock"></i> Meal timing',
-        weight: '<i class="fa-solid fa-scale-balanced"></i> Weight projection'
+        weight: '<i class="fa-solid fa-scale-balanced"></i> Weight trajectory'
       };
       chartZoomTitle.innerHTML = titles[type] || '<i class="fa-solid fa-chart-line"></i> Chart insights';
 
@@ -4018,7 +4301,28 @@
           chartVisible = true;
         }
       } else if (type === 'weight') {
-        chartVisible = false;
+        const cache = analyticsCache.weight || {};
+        const labels = Array.isArray(cache.chartLabels) ? cache.chartLabels : [];
+        const datasets = getWeightDatasets(cache);
+        if (labels.length && datasets.length) {
+          const options = getChartOptions('Weight trajectory');
+          options.maintainAspectRatio = false;
+          options.plugins.legend.display = true;
+          options.plugins.legend.labels = { color: '#d9deff' };
+          options.plugins.title.text = 'Weight trajectory';
+          options.scales.y.title = { display: true, text: 'kg', color: '#b5bdd6' };
+          options.scales.y.beginAtZero = false;
+          options.interaction = { mode: 'index', intersect: false };
+          chartZoomInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets
+            },
+            options
+          });
+          chartVisible = true;
+        }
       }
 
       chartZoomDetails.innerHTML = buildZoomDetails(type);
@@ -4174,14 +4478,20 @@
           const calorieTrend = weight.averageDailyDelta < 0 ? 'deficit' : 'surplus';
           items.push(`<li><strong>Calorie trend:</strong> ${calorieTrend} ~${formatNumber(Math.abs(weight.averageDailyDelta), 0)} kcal/day over ${weight.loggedCalorieDays} day${weight.loggedCalorieDays === 1 ? '' : 's'}</li>`);
         }
-        if (weight.projectionNote) {
-          items.push(`<li><strong>Projection note:</strong> ${weight.projectionNote}</li>`);
-        }
-        if (weight.daysElapsed) {
-          items.push(`<li><strong>Tracking span:</strong> ${weight.daysElapsed} day${weight.daysElapsed === 1 ? '' : 's'}</li>`);
-        }
-        return `<h4>Weight insights</h4><ul>${items.join('')}</ul>`;
+      if (weight.projectionNote) {
+        items.push(`<li><strong>Projection note:</strong> ${weight.projectionNote}</li>`);
       }
+      if (weight.daysElapsed) {
+        items.push(`<li><strong>Tracking span:</strong> ${weight.daysElapsed} day${weight.daysElapsed === 1 ? '' : 's'}</li>`);
+      }
+      if (weight.usingSyntheticHistory && !weight.hasEntries) {
+        items.push('<li><strong>Note:</strong> Preview data shown until you add real weight logs.</li>');
+      }
+      if (weight.chartMessage) {
+        items.push(`<li><strong>Chart insight:</strong> ${weight.chartMessage}</li>`);
+      }
+      return `<h4>Weight insights</h4><ul>${items.join('')}</ul>`;
+    }
 
       return '<p>Log data to unlock insights.</p>';
     }
