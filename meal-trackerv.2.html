@@ -145,7 +145,7 @@
     }
 
     .card h2 {
-      margin: 0 0 18px;
+      margin: 0;
       font-size: 1.2rem;
       display: flex;
       align-items: center;
@@ -154,6 +154,53 @@
 
     .card h2 i {
       color: var(--accent);
+    }
+
+    .card > h2 {
+      margin-bottom: 18px;
+    }
+
+    .card-header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card-header-controls h2 {
+      margin: 0;
+    }
+
+    .ghost-button {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .ghost-button:hover,
+    .ghost-button:focus {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-strong);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .ghost-button:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(21, 197, 163, 0.35);
+    }
+
+    .macro-section.collapsed {
+      display: none;
     }
 
     .summary-stack {
@@ -562,8 +609,9 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      justify-self: end;
+      justify-self: start;
       max-width: 180px;
+      width: 100%;
     }
 
     .calorie-group {
@@ -670,6 +718,12 @@
       color: var(--text-strong);
     }
 
+    .macro-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
     .meal-sections {
       display: flex;
       flex-direction: column;
@@ -720,8 +774,8 @@
     }
 
     .history-list {
-      max-height: 220px;
-      overflow-y: auto;
+      max-height: none;
+      overflow-y: visible;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -737,6 +791,13 @@
       cursor: pointer;
       transition: transform 0.2s ease, background 0.2s ease;
       border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .history-more-note {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding-top: 4px;
     }
 
     .history-item:hover {
@@ -1159,36 +1220,136 @@
       min-width: 640px;
     }
 
-    .calorie-summary {
-      display: grid;
-      gap: 12px;
-      background: var(--surface-alt);
-      padding: 18px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    .metric-insight {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
 
-    .calorie-summary .stat {
+    .metric-insight .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .metric-insight .stat-card {
+      background: var(--surface-alt);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 14px 16px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-insight .stat-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .metric-insight .stat-card .value {
+      font-size: 1.2rem;
       font-weight: 600;
     }
 
-    .calorie-summary .stat span:last-child {
-      color: var(--accent);
+    .metric-insight .stat-card.diff-surplus {
+      border-color: rgba(247, 95, 120, 0.35);
+      color: #ff92a8;
     }
 
-    .calorie-summary .stat.diff.surplus span:last-child {
-      color: var(--warning);
+    .metric-insight .stat-card.diff-deficit {
+      border-color: rgba(92, 215, 184, 0.35);
+      color: #7ff0d1;
     }
 
-    .calorie-summary .stat.diff.deficit span:last-child {
-      color: var(--success);
+    .metric-insight .top-contributor,
+    .metric-insight .info-block {
+      background: var(--surface-alt);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .calorie-summary .note {
-      font-size: 0.85rem;
+    .metric-insight .top-contributor h4 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-strong);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .metric-insight .top-contributor p {
+      margin: 0;
+      font-size: 0.9rem;
       color: var(--text-muted);
+    }
+
+    .metric-insight .info-block h4 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-strong);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .metric-insight .info-block p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .metric-insight .info-block strong {
+      color: var(--text-strong);
+    }
+
+    .metric-insight table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--surface-alt);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-insight th,
+    .metric-insight td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-insight tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-insight th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .metric-insight td {
+      font-size: 0.9rem;
+      color: var(--text-strong);
+    }
+
+    .metric-insight td .subtext {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .metric-insight .empty-state {
+      margin: 0;
     }
 
     .weight-tabs {
@@ -1199,6 +1360,30 @@
 
     .weight-tabs button {
       padding: 8px 16px;
+    }
+
+    .weight-range-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .weight-range-controls label {
+      font-size: 0.8rem;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .weight-range-controls select {
+      background: var(--surface-alt);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: var(--text-strong);
+      font-size: 0.9rem;
     }
 
     .eta {
@@ -1259,15 +1444,22 @@
       <div class="overview-grid">
         <aside class="summary-stack">
           <div class="card">
-            <h2><i class="fa-solid fa-calendar-day"></i> Today</h2>
+            <div class="card-header-controls">
+              <h2><i class="fa-solid fa-calendar-day"></i> Today</h2>
+              <button type="button" class="ghost-button" id="toggleMacroSection" aria-expanded="true">
+                <i class="fa-solid fa-eye-slash"></i> Hide macros
+              </button>
+            </div>
             <div class="form-row">
               <div style="flex:1;">
                 <label for="dateInput">Date</label>
                 <input type="date" id="dateInput">
               </div>
             </div>
-            <div id="summaryCards" class="summary-stack"></div>
-            <div id="macroHighlight" class="macro-highlight">Tap a nutrient card to see its top contributor.</div>
+            <div id="macroSection" class="macro-section">
+              <div id="summaryCards" class="summary-stack"></div>
+            </div>
+            <div id="macroHighlight" class="macro-highlight">Click a nutrient card to open detailed insights.</div>
           </div>
           <div class="card">
             <h2><i class="fa-solid fa-droplet"></i> Hydration</h2>
@@ -1595,6 +1787,16 @@
         <button class="secondary" data-range="weekly">Weekly</button>
         <button class="secondary" data-range="monthly">Monthly</button>
       </div>
+      <div class="weight-range-controls">
+        <label for="weightRangeLength">Range</label>
+        <select id="weightRangeLength">
+          <option value="30">Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90" selected>Last 90 days</option>
+          <option value="180">Last 180 days</option>
+          <option value="all">Full history</option>
+        </select>
+      </div>
       <div class="card" style="background:var(--surface-alt);">
         <div class="chart-scroll">
           <canvas id="weightChart" height="260"></canvas>
@@ -1638,10 +1840,10 @@
   <div id="calorieModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-fire"></i> Daily Calorie Breakdown</h3>
+        <h3 id="calorieModalTitle"><i class="fa-solid fa-fire"></i> Daily Calorie Insight</h3>
         <button class="close-btn" data-close="calorieModal"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="calorieSummary" class="calorie-summary"></div>
+      <div id="calorieSummary" class="metric-insight"></div>
     </div>
   </div>
 
@@ -1676,6 +1878,8 @@
     const waterSummary = document.getElementById('waterSummary');
     const mealSplitInfo = document.getElementById('mealSplitInfo');
     const macroHighlight = document.getElementById('macroHighlight');
+    const macroSection = document.getElementById('macroSection');
+    const toggleMacroSectionBtn = document.getElementById('toggleMacroSection');
     const analyticsCards = document.querySelectorAll('.analytics-card[data-chart]');
     const chartZoomModal = document.getElementById('chartZoomModal');
     const chartZoomTitle = document.getElementById('chartZoomTitle');
@@ -1723,8 +1927,10 @@
     const weightEntry = document.getElementById('weightEntry');
     const weightForm = document.getElementById('weightForm');
     const weightTabs = document.querySelectorAll('.weight-tabs button');
+    const weightRangeLength = document.getElementById('weightRangeLength');
     const etaText = document.getElementById('etaText');
     const calorieModal = document.getElementById('calorieModal');
+    const calorieModalTitle = document.getElementById('calorieModalTitle');
     const calorieSummary = document.getElementById('calorieSummary');
     const historyModal = document.getElementById('historyModal');
     const historyDateInput = document.getElementById('historyDateInput');
@@ -1803,14 +2009,28 @@
       summaryCards.addEventListener('click', event => {
         const card = event.target.closest('.summary-card');
         if (!card) return;
-        showMacroContributor(card.dataset.metric);
+        openMetricInsight(card.dataset.metric);
       });
       summaryCards.addEventListener('keydown', event => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         const card = event.target.closest('.summary-card');
         if (!card) return;
         event.preventDefault();
-        showMacroContributor(card.dataset.metric);
+        openMetricInsight(card.dataset.metric);
+      });
+    }
+
+    if (toggleMacroSectionBtn && macroSection) {
+      toggleMacroSectionBtn.addEventListener('click', () => {
+        const collapsed = macroSection.classList.toggle('collapsed');
+        const expanded = !collapsed;
+        toggleMacroSectionBtn.setAttribute('aria-expanded', String(expanded));
+        toggleMacroSectionBtn.innerHTML = expanded
+          ? '<i class="fa-solid fa-eye-slash"></i> Hide macros'
+          : '<i class="fa-solid fa-eye"></i> Show macros';
+        if (macroHighlight) {
+          macroHighlight.style.display = collapsed ? 'none' : '';
+        }
       });
     }
 
@@ -2195,8 +2415,11 @@
       const water = getWater(date);
       summaryCards.innerHTML = '';
       if (macroHighlight) {
-        macroHighlight.textContent = 'Tap a nutrient card to see its top contributor.';
+        macroHighlight.textContent = 'Click a nutrient card to open detailed insights.';
         macroHighlight.classList.remove('active');
+        if (macroSection) {
+          macroHighlight.style.display = macroSection.classList.contains('collapsed') ? 'none' : '';
+        }
       }
 
       const summaryData = [
@@ -2224,7 +2447,7 @@
         card.dataset.metric = item.key;
         card.setAttribute('role', 'button');
         card.setAttribute('tabindex', '0');
-        card.setAttribute('aria-label', `Show the meal contributing most to ${item.label.toLowerCase()}`);
+        card.setAttribute('aria-label', `Open ${item.label.toLowerCase()} insight`);
         card.innerHTML = `
           <div class="summary-icon"><i class="fa-solid ${item.icon}"></i></div>
           <div class="summary-details">
@@ -2287,49 +2510,214 @@
       }
     }
 
-    function openCalorieModal() {
-      if (!calorieModal) return;
-      const profile = getProfile();
-      const bmr = Math.round(calculateBMR(profile));
-      const tdee = Math.round(calculateTDEE(profile));
-      const consumed = Math.round(latestSummary.calories || 0);
-      const diff = tdee ? consumed - tdee : 0;
-      const weeklyDelta = tdee ? (diff * 7) / KCAL_PER_KG : 0;
-      let kgText = Math.abs(weeklyDelta).toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
-      if (!kgText) kgText = '0';
-      let note;
-      if (!tdee) {
-        note = 'Update your profile details to unlock metabolic comparisons.';
-      } else if (diff === 0) {
-        note = 'You are perfectly aligned with your maintenance calories today.';
-      } else if (diff > 0) {
-        note = `Estimated surplus of ${formatNumber(diff)} kcal (~${kgText} kg/week).`;
-      } else {
-        note = `Estimated deficit of ${formatNumber(Math.abs(diff))} kcal (~${kgText} kg/week).`;
+    function openMetricInsight(metric) {
+      if (!calorieModal || !calorieSummary || !calorieModalTitle) return;
+      const metricConfig = {
+        calories: {
+          label: 'Calories',
+          icon: 'fa-fire',
+          unit: 'kcal',
+          property: 'calories',
+          targetKey: 'calories',
+          decimals: 0,
+          title: 'Daily Calorie Insight',
+          emptyMessage: 'Log meals with calorie values to unlock this insight.'
+        },
+        protein: {
+          label: 'Protein',
+          icon: 'fa-drumstick-bite',
+          unit: 'g',
+          property: 'protein',
+          targetKey: 'protein',
+          decimals: 1,
+          title: 'Protein Insight',
+          emptyMessage: 'No protein tracked for this day. Enable "Track macros" when logging meals.'
+        },
+        carbs: {
+          label: 'Carbs',
+          icon: 'fa-bread-slice',
+          unit: 'g',
+          property: 'carbs',
+          targetKey: 'carbs',
+          decimals: 1,
+          title: 'Carbohydrate Insight',
+          emptyMessage: 'No carbs tracked for this day. Enable "Track macros" when logging meals.'
+        },
+        fat: {
+          label: 'Fat',
+          icon: 'fa-bacon',
+          unit: 'g',
+          property: 'fat',
+          targetKey: 'fat',
+          decimals: 1,
+          title: 'Fat Insight',
+          emptyMessage: 'No fat tracked for this day. Enable "Track macros" when logging meals.'
+        }
+      };
+
+      const config = metricConfig[metric];
+      if (!config) {
+        if (macroHighlight) {
+          macroHighlight.textContent = 'Insights are available for calories, protein, carbs, and fat.';
+          macroHighlight.classList.remove('active');
+        }
+        return;
       }
 
-      const diffClass = !tdee || diff === 0 ? '' : diff > 0 ? 'surplus' : 'deficit';
-      let diffLabel = '--';
-      if (tdee) {
-        if (diff > 0) {
-          diffLabel = `+${formatNumber(Math.abs(diff))} kcal`;
-        } else if (diff < 0) {
-          diffLabel = `-${formatNumber(Math.abs(diff))} kcal`;
+      const date = dateInput.value;
+      const meals = getMeals(date);
+      const targets = getTargets();
+      const total = meals.reduce((sum, meal) => sum + Number(meal[config.property] || 0), 0);
+      const target = Number(targets[config.targetKey] || 0);
+
+      calorieModalTitle.innerHTML = `<i class="fa-solid ${config.icon}"></i> ${config.title}`;
+
+      if (!meals.length) {
+        calorieSummary.innerHTML = '<div class="empty-state">No meals logged yet for this day.</div>';
+        toggleModal(calorieModal, true);
+        return;
+      }
+
+      const contributions = meals
+        .map(meal => ({ meal, value: Number(meal[config.property] || 0) }))
+        .filter(item => item.value > 0)
+        .sort((a, b) => b.value - a.value);
+
+      let statusLabel = target ? 'On target' : 'No target set';
+      let statusClass = '';
+      if (target) {
+        const diff = total - target;
+        const tolerance = Math.max(1, target * 0.02);
+        if (Math.abs(diff) <= tolerance) {
+          statusLabel = 'Within range';
+        } else if (diff > 0) {
+          statusLabel = `Over by ${formatNumber(Math.abs(diff), config.decimals)} ${config.unit}`;
+          statusClass = 'diff-surplus';
         } else {
-          diffLabel = '0 kcal';
+          statusLabel = `Under by ${formatNumber(Math.abs(diff), config.decimals)} ${config.unit}`;
+          statusClass = 'diff-deficit';
         }
       }
 
-      const diffClassName = diffClass ? `stat diff ${diffClass}` : 'stat diff';
-
-      calorieSummary.innerHTML = `
-        <div class="stat"><span>Calories eaten</span><span>${formatNumber(consumed)} kcal</span></div>
-        <div class="stat"><span>Resting burn (BMR)</span><span>${bmr ? formatNumber(bmr) : '--'} kcal</span></div>
-        <div class="stat"><span>Estimated burn (TDEE)</span><span>${tdee ? formatNumber(tdee) : '--'} kcal</span></div>
-        <div class="${diffClassName}"><span>Net difference</span><span>${diffLabel}</span></div>
-        <div class="note">${note}</div>
+      const statsHtml = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="label">Logged</span>
+            <span class="value">${formatNumber(total, config.decimals)} ${config.unit}</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Target</span>
+            <span class="value">${target ? `${formatNumber(target, config.decimals)} ${config.unit}` : '—'}</span>
+          </div>
+          <div class="stat-card ${statusClass}">
+            <span class="label">Status</span>
+            <span class="value">${statusLabel}</span>
+          </div>
+        </div>
       `;
 
+      let topContributorHtml = '';
+      if (contributions.length) {
+        const leader = contributions[0];
+        const share = total > 0 ? (leader.value / total) * 100 : 0;
+        const shareLabel = share ? share.toFixed(1).replace(/\.0$/, '') : '0';
+        const descriptor = formatMealDescriptor(leader.meal);
+        const mealTime = formatMealTime(normaliseTime(leader.meal.time || '', '12:00'));
+        const typeLabel = formatMealTypeLabel(resolveMealType(leader.meal));
+        const detailParts = [];
+        if (typeLabel) detailParts.push(typeLabel);
+        if (mealTime && mealTime !== '--:--') detailParts.push(mealTime);
+        const detailText = detailParts.length ? ` · ${escapeHtml(detailParts.join(' · '))}` : '';
+        topContributorHtml = `
+          <div class="top-contributor">
+            <h4><i class="fa-solid fa-crown"></i> Top contributor</h4>
+            <p><strong>${descriptor}</strong>${detailText}</p>
+            <p>${formatNumber(leader.value, config.decimals)} ${config.unit}${share ? ` · ${shareLabel}% of total` : ''}</p>
+          </div>
+        `;
+      } else {
+        topContributorHtml = `
+          <div class="top-contributor">
+            <h4><i class="fa-solid fa-circle-info"></i> Top contributor</h4>
+            <p>${config.emptyMessage}</p>
+          </div>
+        `;
+      }
+
+      let metabolicHtml = '';
+      if (metric === 'calories') {
+        const profile = getProfile();
+        const bmr = Math.round(calculateBMR(profile));
+        const tdee = Math.round(calculateTDEE(profile));
+        const diff = tdee ? total - tdee : 0;
+        const weeklyDelta = tdee ? (diff * 7) / KCAL_PER_KG : 0;
+        let kgText = Math.abs(weeklyDelta).toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+        if (!kgText) kgText = '0';
+        let note;
+        if (!tdee) {
+          note = 'Update your profile details to unlock metabolic comparisons.';
+        } else if (diff === 0) {
+          note = 'You are perfectly aligned with your maintenance calories today.';
+        } else if (diff > 0) {
+          note = `Estimated surplus of ${formatNumber(diff)} kcal (~${kgText} kg/week).`;
+        } else {
+          note = `Estimated deficit of ${formatNumber(Math.abs(diff))} kcal (~${kgText} kg/week).`;
+        }
+        const diffLabel = !tdee
+          ? '—'
+          : diff > 0
+            ? `+${formatNumber(Math.abs(diff))} kcal`
+            : diff < 0
+              ? `-${formatNumber(Math.abs(diff))} kcal`
+              : '0 kcal';
+        metabolicHtml = `
+          <div class="info-block">
+            <h4><i class="fa-solid fa-fire-flame-curved"></i> Metabolic check-in</h4>
+            <p><strong>BMR:</strong> ${bmr ? formatNumber(bmr) : '—'} kcal · <strong>TDEE:</strong> ${tdee ? formatNumber(tdee) : '—'} kcal</p>
+            <p><strong>Net difference:</strong> ${diffLabel}</p>
+            <p>${note}</p>
+          </div>
+        `;
+      }
+
+      let tableHtml = '';
+      if (contributions.length) {
+        const rows = contributions.map(item => {
+          const share = total > 0 ? (item.value / total) * 100 : 0;
+          const shareLabel = share ? share.toFixed(1).replace(/\.0$/, '') : '0';
+          const mealTime = formatMealTime(normaliseTime(item.meal.time || '', '12:00'));
+          const typeLabel = formatMealTypeLabel(resolveMealType(item.meal));
+          const metaParts = [];
+          if (typeLabel) metaParts.push(typeLabel);
+          if (mealTime && mealTime !== '--:--') metaParts.push(mealTime);
+          const meta = metaParts.length ? `<span class="subtext">${escapeHtml(metaParts.join(' · '))}</span>` : '';
+          return `
+            <tr>
+              <td>${formatMealDescriptor(item.meal)}${meta}</td>
+              <td>${formatNumber(item.value, config.decimals)} ${config.unit}</td>
+              <td>${shareLabel}%</td>
+            </tr>
+          `;
+        }).join('');
+        tableHtml = `
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Meal</th>
+                  <th>${config.label}</th>
+                  <th>Share</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        tableHtml = `<div class="empty-state">${config.emptyMessage}</div>`;
+      }
+
+      calorieSummary.innerHTML = `${statsHtml}${topContributorHtml}${metabolicHtml}${tableHtml}`;
       toggleModal(calorieModal, true);
     }
 
@@ -2419,44 +2807,6 @@
       });
 
       if (mealLogToggle) mealLogToggle.open = wasOpen;
-    }
-
-    function showMacroContributor(metric) {
-      if (!macroHighlight) return;
-      const validKeys = ['calories', 'protein', 'carbs', 'fat'];
-      if (!validKeys.includes(metric)) {
-        macroHighlight.textContent = 'This insight is available for calories and macros.';
-        macroHighlight.classList.remove('active');
-        return;
-      }
-      const meals = getMeals(dateInput.value);
-      if (!meals.length) {
-        macroHighlight.textContent = 'No meals logged yet for this day.';
-        macroHighlight.classList.remove('active');
-        return;
-      }
-      const prop = metric;
-      const leader = meals.reduce((best, meal) => {
-        const value = Number(meal[prop] || 0);
-        if (value > best.value) {
-          return { meal, value };
-        }
-        return best;
-      }, { meal: null, value: -Infinity });
-      if (!leader.meal || leader.value <= 0) {
-        const label = metric === 'calories' ? 'calories' : metric;
-        macroHighlight.textContent = `Log ${label} details to surface your top contributor.`;
-        macroHighlight.classList.remove('active');
-        return;
-      }
-      const label = metric.charAt(0).toUpperCase() + metric.slice(1);
-      const unit = metric === 'calories' ? 'kcal' : 'g';
-      const timeDisplay = minutesToDisplay(timeStringToMinutes(normaliseTime(leader.meal.time, '12:00')));
-      const parts = [`<strong>${label} leader:</strong> ${formatMealDescriptor(leader.meal)}`];
-      if (timeDisplay) parts.push(`at ${timeDisplay}`);
-      parts.push(`· ${formatNumber(leader.value, unit === 'kcal' ? 0 : 1)} ${unit}`);
-      macroHighlight.innerHTML = parts.join(' ');
-      macroHighlight.classList.add('active');
     }
 
     function formatMealDescriptor(meal) {
@@ -2575,7 +2925,9 @@
         historyList.appendChild(empty);
         return;
       }
-      dates.forEach(date => {
+      const MAX_VISIBLE_HISTORY = 7;
+      const visibleDates = dates.slice(0, MAX_VISIBLE_HISTORY);
+      visibleDates.forEach(date => {
         const meals = getMeals(date);
         const calories = meals.reduce((sum, meal) => sum + Number(meal.calories || 0), 0);
         const entry = document.createElement('div');
@@ -2588,6 +2940,13 @@
         });
         historyList.appendChild(entry);
       });
+
+      if (dates.length > MAX_VISIBLE_HISTORY) {
+        const more = document.createElement('div');
+        more.className = 'history-more-note';
+        more.textContent = `+${dates.length - MAX_VISIBLE_HISTORY} more day${dates.length - MAX_VISIBLE_HISTORY === 1 ? '' : 's'} in Manage entries`;
+        historyList.appendChild(more);
+      }
 
       if (historyModal && historyModal.classList.contains('open')) {
         populateHistoryManager(true);
@@ -3867,6 +4226,27 @@
       });
     });
 
+    if (weightRangeLength) {
+      weightRangeLength.addEventListener('change', () => {
+        renderWeightChart();
+      });
+    }
+
+    function applyWeightWindow(entries) {
+      if (!weightRangeLength || !entries.length) return entries;
+      const value = weightRangeLength.value;
+      if (!value || value === 'all') return entries;
+      const days = Number(value);
+      if (Number.isNaN(days) || days <= 0) return entries;
+      const latest = new Date(entries[entries.length - 1].date);
+      const cutoff = new Date(latest);
+      cutoff.setDate(cutoff.getDate() - (days - 1));
+      return entries.filter(entry => {
+        const date = new Date(entry.date);
+        return date >= cutoff;
+      });
+    }
+
     function renderWeightChart() {
       const entries = getWeights();
       const targets = getTargets();
@@ -3902,8 +4282,15 @@
         return;
       }
 
-      drawWeightChart(entries.map(e => ({ date: new Date(e.date), weight: e.weight })), ctx, targets);
-      etaText.textContent = buildETA(entries, targets);
+      const filtered = applyWeightWindow(entries);
+      const dataset = filtered.length ? filtered : entries;
+      const showingFallback = !filtered.length && entries.length && weightRangeLength && weightRangeLength.value !== 'all';
+      drawWeightChart(dataset.map(e => ({ date: new Date(e.date), weight: e.weight })), ctx, targets);
+      if (showingFallback) {
+        etaText.textContent = `No entries within the selected range. Showing full history. ${buildETA(dataset, targets)}`;
+      } else {
+        etaText.textContent = buildETA(dataset, targets);
+      }
     }
 
     function aggregateWeights(entries, range) {
