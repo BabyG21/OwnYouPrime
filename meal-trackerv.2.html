@@ -563,6 +563,87 @@
       border-radius: 12px;
     }
 
+    .history-manager {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .history-manager-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .history-manager-controls select {
+      background: var(--surface-alt);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: var(--text-strong);
+    }
+
+    .history-edit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .history-edit-row {
+      background: var(--surface-alt);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .history-edit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .history-edit-grid label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .history-edit-grid input,
+    .history-edit-grid textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text-strong);
+    }
+
+    .history-edit-grid textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .history-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .history-edit-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
@@ -845,10 +926,10 @@
               </div>
               <button class="secondary" id="quickWaterBtn"><i class="fa-solid fa-glass-water"></i> Quick add 250 ml</button>
               <div class="summary-card" style="margin-top: 4px;">
-                <div class="summary-icon"><i class="fa-solid fa-wave-square"></i></div>
+                <div class="summary-icon"><i class="fa-solid fa-droplet"></i></div>
                 <div class="summary-details">
                   <div class="value"><span id="waterTotal">0</span> ml</div>
-                  <div class="label">Total today</div>
+                  <div class="label">Target <span id="waterTargetLabel">—</span> ml</div>
                   <div class="progress-track"><div id="waterProgress" class="progress-fill" style="width:0;"></div></div>
                 </div>
               </div>
@@ -867,6 +948,7 @@
           <div class="card">
             <h2><i class="fa-solid fa-clock-rotate-left"></i> History</h2>
             <div id="historyList" class="history-list"></div>
+            <button class="secondary" id="openHistoryManager" style="margin-top:12px; width:100%;"><i class="fa-solid fa-pen-to-square"></i> Manage entries</button>
           </div>
         </aside>
         <section class="card" style="display:flex; flex-direction:column; gap:26px;">
@@ -892,6 +974,12 @@
               <div>
                 <label for="mealName">Meal Name</label>
                 <input type="text" id="mealName" placeholder="e.g. Breakfast Bowl">
+              </div>
+              <div class="form-row">
+                <div>
+                  <label for="mealTime">Time</label>
+                  <input type="time" id="mealTime" step="60">
+                </div>
               </div>
               <div>
                 <label for="ingredients">Ingredients</label>
@@ -928,6 +1016,7 @@
             <table>
               <thead>
                 <tr>
+                  <th>Time</th>
                   <th>Meal</th>
                   <th>Ingredients</th>
                   <th>Calories</th>
@@ -1102,6 +1191,22 @@
     </div>
   </div>
 
+  <div id="historyModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Meal History</h3>
+        <button class="close-btn" data-close="historyModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="history-manager">
+        <div class="history-manager-controls">
+          <label for="historyDateSelect">Select day</label>
+          <select id="historyDateSelect"></select>
+        </div>
+        <div id="historyEntries" class="history-edit-list"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="calorieModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
@@ -1120,15 +1225,18 @@
     const summaryCards = document.getElementById('summaryCards');
     const waterTotal = document.getElementById('waterTotal');
     const waterProgress = document.getElementById('waterProgress');
+    const waterTargetLabel = document.getElementById('waterTargetLabel');
     const addWaterBtn = document.getElementById('addWaterBtn');
     const quickWaterBtn = document.getElementById('quickWaterBtn');
     const waterInput = document.getElementById('waterInput');
     const mealForm = document.getElementById('mealForm');
+    const mealTimeInput = document.getElementById('mealTime');
     const showMacros = document.getElementById('showMacros');
     const macroFields = document.getElementById('macroFields');
     const presetButtonsContainer = document.getElementById('presetButtons');
     const noPresets = document.getElementById('noPresets');
     const historyList = document.getElementById('historyList');
+    const openHistoryManagerBtn = document.getElementById('openHistoryManager');
     const weightWidget = document.getElementById('weightWidget');
     const weightValue = document.getElementById('weightValue');
     const weightTrend = document.getElementById('weightTrend');
@@ -1172,12 +1280,17 @@
     const etaText = document.getElementById('etaText');
     const calorieModal = document.getElementById('calorieModal');
     const calorieSummary = document.getElementById('calorieSummary');
+    const historyModal = document.getElementById('historyModal');
+    const historyDateSelect = document.getElementById('historyDateSelect');
+    const historyEntries = document.getElementById('historyEntries');
 
     let calorieChart, macroChart, weightChart;
     let selectedGoalType = 'maintain';
     let selectedWeightRange = 'daily';
     let selectedPace = 'normal';
     let latestSummary = { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0 };
+
+    setDefaultMealTime();
 
     const defaultProfile = {
       age: 30,
@@ -1207,8 +1320,8 @@
     const paceRates = {
       slow: { rate: 0.25, label: 'Slow' },
       normal: { rate: 0.5, label: 'Normal' },
-      fast: { rate: 0.75, label: 'Fast' },
-      extreme: { rate: 1, label: 'Extreme' }
+      fast: { rate: 1, label: 'Fast' },
+      extreme: { rate: 1.5, label: 'Extreme' }
     };
 
     const KCAL_PER_KG = 7700;
@@ -1248,6 +1361,44 @@
 
     function savePresetData(presets) {
       localStorage.setItem('presets', JSON.stringify(presets));
+    }
+
+    function currentTimeValue() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    function setDefaultMealTime() {
+      if (mealTimeInput) {
+        mealTimeInput.value = currentTimeValue();
+      }
+    }
+
+    function normaliseTime(value, fallback = currentTimeValue()) {
+      if (!value) return fallback;
+      const [hours, minutes] = String(value).split(':');
+      if (hours === undefined || minutes === undefined) return fallback;
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    }
+
+    function formatMealTime(value) {
+      if (!value) return '--:--';
+      const [hours, minutes] = String(value).split(':');
+      if (hours === undefined || minutes === undefined) return '--:--';
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    }
+
+    function escapeHtml(value) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(value ?? '').replace(/[&<>"']/g, char => map[char]);
     }
 
     function calculateBMR(profile) {
@@ -1370,6 +1521,18 @@
       localStorage.setItem('meals_' + date, JSON.stringify(meals));
     }
 
+    function getLoggedMealDates() {
+      const dates = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('meals_')) {
+          dates.push(key.slice(6));
+        }
+      }
+      dates.sort((a, b) => new Date(b) - new Date(a));
+      return dates;
+    }
+
     function getWater(date) {
       const raw = localStorage.getItem('water_' + date);
       return raw ? Number(raw) : 0;
@@ -1445,8 +1608,7 @@
         { icon: 'fa-fire', label: 'Calories', value: totalCalories, unit: 'kcal', target: targets.calories, key: 'calories' },
         { icon: 'fa-drumstick-bite', label: 'Protein', value: totalProtein, unit: 'g', target: targets.protein, key: 'protein' },
         { icon: 'fa-bread-slice', label: 'Carbs', value: totalCarbs, unit: 'g', target: targets.carbs, key: 'carbs' },
-        { icon: 'fa-bacon', label: 'Fat', value: totalFat, unit: 'g', target: targets.fat, key: 'fat' },
-        { icon: 'fa-droplet', label: 'Water', value: water, unit: 'ml', target: targets.water, key: 'water' }
+        { icon: 'fa-bacon', label: 'Fat', value: totalFat, unit: 'g', target: targets.fat, key: 'fat' }
       ];
 
       const celebrates = [];
@@ -1488,6 +1650,9 @@
       waterTotal.textContent = formatNumber(water);
       const waterPercent = targets.water ? Math.min(100, (water / targets.water) * 100) : 0;
       waterProgress.style.width = waterPercent + '%';
+      if (waterTargetLabel) {
+        waterTargetLabel.textContent = targets.water ? formatNumber(targets.water) : '—';
+      }
 
       showCelebrations(celebrates);
       showWarnings(warnings);
@@ -1577,7 +1742,7 @@
       if (!meals.length) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 7;
+        cell.colSpan = 8;
         cell.className = 'empty-state';
         cell.textContent = 'No meals logged yet';
         row.appendChild(cell);
@@ -1587,6 +1752,7 @@
       meals.forEach((meal, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>${formatMealTime(meal.time)}</td>
           <td>${meal.name}</td>
           <td>${meal.ingredients || '—'}</td>
           <td>${formatNumber(meal.calories)}</td>
@@ -1617,6 +1783,7 @@
         name: document.getElementById('mealName').value.trim() || 'Meal',
         ingredients: document.getElementById('ingredients').value.trim(),
         calories: Number(document.getElementById('calories').value) || 0,
+        time: normaliseTime(mealTimeInput ? mealTimeInput.value : ''),
         protein: 0,
         carbs: 0,
         fat: 0
@@ -1631,6 +1798,7 @@
       meals.push(meal);
       saveMeals(date, meals);
       mealForm.reset();
+      setDefaultMealTime();
       macroFields.style.display = 'none';
       renderMeals();
       renderSummary();
@@ -1681,6 +1849,7 @@
             name: preset.name,
             ingredients: preset.ingredients || '',
             calories: Number(preset.calories) || 0,
+            time: currentTimeValue(),
             protein: Number(preset.protein) || 0,
             carbs: Number(preset.carbs) || 0,
             fat: Number(preset.fat) || 0
@@ -1697,14 +1866,7 @@
     }
 
     function updateHistory() {
-      const dates = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.startsWith('meals_')) {
-          dates.push(key.slice(6));
-        }
-      }
-      dates.sort((a, b) => new Date(b) - new Date(a));
+      const dates = getLoggedMealDates();
       historyList.innerHTML = '';
       if (!dates.length) {
         const empty = document.createElement('div');
@@ -1725,6 +1887,153 @@
           renderSummary();
         });
         historyList.appendChild(entry);
+      });
+
+      if (historyModal && historyModal.classList.contains('open')) {
+        populateHistoryManager(true);
+      }
+    }
+
+    function populateHistoryManager(preserveSelection = false) {
+      if (!historyDateSelect || !historyEntries) return;
+      const dates = getLoggedMealDates();
+      const previous = preserveSelection ? historyDateSelect.value : '';
+      historyDateSelect.innerHTML = '';
+      if (!dates.length) {
+        historyDateSelect.disabled = true;
+        historyEntries.innerHTML = '<div class="history-edit-empty">Log meals to edit them.</div>';
+        return;
+      }
+
+      historyDateSelect.disabled = false;
+      dates.forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        const labelDate = new Date(date + 'T00:00:00');
+        option.textContent = labelDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        historyDateSelect.appendChild(option);
+      });
+
+      const targetDate = preserveSelection && previous && dates.includes(previous) ? previous : dates[0];
+      historyDateSelect.value = targetDate;
+      renderHistoryEditor(targetDate);
+    }
+
+    function renderHistoryEditor(date) {
+      if (!historyEntries) return;
+      historyEntries.innerHTML = '';
+      if (!date) {
+        historyEntries.innerHTML = '<div class="history-edit-empty">No logged meals yet.</div>';
+        return;
+      }
+      const meals = getMeals(date);
+      if (!meals.length) {
+        historyEntries.innerHTML = '<div class="history-edit-empty">No meals recorded for this day.</div>';
+        return;
+      }
+
+      meals.forEach((meal, index) => {
+        const row = document.createElement('div');
+        row.className = 'history-edit-row';
+        const timeValue = normaliseTime(meal.time || '', '12:00');
+        row.innerHTML = `
+          <div class="history-edit-grid">
+            <label>Time<input type="time" step="60" value="${timeValue}" data-field="time" data-index="${index}"></label>
+            <label>Meal<input type="text" value="${escapeHtml(meal.name || '')}" data-field="name" data-index="${index}"></label>
+            <label>Calories<input type="number" min="0" step="1" value="${meal.calories !== undefined ? meal.calories : ''}" data-field="calories" data-index="${index}"></label>
+            <label>Protein<input type="number" min="0" step="1" value="${meal.protein !== undefined ? meal.protein : ''}" data-field="protein" data-index="${index}"></label>
+            <label>Carbs<input type="number" min="0" step="1" value="${meal.carbs !== undefined ? meal.carbs : ''}" data-field="carbs" data-index="${index}"></label>
+            <label>Fat<input type="number" min="0" step="1" value="${meal.fat !== undefined ? meal.fat : ''}" data-field="fat" data-index="${index}"></label>
+          </div>
+          <div class="history-edit-grid">
+            <label>Ingredients<textarea data-field="ingredients" data-index="${index}">${escapeHtml(meal.ingredients || '')}</textarea></label>
+          </div>
+          <div class="history-edit-actions">
+            <button class="secondary" data-history-action="delete" data-index="${index}"><i class="fa-solid fa-trash"></i> Delete</button>
+            <button class="primary" data-history-action="save" data-index="${index}"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+        `;
+        historyEntries.appendChild(row);
+      });
+    }
+
+    function refreshCurrentDayIfMatched(date) {
+      if (dateInput.value === date) {
+        renderMeals();
+        renderSummary();
+      }
+    }
+
+    if (openHistoryManagerBtn) {
+      openHistoryManagerBtn.addEventListener('click', () => {
+        populateHistoryManager();
+        toggleModal(historyModal, true);
+      });
+    }
+
+    if (historyDateSelect) {
+      historyDateSelect.addEventListener('change', () => {
+        renderHistoryEditor(historyDateSelect.value);
+      });
+    }
+
+    if (historyEntries) {
+      historyEntries.addEventListener('click', event => {
+        const actionBtn = event.target.closest('[data-history-action]');
+        if (!actionBtn) return;
+        const action = actionBtn.dataset.historyAction;
+        const index = Number(actionBtn.dataset.index);
+        const selectedDate = historyDateSelect ? historyDateSelect.value : '';
+        if (!selectedDate) return;
+        const meals = getMeals(selectedDate);
+        if (Number.isNaN(index) || index < 0 || index >= meals.length) return;
+
+        if (action === 'delete') {
+          meals.splice(index, 1);
+          if (meals.length) {
+            saveMeals(selectedDate, meals);
+          } else {
+            localStorage.removeItem('meals_' + selectedDate);
+          }
+          updateHistory();
+          refreshCurrentDayIfMatched(selectedDate);
+          return;
+        }
+
+        if (action === 'save') {
+          const row = actionBtn.closest('.history-edit-row');
+          if (!row) return;
+          const updated = { ...meals[index] };
+          const timeInput = row.querySelector('[data-field="time"]');
+          const nameInput = row.querySelector('[data-field="name"]');
+          const ingredientsInput = row.querySelector('[data-field="ingredients"]');
+          const caloriesInput = row.querySelector('[data-field="calories"]');
+          const proteinInput = row.querySelector('[data-field="protein"]');
+          const carbsInput = row.querySelector('[data-field="carbs"]');
+          const fatInput = row.querySelector('[data-field="fat"]');
+
+          updated.time = normaliseTime(timeInput ? timeInput.value : updated.time, updated.time || '12:00');
+          updated.name = nameInput ? nameInput.value.trim() || 'Meal' : updated.name;
+          updated.ingredients = ingredientsInput ? ingredientsInput.value.trim() : updated.ingredients;
+          updated.calories = caloriesInput && caloriesInput.value !== '' ? Number(caloriesInput.value) : 0;
+          updated.protein = proteinInput && proteinInput.value !== '' ? Number(proteinInput.value) : 0;
+          updated.carbs = carbsInput && carbsInput.value !== '' ? Number(carbsInput.value) : 0;
+          updated.fat = fatInput && fatInput.value !== '' ? Number(fatInput.value) : 0;
+
+          meals[index] = updated;
+          saveMeals(selectedDate, meals);
+
+          const originalHtml = actionBtn.innerHTML;
+          actionBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Saved';
+          actionBtn.disabled = true;
+          setTimeout(() => {
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = originalHtml;
+          }, 1200);
+
+          updateHistory();
+          refreshCurrentDayIfMatched(selectedDate);
+        }
       });
     }
 
@@ -2056,6 +2365,7 @@
       setTimeout(() => targetSuccess.classList.remove('visible'), 2000);
       renderSummary();
       updatePaceUI();
+      renderWeightChart();
     });
 
     function refreshWeightWidget() {
@@ -2140,11 +2450,24 @@
         const profileWeight = getProfile().weight || targets.weightTarget;
         const start = profileWeight || 70;
         const goal = targets.weightTarget || start;
+        const timelineWeeks = Number(targets.goalTimeline) || 0;
+        const steps = timelineWeeks > 0 ? Math.min(12, Math.max(6, timelineWeeks)) : 6;
         const pseudo = [];
-        for (let i = 0; i <= 6; i++) {
+        const now = new Date();
+        const totalDays = timelineWeeks > 0 ? Math.max(1, timelineWeeks * 7) : steps;
+        for (let i = 0; i <= steps; i++) {
+          const progress = steps === 0 ? 1 : i / steps;
+          const dayOffset = Math.round(totalDays * progress);
+          const projectedDate = new Date(now.getTime() + dayOffset * 86400000);
+          let projectedWeight;
+          if (!timelineWeeks || goal === start) {
+            projectedWeight = start + (goal - start) * progress;
+          } else {
+            projectedWeight = start + (goal - start) * Math.min(1, progress);
+          }
           pseudo.push({
-            date: new Date(Date.now() + i * 24 * 60 * 60 * 1000),
-            weight: start + ((goal - start) / 6) * i
+            date: projectedDate,
+            weight: projectedWeight
           });
         }
         drawWeightChart(pseudo, ctx, targets);
@@ -2196,17 +2519,22 @@
       const canvas = document.getElementById('weightChart');
       const idealLine = [];
       if (data.length) {
-        const start = data[0].weight;
-        const goal = targets.weightTarget || start;
-        if (data.length === 1) {
-          idealLine.push(Number(goal.toFixed(2)));
-        } else {
-          data.forEach((point, index) => {
-            const ratio = index / (data.length - 1);
-            const idealWeight = start + (goal - start) * ratio;
-            idealLine.push(Number(idealWeight.toFixed(2)));
-          });
-        }
+        const startWeight = data[0].weight;
+        const goalWeight = targets.weightTarget || startWeight;
+        const timelineWeeks = Number(targets.goalTimeline) || 0;
+        const startDate = data[0].date;
+        const totalDays = timelineWeeks > 0 ? Math.max(1, timelineWeeks * 7) : 0;
+        data.forEach(point => {
+          let idealWeight;
+          if (!timelineWeeks || goalWeight === startWeight) {
+            idealWeight = goalWeight;
+          } else {
+            const dayDiff = Math.max(0, Math.round((point.date - startDate) / 86400000));
+            const progress = Math.min(1, dayDiff / totalDays);
+            idealWeight = startWeight + (goalWeight - startWeight) * progress;
+          }
+          idealLine.push(Number(idealWeight.toFixed(2)));
+        });
       }
       if (canvas) {
         const minWidth = Math.max(640, data.length * 90);
@@ -2312,6 +2640,7 @@
     dateInput.addEventListener('change', () => {
       renderMeals();
       renderSummary();
+      setDefaultMealTime();
     });
 
     document.addEventListener('keydown', event => {
@@ -2319,6 +2648,7 @@
         toggleModal(presetModal, false);
         toggleModal(weightModal, false);
         toggleModal(calorieModal, false);
+        toggleModal(historyModal, false);
       }
     });
 
