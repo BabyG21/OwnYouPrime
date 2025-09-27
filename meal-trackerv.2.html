@@ -109,6 +109,21 @@
       color: var(--text-strong);
     }
 
+    .goal-type-hint {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 1.2em;
+    }
+
+    .goal-type-hint.warning {
+      color: var(--warning);
+    }
+
+    .goal-type-hint.success {
+      color: var(--success);
+    }
+
     main {
       padding: 30px 40px 60px;
       display: flex;
@@ -491,6 +506,142 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       cursor: pointer;
       background: var(--surface-alt);
+    }
+
+    .analytics-card.weight-projection-card {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .analytics-card.weight-projection-card .chart-note {
+      margin-top: 0;
+      color: var(--text-muted);
+    }
+
+    .weight-projection-timeline {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 12px 12px;
+      border-radius: calc(var(--radius) - 6px);
+      background: linear-gradient(160deg, rgba(32, 36, 54, 0.65), rgba(18, 21, 34, 0.8));
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      min-height: 160px;
+    }
+
+    .weight-projection-timeline.timeline--has-data::before {
+      content: '';
+      position: absolute;
+      top: 34px;
+      left: 32px;
+      right: 32px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(21, 197, 163, 0.15), rgba(92, 124, 250, 0.25));
+    }
+
+    .timeline-item {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      padding: 38px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(21, 197, 163, 0.18);
+    }
+
+    .timeline-item--inactive::before {
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: none;
+    }
+
+    .timeline-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      color: var(--text-muted);
+    }
+
+    .timeline-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-strong);
+      letter-spacing: 0.2px;
+    }
+
+    .timeline-item--inactive .timeline-value {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .timeline-period {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      min-height: 1.4em;
+      line-height: 1.4;
+    }
+
+    .timeline-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      padding: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .analytics-card.weight-projection-card {
+        padding: 20px;
+      }
+
+      .weight-projection-timeline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .weight-projection-timeline.timeline--has-data::before {
+        display: none;
+      }
+
+      .timeline-item {
+        align-items: flex-start;
+        text-align: left;
+        padding: 18px 18px 16px 44px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(8, 9, 15, 0.25);
+      }
+
+      .timeline-item::before {
+        top: 22px;
+        left: 20px;
+        transform: none;
+      }
+
+      .timeline-period {
+        font-size: 0.85rem;
+      }
     }
 
     .analytics-card:hover,
@@ -1443,16 +1594,18 @@
           <canvas id="mealSplitChart" height="220"></canvas>
           <div class="chart-note" id="mealSplitInfo">Tap to zoom for average meal times.</div>
         </div>
-        <div class="card analytics-card" data-chart="weight" tabindex="0" role="button">
+        <div class="card analytics-card weight-projection-card" data-chart="weight" tabindex="0" role="button">
           <div class="analytics-card-header">
             <div>
-              <h3><i class="fa-solid fa-scale-balanced"></i> Weight momentum</h3>
-              <p class="analytics-card-subtitle">Snapshot of your trend</p>
+              <h3><i class="fa-solid fa-scale-balanced"></i> Weight projection</h3>
+              <p class="analytics-card-subtitle">Current → projected → goal</p>
             </div>
-            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+            <span class="chart-hint"><i class="fa-solid fa-circle-info"></i> Details</span>
           </div>
-          <canvas id="weightSparkline" height="220"></canvas>
-          <div class="chart-note" id="weightCardSummary">Log weights to see your trajectory.</div>
+          <div class="weight-projection-timeline" id="weightTimeline">
+            <div class="timeline-empty">Log meals with calories and weight entries to unlock projections.</div>
+          </div>
+          <div class="chart-note" id="weightCardSummary">Log meals with calories and weight entries to unlock projections.</div>
         </div>
       </div>
     </section>
@@ -1530,6 +1683,7 @@
               <button type="button" data-goal="maintain" class="active">Maintain</button>
               <button type="button" data-goal="gain">Gain</button>
             </div>
+            <div class="goal-type-hint" id="goalTypeHint"></div>
           </div>
         </form>
         <div class="pace-panel">
@@ -1687,7 +1841,7 @@
     const weightRemainingLabel = document.getElementById('weightRemainingLabel');
     const targetCountdownValue = document.getElementById('targetCountdownValue');
     const weightCardSummary = document.getElementById('weightCardSummary');
-    const weightSparklineCanvas = document.getElementById('weightSparkline');
+    const weightTimeline = document.getElementById('weightTimeline');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -1705,6 +1859,7 @@
     const targetWeight = document.getElementById('targetWeight');
     const goalTimeline = document.getElementById('goalTimeline');
     const goalTypeGroup = document.getElementById('goalTypeGroup');
+    const goalTypeHint = document.getElementById('goalTypeHint');
     const targetAlert = document.getElementById('targetAlert');
     const targetSuccess = document.getElementById('targetSuccess');
     const saveSettingsBtn = document.getElementById('saveSettings');
@@ -1730,10 +1885,10 @@
     const historyDateInput = document.getElementById('historyDateInput');
     const historyEntries = document.getElementById('historyEntries');
 
-    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart, weightSparklineChart;
+    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart;
     let chartZoomInstance;
     const analyticsCache = {
-      calories: { labels: [], data: [], target: 0 },
+      calories: { labels: [], data: [], target: 0, loggedAverage: 0, maintenance: 0, averageDelta: 0, weeklyDeltaKg: 0, loggedDays: 0 },
       macros: { protein: 0, carbs: 0, fat: 0, targets: {} },
       water: { labels: [], data: [], target: 0, today: 0, average: 0 },
       mealSplit: { totals: {}, averages: {} },
@@ -2031,6 +2186,55 @@
       return results;
     }
 
+    function updateGoalTypeHint() {
+      if (!goalTypeHint) return;
+      goalTypeHint.classList.remove('warning', 'success');
+      const profile = getProfile();
+      const draftWeight = Number(weightInput && weightInput.value ? weightInput.value : NaN);
+      const currentWeight = !Number.isNaN(draftWeight) && draftWeight > 0
+        ? draftWeight
+        : Number(profile.weight) || 0;
+      const targetWeightValue = Number(targetWeight.value) || 0;
+      if (!currentWeight || !targetWeightValue) {
+        goalTypeHint.textContent = 'Set your current and goal weight to validate direction.';
+        return;
+      }
+      const diff = targetWeightValue - currentWeight;
+      const absDiff = Math.abs(diff);
+      const maintainTolerance = 0.5;
+      let message = '';
+      let tone = '';
+      if (selectedGoalType === 'maintain') {
+        if (absDiff <= maintainTolerance) {
+          message = 'Maintain goal aligns with your current weight.';
+          tone = 'success';
+        } else {
+          message = 'Maintain goal expects your target within ±0.5 kg of current weight.';
+          tone = 'warning';
+        }
+      } else if (selectedGoalType === 'loss') {
+        if (diff < -0.05) {
+          message = `Loss goal set to drop ${formatNumber(absDiff, 1)} kg.`;
+          tone = 'success';
+        } else {
+          message = 'Loss goal requires a target below your current weight.';
+          tone = 'warning';
+        }
+      } else if (selectedGoalType === 'gain') {
+        if (diff > 0.05) {
+          message = `Gain goal set to add ${formatNumber(absDiff, 1)} kg.`;
+          tone = 'success';
+        } else {
+          message = 'Gain goal requires a target above your current weight.';
+          tone = 'warning';
+        }
+      }
+      goalTypeHint.textContent = message || 'Adjust your goal weight to validate direction.';
+      if (tone) {
+        goalTypeHint.classList.add(tone);
+      }
+    }
+
     function updatePaceUI() {
       if (!paceSelector || !paceSummary) return;
       const profile = getDraftProfile();
@@ -2146,6 +2350,24 @@
       if (days === 1) return '1 day';
       const weeks = days / 7;
       return weeks >= 1 ? `${days} days (~${weeks.toFixed(1)} wk)` : `${days} days`;
+    }
+
+    function formatProjectionPeriod(weeks) {
+      if (!weeks || Number.isNaN(weeks) || weeks <= 0) return 'Timeline pending';
+      const numericWeeks = Number(weeks);
+      if (numericWeeks < 1.5) {
+        const days = Math.max(1, Math.round(numericWeeks * 7));
+        return `in ${days} day${days === 1 ? '' : 's'}`;
+      }
+      if (numericWeeks >= 8) {
+        const months = Math.round((numericWeeks / 4.345) * 10) / 10;
+        const decimals = months % 1 === 0 ? 0 : 1;
+        const monthText = formatNumber(months, decimals);
+        const plural = Math.abs(months - 1) < 0.05 ? '' : 's';
+        return `in ~${monthText} month${plural}`;
+      }
+      const roundedWeeks = Math.round(numericWeeks);
+      return `in ${roundedWeeks} week${roundedWeeks === 1 ? '' : 's'}`;
     }
 
     function calcBMI(weight, height) {
@@ -2741,8 +2963,10 @@
       const labels = [];
       const caloriesData = [];
       const waterData = [];
+      const loggedCalories = [];
       const referenceDate = dateInput.value ? new Date(dateInput.value) : new Date();
       const targets = getTargets();
+      const profile = getProfile();
       for (let i = 6; i >= 0; i--) {
         const day = new Date(referenceDate);
         day.setDate(day.getDate() - i);
@@ -2751,13 +2975,27 @@
         const meals = getMeals(dateStr);
         const caloriesForDay = meals.reduce((sum, meal) => sum + Number(meal.calories || 0), 0);
         caloriesData.push(caloriesForDay);
+        if (caloriesForDay > 0) {
+          loggedCalories.push(caloriesForDay);
+        }
         waterData.push(getWater(dateStr));
       }
+
+      const totalLoggedCalories = loggedCalories.reduce((sum, value) => sum + value, 0);
+      const averageLoggedCalories = loggedCalories.length ? totalLoggedCalories / loggedCalories.length : 0;
+      const maintenanceCalories = Math.round(calculateTDEE(profile)) || 0;
+      const averageDailyDelta = maintenanceCalories ? averageLoggedCalories - maintenanceCalories : 0;
+      const weeklyDeltaKg = averageDailyDelta ? (averageDailyDelta * 7) / KCAL_PER_KG : 0;
 
       analyticsCache.calories = {
         labels: [...labels],
         data: [...caloriesData],
-        target: Number(targets.calories) || 0
+        target: Number(targets.calories) || 0,
+        loggedAverage: averageLoggedCalories,
+        maintenance: maintenanceCalories,
+        averageDelta: averageDailyDelta,
+        weeklyDeltaKg,
+        loggedDays: loggedCalories.length
       };
 
       const calorieCanvas = document.getElementById('calorieChart');
@@ -2928,7 +3166,7 @@
       const weightAnalytics = computeWeightAnalytics();
       analyticsCache.weight = weightAnalytics;
       updateWeightSummary(weightAnalytics);
-      renderWeightSparkline(weightAnalytics);
+      renderWeightTimeline(weightAnalytics);
     }
 
     function minutesToDisplay(minutes) {
@@ -2975,20 +3213,28 @@
       const entries = getWeights();
       const targets = getTargets();
       const profile = getProfile();
-      const hasEntries = entries.length > 0;
+      const validEntries = entries.filter(entry => Number(entry.weight) > 0);
+      const hasEntries = validEntries.length > 0;
       const paceKey = targets.goalPace || 'normal';
       const paceMeta = paceRates[paceKey] || null;
       const rawTargetWeight = Number(targets.weightTarget);
       const hasGoal = rawTargetWeight > 0;
       const targetWeight = hasGoal ? rawTargetWeight : 0;
+      const timelineWeeks = Number(targets.goalTimeline) || 0;
+      const calorieInsights = analyticsCache.calories || {};
+      const averageLoggedCalories = Number(calorieInsights.loggedAverage) || 0;
+      const maintenanceCalories = Number(calorieInsights.maintenance) || Math.round(calculateTDEE(profile)) || 0;
+      const averageDailyDelta = Number(calorieInsights.averageDelta) || (maintenanceCalories ? averageLoggedCalories - maintenanceCalories : 0);
+      const weeklyDeltaKg = Number(calorieInsights.weeklyDeltaKg) || 0;
+      const loggedCalorieDays = Number(calorieInsights.loggedDays) || 0;
       let startWeight;
       let startDate;
       let latestWeight;
       let latestDate;
 
       if (hasEntries) {
-        const first = entries[0];
-        const last = entries[entries.length - 1];
+        const first = validEntries[0];
+        const last = validEntries[validEntries.length - 1];
         startWeight = Number(first.weight || 0);
         startDate = first.date;
         latestWeight = Number(last.weight || 0);
@@ -3009,10 +3255,10 @@
       }
 
       const labels = hasEntries
-        ? entries.map(entry => new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
+        ? validEntries.map(entry => new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
         : ['Current'];
       const data = hasEntries
-        ? entries.map(entry => Number(entry.weight || 0))
+        ? validEntries.map(entry => Number(entry.weight || 0))
         : [latestWeight || 0];
 
       const totalChange = (latestWeight || 0) - (startWeight || 0);
@@ -3050,8 +3296,6 @@
           summaryParts.push('Goal met');
         }
       }
-      const summaryNote = summaryParts.join(' · ');
-
       let daysElapsed = 0;
       if (startDate && latestDate) {
         const start = new Date(startDate);
@@ -3068,6 +3312,49 @@
       let objectiveDirection = 'flat';
       if (totalObjective > 0.05) objectiveDirection = 'gain';
       else if (totalObjective < -0.05) objectiveDirection = 'loss';
+
+      let projectionWeeks = 0;
+      if (loggedCalorieDays && weeklyDeltaKg) {
+        if (timelineWeeks > 0) {
+          projectionWeeks = timelineWeeks;
+        } else if (remainingAbs > 0.05) {
+          projectionWeeks = Math.max(1, Math.ceil(remainingAbs / Math.abs(weeklyDeltaKg)));
+        } else {
+          projectionWeeks = Math.max(1, Math.min(4, loggedCalorieDays));
+        }
+      }
+
+      let projectedWeight = latestWeight || 0;
+      let projectedChange = 0;
+      if (projectionWeeks && latestWeight) {
+        projectedChange = weeklyDeltaKg * projectionWeeks;
+        projectedWeight = Math.max(0, latestWeight + projectedChange);
+      }
+
+      let projectionNote = '';
+      if (!latestWeight) {
+        projectionNote = 'Log weight entries to unlock projections.';
+      } else if (!loggedCalorieDays) {
+        projectionNote = 'Log meals with calories to project your trajectory.';
+      } else if (!weeklyDeltaKg) {
+        projectionNote = 'Current intake trends toward maintenance.';
+      } else if (!projectionWeeks) {
+        const directionLabel = weeklyDeltaKg > 0 ? 'gain' : 'loss';
+        projectionNote = `Recent intake suggests a ${directionLabel}, set a goal timeline for a projection.`;
+      } else {
+        const changeAbs = Math.abs(projectedChange);
+        const directionLabel = projectedChange > 0 ? 'gain' : 'lose';
+        const weeksLabel = `in ${projectionWeeks} week${projectionWeeks === 1 ? '' : 's'}`;
+        projectionNote = `At your current ${averageDailyDelta < 0 ? 'deficit' : 'surplus'} (~${formatNumber(Math.abs(averageDailyDelta), 0)} kcal/day) you're on pace to ${directionLabel} ${formatNumber(changeAbs, 1)} kg ${weeksLabel}.`;
+        if (hasGoal && Math.abs(projectedWeight - targetWeight) <= 0.05) {
+          projectionNote += ' That lines up with your goal weight.';
+        }
+      }
+
+      if (projectionWeeks && latestWeight && Math.abs(projectedChange) >= 0.05) {
+        summaryParts.push(`Projected ${formatNumber(projectedWeight, 1)} kg (${projectionWeeks} wk)`);
+      }
+      const summaryNote = summaryParts.join(' · ');
 
       return {
         labels,
@@ -3092,7 +3379,15 @@
         hasEntries,
         hasGoal,
         paceRate: paceMeta ? paceMeta.rate : 0,
-        summaryNote
+        summaryNote,
+        projectedWeight,
+        projectedChange,
+        projectionWeeks,
+        projectionNote,
+        averageDailyDelta,
+        maintenanceCalories,
+        weeklyDeltaKg,
+        loggedCalorieDays
       };
     }
 
@@ -3110,7 +3405,8 @@
         targetWeight,
         daysToTarget,
         summaryNote,
-        objectiveDirection
+        objectiveDirection,
+        projectionNote
       } = weightAnalytics;
 
       if (!latestWeight || latestWeight <= 0) {
@@ -3153,66 +3449,91 @@
       }
 
       if (weightCardSummary) {
-        weightCardSummary.textContent = summaryNote || 'Log weights to see your trajectory.';
+        weightCardSummary.textContent = projectionNote || summaryNote || 'Log meals with calories and weight entries to unlock projections.';
       }
     }
 
-    function renderWeightSparkline(weightAnalytics) {
-      if (!weightSparklineCanvas) return;
-      const ctx = weightSparklineCanvas.getContext('2d');
-      if (!ctx) return;
-      if (!weightAnalytics.latestWeight || weightAnalytics.latestWeight <= 0) {
-        if (weightSparklineChart) {
-          weightSparklineChart.destroy();
-          weightSparklineChart = null;
-        }
-        ctx.clearRect(0, 0, weightSparklineCanvas.width, weightSparklineCanvas.height);
+    function renderWeightTimeline(weightAnalytics) {
+      if (!weightTimeline) return;
+      weightTimeline.innerHTML = '';
+
+      const {
+        latestWeight,
+        latestDate,
+        projectedWeight,
+        projectedChange,
+        projectionWeeks,
+        projectionNote,
+        hasGoal,
+        targetWeight,
+        daysToTarget,
+        paceLabel
+      } = weightAnalytics;
+
+      if (!latestWeight || latestWeight <= 0) {
+        weightTimeline.classList.remove('timeline--has-data');
+        weightTimeline.innerHTML = '<div class="timeline-empty">Log weight entries to unlock projections.</div>';
         return;
       }
-      if (weightSparklineChart) weightSparklineChart.destroy();
-      const labels = Array.isArray(weightAnalytics.labels) && weightAnalytics.labels.length
-        ? [...weightAnalytics.labels]
-        : ['Current'];
-      const data = Array.isArray(weightAnalytics.data) && weightAnalytics.data.length
-        ? [...weightAnalytics.data]
-        : [weightAnalytics.latestWeight || 0];
 
-      weightSparklineChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            data,
-            borderColor: 'rgba(92, 124, 250, 0.9)',
-            backgroundColor: 'rgba(92, 124, 250, 0.18)',
-            tension: 0.3,
-            fill: true,
-            pointRadius: data.length > 1 ? 3 : 4,
-            pointHoverRadius: 4,
-            pointBackgroundColor: 'rgba(92,124,250,1)',
-            pointBorderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(20,23,36,0.95)',
-              titleColor: '#fff',
-              bodyColor: '#dfe3ff'
-            }
-          },
-          scales: {
-            x: { display: false, grid: { display: false } },
-            y: { display: false, grid: { display: false } }
-          },
-          elements: {
-            line: { borderWidth: 2 },
-            point: { radius: data.length > 1 ? 3 : 4 }
-          }
+      const items = [];
+      const latestLabel = latestDate ? formatDateLabel(latestDate) : 'Latest log';
+      items.push({
+        label: 'Current',
+        value: `${formatNumber(latestWeight, 1)} kg`,
+        period: latestLabel || 'Latest log'
+      });
+
+      if (projectionWeeks && Math.abs(projectedChange || 0) >= 0.05 && projectedWeight > 0) {
+        items.push({
+          label: 'Projected',
+          value: `${formatNumber(projectedWeight, 1)} kg`,
+          period: formatProjectionPeriod(projectionWeeks)
+        });
+      } else {
+        items.push({
+          label: 'Projected',
+          value: '—',
+          period: projectionNote || 'Add calorie logs to project ahead',
+          inactive: true
+        });
+      }
+
+      if (hasGoal && targetWeight > 0) {
+        const countdown = daysToTarget ? formatDaysToTarget(daysToTarget) : '';
+        const hasCountdown = countdown && countdown !== '—';
+        const timelineParts = [];
+        if (hasCountdown) timelineParts.push(`in ${countdown}`);
+        if (paceLabel) timelineParts.push(`${paceLabel.toLowerCase()} pace`);
+        const period = timelineParts.length ? timelineParts.join(' · ') : 'Goal set';
+        items.push({
+          label: 'Goal',
+          value: `${formatNumber(targetWeight, 1)} kg`,
+          period
+        });
+      } else {
+        items.push({
+          label: 'Goal',
+          value: '—',
+          period: 'Set a goal weight in Settings',
+          inactive: true
+        });
+      }
+
+      weightTimeline.classList.toggle('timeline--has-data', items.length > 0);
+
+      items.forEach(item => {
+        const container = document.createElement('div');
+        container.className = 'timeline-item';
+        if (item.inactive) {
+          container.classList.add('timeline-item--inactive');
         }
+        container.innerHTML = `
+          <div class="timeline-label">${item.label}</div>
+          <div class="timeline-value">${item.value}</div>
+          <div class="timeline-period">${item.period}</div>
+        `;
+        weightTimeline.appendChild(container);
       });
     }
 
@@ -3230,7 +3551,7 @@
         macro: '<i class="fa-solid fa-utensils"></i> Macro balance',
         water: '<i class="fa-solid fa-droplet"></i> Hydration',
         mealSplit: '<i class="fa-solid fa-clock"></i> Meal timing',
-        weight: '<i class="fa-solid fa-scale-balanced"></i> Weight momentum'
+        weight: '<i class="fa-solid fa-scale-balanced"></i> Weight projection'
       };
       chartZoomTitle.innerHTML = titles[type] || '<i class="fa-solid fa-chart-line"></i> Chart insights';
 
@@ -3338,30 +3659,7 @@
           chartVisible = true;
         }
       } else if (type === 'weight') {
-        const cache = analyticsCache.weight || {};
-        if (cache.labels && cache.labels.length && cache.latestWeight && cache.latestWeight > 0) {
-          const options = getChartOptions('Weight progress');
-          options.maintainAspectRatio = false;
-          options.plugins.legend.display = false;
-          chartZoomInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: cache.labels,
-              datasets: [{
-                label: 'Weight (kg)',
-                data: cache.data,
-                borderColor: 'rgba(92, 124, 250, 0.9)',
-                backgroundColor: 'rgba(92, 124, 250, 0.18)',
-                tension: 0.3,
-                fill: true,
-                pointRadius: cache.data.length > 1 ? 4 : 5,
-                pointHoverRadius: 6
-              }]
-            },
-            options
-          });
-          chartVisible = true;
-        }
+        chartVisible = false;
       }
 
       chartZoomDetails.innerHTML = buildZoomDetails(type);
@@ -3508,6 +3806,17 @@
           if (weight.daysToTarget) {
             items.push(`<li><strong>Estimated time:</strong> ${formatDaysToTarget(weight.daysToTarget)} (${weight.paceLabel} pace)</li>`);
           }
+        }
+        if (weight.projectionWeeks && Math.abs(weight.projectedChange || 0) >= 0.05) {
+          const projectionPeriod = formatProjectionPeriod(weight.projectionWeeks);
+          items.push(`<li><strong>Projected:</strong> ${formatNumber(weight.projectedWeight, 1)} kg (${projectionPeriod})</li>`);
+        }
+        if (weight.loggedCalorieDays) {
+          const calorieTrend = weight.averageDailyDelta < 0 ? 'deficit' : 'surplus';
+          items.push(`<li><strong>Calorie trend:</strong> ${calorieTrend} ~${formatNumber(Math.abs(weight.averageDailyDelta), 0)} kcal/day over ${weight.loggedCalorieDays} day${weight.loggedCalorieDays === 1 ? '' : 's'}</li>`);
+        }
+        if (weight.projectionNote) {
+          items.push(`<li><strong>Projection note:</strong> ${weight.projectionNote}</li>`);
         }
         if (weight.daysElapsed) {
           items.push(`<li><strong>Tracking span:</strong> ${weight.daysElapsed} day${weight.daysElapsed === 1 ? '' : 's'}</li>`);
@@ -3669,6 +3978,7 @@
       lifestyleInput.value = profile.lifestyle || 'moderate';
       updateBMI();
       updatePaceUI();
+      updateGoalTypeHint();
     }
 
     function loadTargetsForm() {
@@ -3690,6 +4000,7 @@
       goalTypeGroup.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.goal === selectedGoalType);
       });
+      updateGoalTypeHint();
     }
 
     goalTypeGroup.addEventListener('click', event => {
@@ -3715,7 +4026,12 @@
     });
 
     [targetWeight, weightInput, ageInput, heightInput].forEach(input => {
-      input.addEventListener('input', () => updatePaceUI());
+      input.addEventListener('input', () => {
+        updatePaceUI();
+        if (input === targetWeight || input === weightInput) {
+          updateGoalTypeHint();
+        }
+      });
     });
     lifestyleInput.addEventListener('change', updatePaceUI);
 
@@ -3869,11 +4185,12 @@
 
     function renderWeightChart() {
       const entries = getWeights();
+      const validEntries = entries.filter(entry => Number(entry.weight) > 0);
       const targets = getTargets();
       const ctx = document.getElementById('weightChart').getContext('2d');
       if (weightChart) weightChart.destroy();
 
-      if (!entries.length) {
+      if (!validEntries.length) {
         const profileWeight = getProfile().weight || targets.weightTarget;
         const start = profileWeight || 70;
         const goal = targets.weightTarget || start;
@@ -3902,8 +4219,8 @@
         return;
       }
 
-      drawWeightChart(entries.map(e => ({ date: new Date(e.date), weight: e.weight })), ctx, targets);
-      etaText.textContent = buildETA(entries, targets);
+      drawWeightChart(validEntries.map(e => ({ date: new Date(e.date), weight: e.weight })), ctx, targets);
+      etaText.textContent = buildETA(validEntries, targets);
     }
 
     function aggregateWeights(entries, range) {
