@@ -15,17 +15,20 @@
     :root {
       --gradient-start: #6945c6;
       --gradient-end: #df6298;
-      --bg-color: #0a0f2d;
+      --gradient-highlight: #8fd3f4;
+      --bg-color: #050816;
       --card-bg: #151d48;
       --card-bg-light: #1f2d5a;
+      --glass-bg: rgba(21, 29, 72, 0.7);
+      --card-border: rgba(148, 163, 184, 0.15);
       --text-color: #f5f7fa;
       --muted-text: #94a3b8;
       --accent-color: #ff7f50;
       --done-color: #3ecf8e;
       --skip-color: #f4b400;
       --miss-color: #e84545;
-      --radius: 8px;
-      --shadow: 0 4px 10px rgba(0,0,0,0.3);
+      --radius: 14px;
+      --shadow: 0 20px 40px rgba(9, 9, 46, 0.45);
     }
     * {
       box-sizing: border-box;
@@ -38,6 +41,28 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .background-gradient {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 10% 20%, rgba(118, 75, 216, 0.45), transparent 55%),
+                  radial-gradient(circle at 80% 10%, rgba(223, 98, 152, 0.45), transparent 50%),
+                  radial-gradient(circle at 50% 75%, rgba(70, 130, 180, 0.4), transparent 50%);
+      z-index: 0;
+      filter: saturate(120%);
+    }
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
     h1, h2, h3 {
       margin: 0;
@@ -48,14 +73,14 @@
     }
     /* Header with gradient background */
     header {
-      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-      padding: 20px 30px;
-      border-bottom-left-radius: var(--radius);
-      border-bottom-right-radius: var(--radius);
+      background: linear-gradient(120deg, rgba(105, 69, 198, 0.95), rgba(223, 98, 152, 0.85));
+      padding: 24px 28px;
+      border-radius: var(--radius);
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
+      box-shadow: var(--shadow);
     }
     header .title {
       display: flex;
@@ -78,55 +103,81 @@
     }
     header .right-controls .today-date {
       font-size: 0.9rem;
-      background: rgba(255,255,255,0.15);
-      padding: 6px 12px;
-      border-radius: var(--radius);
+      background: rgba(255,255,255,0.2);
+      padding: 8px 14px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
     }
     header button {
       border: none;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.18);
       color: white;
-      padding: 8px 12px;
-      border-radius: var(--radius);
+      padding: 8px 16px;
+      border-radius: 999px;
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 600;
-      transition: background 0.2s;
+      transition: transform 0.2s ease, background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    header button .fa-solid {
+      font-size: 0.9rem;
     }
     header button:hover {
-      background: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+    }
+    header button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
     /* Navigation bar */
     nav {
       display: flex;
       justify-content: center;
-      margin: 20px auto;
+      margin: 0 auto 12px;
       gap: 12px;
+      background: rgba(15, 23, 42, 0.45);
+      padding: 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(148,163,184,0.2);
+      box-shadow: 0 10px 30px rgba(8, 11, 34, 0.25);
     }
     nav button {
-      background: var(--card-bg-light);
-      color: var(--text-color);
+      background: transparent;
+      color: var(--muted-text);
       border: none;
-      padding: 8px 16px;
-      border-radius: var(--radius);
+      padding: 10px 18px;
+      border-radius: 999px;
       cursor: pointer;
       font-weight: 600;
-      transition: background 0.2s;
+      transition: color 0.2s ease, background 0.2s ease;
     }
     nav button.active,
     nav button:hover {
-      background: var(--gradient-start);
+      background: linear-gradient(120deg, rgba(105, 69, 198, 0.85), rgba(223, 98, 152, 0.75));
+      color: #fff;
     }
     /* Main container sections */
     main {
       flex: 1;
       width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
     section {
       display: none;
+      background: var(--glass-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 26px 24px 30px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
     }
     section.active {
       display: block;
@@ -145,6 +196,7 @@
       padding: 10px;
       text-align: center;
       font-size: 0.85rem;
+      border-bottom: 1px solid rgba(148,163,184,0.08);
     }
     .tracker-table th {
       color: var(--muted-text);
@@ -154,30 +206,48 @@
       position: relative;
     }
     .tracker-table thead {
-      background: var(--card-bg);
+      background: rgba(21, 29, 72, 0.85);
     }
     .tracker-table tbody tr:nth-child(odd) {
-      background: var(--card-bg-light);
+      background: rgba(21, 33, 78, 0.6);
     }
     .tracker-table tbody tr:nth-child(even) {
-      background: var(--card-bg);
+      background: rgba(18, 25, 61, 0.55);
     }
     /* Habit name column */
     .habit-name-cell {
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .habit-name-cell .color-dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
     }
     .habit-name-cell .streak {
       margin-left: 6px;
       font-size: 0.75rem;
       color: var(--skip-color);
+    }
+    .habit-name-cell .insight-btn {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .habit-name-cell .insight-btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
     }
     /* Date header cell */
     .date-header {
@@ -227,38 +297,46 @@
     }
     /* Controls below tracker */
     .tracker-controls {
-      margin-top: 10px;
+      margin-top: 22px;
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
       align-items: center;
+      background: rgba(15,23,42,0.55);
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
     }
     .tracker-controls input[type="text"] {
       flex: 1;
-      background: var(--card-bg);
-      border: none;
-      padding: 8px 10px;
-      border-radius: var(--radius);
+      background: rgba(15,23,42,0.6);
+      border: 1px solid rgba(148,163,184,0.25);
+      padding: 10px 14px;
+      border-radius: 999px;
       color: var(--text-color);
     }
     .tracker-controls input[type="color"] {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border: none;
       padding: 0;
+      border-radius: 12px;
+      background: transparent;
     }
     .tracker-controls button {
-      background: var(--gradient-start);
+      background: linear-gradient(120deg, var(--gradient-start), var(--gradient-end));
       border: none;
-      padding: 8px 16px;
-      border-radius: var(--radius);
+      padding: 10px 20px;
+      border-radius: 999px;
       color: #fff;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 12px 30px rgba(105, 69, 198, 0.35);
     }
     .tracker-controls button:hover {
-      opacity: 0.85;
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(105, 69, 198, 0.45);
     }
     .small-btn {
       padding: 6px 12px;
@@ -281,12 +359,13 @@
       display: flex;
     }
     .modal-box {
-      background: var(--card-bg);
-      padding: 20px 24px;
+      background: rgba(12, 17, 40, 0.95);
+      padding: 24px 26px 28px;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       width: 90%;
-      max-width: 420px;
+      max-width: 460px;
+      border: 1px solid rgba(148,163,184,0.2);
     }
     .modal-box h3 {
       margin-bottom: 12px;
@@ -299,14 +378,17 @@
     }
     .modal-box input[type="text"],
     .modal-box input[type="time"],
-    .modal-box input[type="color"] {
+    .modal-box input[type="color"],
+    .modal-box textarea {
       width: 100%;
-      background: var(--card-bg-light);
-      border: none;
-      padding: 8px 10px;
+      background: rgba(21,33,78,0.8);
+      border: 1px solid rgba(148,163,184,0.25);
+      padding: 10px 12px;
       border-radius: var(--radius);
       color: var(--text-color);
       margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+      resize: vertical;
     }
     .modal-box .modal-actions {
       margin-top: 20px;
@@ -328,11 +410,12 @@
     }
     /* Settings page */
     #settingsSection .settings-group {
-      background: var(--card-bg);
-      padding: 20px;
+      background: rgba(15,23,42,0.6);
+      padding: 24px;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--card-border);
     }
     #settingsSection h4 {
       margin-top: 0;
@@ -371,17 +454,134 @@
       margin-top: 20px;
     }
     .chart-box {
-      background: var(--card-bg);
-      padding: 16px;
+      background: rgba(15,23,42,0.6);
+      padding: 18px 20px;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       flex: 1 1 280px;
+      border: 1px solid var(--card-border);
     }
     .chart-box canvas {
       width: 100% !important;
       height: 220px !important;
     }
     /* Responsive */
+    .snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .snapshot-card {
+      background: rgba(15,23,42,0.55);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .snapshot-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.06));
+      pointer-events: none;
+    }
+    .snapshot-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted-text);
+      margin-bottom: 8px;
+    }
+    .snapshot-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .snapshot-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted-text);
+    }
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(148,163,184,0.2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(120deg, var(--gradient-start), var(--gradient-highlight));
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .upcoming-reminder {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      margin-top: 6px;
+      color: var(--muted-text);
+    }
+    .upcoming-reminder i {
+      color: var(--gradient-highlight);
+    }
+    .motivation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .motivation-item {
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(21,29,72,0.5);
+    }
+    .motivation-item h5 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+    .motivation-item p {
+      margin: 4px 0;
+      font-size: 0.85rem;
+      color: var(--muted-text);
+    }
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 300;
+    }
+    .toast {
+      background: rgba(9, 13, 35, 0.92);
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      box-shadow: 0 10px 30px rgba(8, 11, 34, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast i {
+      color: var(--done-color);
+    }
+    .toast.toast-warning i {
+      color: var(--skip-color);
+    }
+    .toast.toast-error i {
+      color: var(--miss-color);
+    }
+    .toast.toast-info i {
+      color: var(--gradient-highlight);
+    }
     @media (max-width: 800px) {
       .tracker-table th,
       .tracker-table td {
@@ -393,15 +593,32 @@
         height: 32px;
       }
       header {
-        padding: 16px;
+        padding: 20px;
       }
       header .title {
         font-size: 1.4rem;
+      }
+      .app-shell {
+        padding: 24px 16px 60px;
+      }
+      nav {
+        flex-wrap: wrap;
+      }
+      .tracker-controls input[type="text"] {
+        border-radius: var(--radius);
+      }
+      .toast-container {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        bottom: 16px;
       }
     }
   </style>
 </head>
 <body>
+  <div class="background-gradient"></div>
+  <div class="app-shell">
   <header>
     <div class="title">
       <span class="icon">✨</span>
@@ -409,8 +626,9 @@
     </div>
     <div class="right-controls">
       <div class="today-date" id="todayDisplay">Today</div>
-      <button id="exportBtn">Export JSON</button>
-      <button id="importBtn">Import JSON</button>
+      <button id="enableRemindersBtn" title="Turn on desktop reminders"><i class="fa-solid fa-bell"></i> Reminders</button>
+      <button id="exportBtn"><i class="fa-solid fa-download"></i> Export</button>
+      <button id="importBtn"><i class="fa-solid fa-upload"></i> Import</button>
       <input type="file" id="importInput" accept="application/json" style="display:none">
     </div>
   </header>
@@ -422,7 +640,27 @@
   <main>
     <!-- Tracker Section -->
     <section id="trackerSection" class="active">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+      <div class="snapshot-grid">
+        <div class="snapshot-card">
+          <div class="snapshot-title">Today's Completion</div>
+          <div class="snapshot-value" id="todayProgressValue">0%</div>
+          <div class="snapshot-subtitle" id="todayProgressLabel">0 of 0 habits</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="todayProgressBar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="snapshot-card">
+          <div class="snapshot-title">Next Reminder</div>
+          <div class="snapshot-value" id="nextReminderValue">--</div>
+          <div class="upcoming-reminder"><i class="fa-solid fa-bell"></i><span id="nextReminderLabel">No reminders scheduled</span></div>
+        </div>
+        <div class="snapshot-card">
+          <div class="snapshot-title">Momentum</div>
+          <div class="snapshot-value" id="topStreakValue">0 days</div>
+          <div class="snapshot-subtitle" id="topStreakLabel">Build your streaks to see them soar.</div>
+        </div>
+      </div>
+      <div class="panel-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:10px;">
           <button id="prevRangeBtn" title="Previous 14 days"><i class="fa-solid fa-chevron-left"></i></button>
           <span id="rangeLabel" style="font-weight:600;"></span>
@@ -487,6 +725,11 @@
         </div>
       </div>
       <div class="settings-group">
+        <h4>Your Why</h4>
+        <p style="font-size:0.85rem; color:var(--muted-text);">Keep your habits anchored to a bigger reason. Use the habit editor to add your why and the change you are pursuing.</p>
+        <div id="motivationList" class="motivation-list"></div>
+      </div>
+      <div class="settings-group">
         <h4>Data Management</h4>
         <p style="font-size:0.85rem; color:var(--muted-text);">Export your data as a JSON file or import previously exported data.</p>
         <button id="settingsExportBtn" class="small-btn">Export JSON</button>
@@ -495,6 +738,8 @@
       </div>
     </section>
   </main>
+  </div>
+  <div class="toast-container" id="toastContainer"></div>
   <!-- Habit Edit/Add Modal -->
   <div class="modal" id="habitModal">
     <div class="modal-box">
@@ -505,10 +750,34 @@
       <input type="color" id="habitColorInput" />
       <label for="habitReminderInput">Reminder (optional)</label>
       <input type="time" id="habitReminderInput" />
+      <label for="habitWhyInput">Why are you doing this?</label>
+      <textarea id="habitWhyInput" rows="3" placeholder="Give this habit a purpose..."></textarea>
+      <label for="habitImpactInput">How will this change you?</label>
+      <textarea id="habitImpactInput" rows="3" placeholder="Describe the future you are building..."></textarea>
       <div class="modal-actions">
         <button id="saveHabitBtn">Save</button>
         <button id="deleteHabitBtn" class="delete-btn">Delete</button>
         <button id="cancelHabitBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Habit Motivation Modal -->
+  <div class="modal" id="motivationModal">
+    <div class="modal-box">
+      <h3 id="motivationTitle">Your Why</h3>
+      <p style="font-size:0.9rem; color:var(--muted-text); margin-bottom:16px;">Reconnect with the reason this habit matters.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <h4 style="margin-bottom:6px;">Why</h4>
+          <p id="motivationWhy" style="margin:0; line-height:1.5;"></p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:6px;">How it will change you</h4>
+          <p id="motivationImpact" style="margin:0; line-height:1.5;"></p>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button id="closeMotivationBtn">Close</button>
       </div>
     </div>
   </div>
@@ -526,9 +795,12 @@
     // Data constants
     const MAX_HABITS = 14;
     const STORAGE_KEY = 'habitTrackerData_v2';
+    const REMINDER_POLL_MS = 30 * 1000;
+    const REMINDER_WINDOW_MS = 5 * 60 * 1000;
     // Variables for date range and selected date
     let currentStartDate; // beginning of 14-day range (Date object)
     let selectedDate; // currently selected date (string YYYY-MM-DD)
+    let reminderIntervalId = null;
 
     // Load or initialize data
     function loadData() {
@@ -551,13 +823,38 @@
       twoDaysAgo.setDate(today.getDate() - 2);
       const data = {
         habits: [
-          { id: 1, name: 'Move 10 minutes', color: '#4dd0e1', reminder: null, created: formatDate(twoDaysAgo) },
-          { id: 2, name: 'Read 5 pages', color: '#ba68c8', reminder: null, created: formatDate(twoDaysAgo) },
-          { id: 3, name: 'Mindful breaths', color: '#ffb74d', reminder: null, created: formatDate(twoDaysAgo) }
+          {
+            id: 1,
+            name: 'Move 10 minutes',
+            color: '#4dd0e1',
+            reminder: '09:00',
+            why: 'Feel more energized and shake off morning sluggishness.',
+            impact: 'Creates momentum that keeps me active and alert through the day.',
+            created: formatDate(twoDaysAgo)
+          },
+          {
+            id: 2,
+            name: 'Read 5 pages',
+            color: '#ba68c8',
+            reminder: '20:30',
+            why: 'Feed my curiosity every night.',
+            impact: 'Expands my thinking so I make sharper decisions tomorrow.',
+            created: formatDate(twoDaysAgo)
+          },
+          {
+            id: 3,
+            name: 'Mindful breaths',
+            color: '#ffb74d',
+            reminder: null,
+            why: 'Reset stress before sleep.',
+            impact: 'Improves rest so I wake up calmer and more focused.',
+            created: formatDate(twoDaysAgo)
+          }
         ],
         logs: {},
         reasons: ['Lazy', 'Forgot', 'Work', 'Medical'],
-        missedReasonsLog: {}
+        missedReasonsLog: {},
+        reminderLog: {}
       };
       // Example logs: two days ago
       data.logs[formatDate(twoDaysAgo)] = {
@@ -595,6 +892,23 @@
 
     // Global data variable
     let appData = loadData();
+
+    function normalizeAppData() {
+      if (!appData.reminderLog) {
+        appData.reminderLog = {};
+      }
+      let updated = false;
+      appData.habits.forEach(habit => {
+        if (typeof habit.why !== 'string') { habit.why = ''; updated = true; }
+        if (typeof habit.impact !== 'string') { habit.impact = ''; updated = true; }
+        if (typeof habit.reminder === 'undefined') { habit.reminder = null; updated = true; }
+      });
+      if (updated) {
+        saveData();
+      }
+    }
+
+    normalizeAppData();
 
     // Initialize date range and selected date
     function initDateRange() {
@@ -662,6 +976,15 @@
         const nameSpan = document.createElement('span');
         nameSpan.textContent = habit.name;
         nameTd.appendChild(nameSpan);
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'insight-btn';
+        infoBtn.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+        infoBtn.title = 'See why this habit matters';
+        infoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMotivationModal(habit.id);
+        });
+        nameTd.appendChild(infoBtn);
         // Streak
         const streakSpan = document.createElement('span');
         streakSpan.className = 'streak';
@@ -707,6 +1030,7 @@
       updateRangeLabel();
       updateSelectedLabel();
       updateHabitCountLabel();
+      updateSnapshotCards();
       // Update skip day checkbox
       updateSkipDayCheckbox();
     }
@@ -730,6 +1054,81 @@
     // Update habit count label (remaining habits)
     function updateHabitCountLabel() {
       document.getElementById('habitCountLabel').textContent = `(${appData.habits.length} / ${MAX_HABITS})`;
+    }
+
+    function updateSnapshotCards() {
+      const progressValueEl = document.getElementById('todayProgressValue');
+      if (!progressValueEl) return;
+      const today = new Date();
+      const todayStr = formatDate(today);
+      const logs = appData.logs[todayStr] || {};
+      const totalHabits = appData.habits.length;
+      let completedCount = 0;
+      let topStreak = 0;
+      let topHabitName = '';
+      const now = new Date();
+      let upcomingReminder = null;
+
+      appData.habits.forEach(habit => {
+        if (logs[habit.id]?.status === 'done') {
+          completedCount++;
+        }
+        const streak = calculateStreakFromDate(habit.id, todayStr);
+        if (streak > topStreak) {
+          topStreak = streak;
+          topHabitName = habit.name;
+        }
+        if (habit.reminder) {
+          const [hour, minute] = habit.reminder.split(':').map(Number);
+          for (let offset = 0; offset <= 1; offset++) {
+            const reminderDate = new Date(now);
+            reminderDate.setDate(reminderDate.getDate() + offset);
+            reminderDate.setHours(hour, minute, 0, 0);
+            if (offset === 0 && reminderDate < now) continue;
+            if (!upcomingReminder || reminderDate < upcomingReminder.time) {
+              upcomingReminder = { time: reminderDate, habit, offset };
+            }
+          }
+        }
+      });
+
+      const completionPercent = totalHabits === 0 ? 0 : Math.round((completedCount / totalHabits) * 100);
+      document.getElementById('todayProgressValue').textContent = `${completionPercent}%`;
+      document.getElementById('todayProgressLabel').textContent = totalHabits === 0
+        ? 'Add your first habit to begin.'
+        : `${completedCount} of ${totalHabits} habits complete`;
+      document.getElementById('todayProgressBar').style.width = `${Math.min(100, completionPercent)}%`;
+
+      const nextReminderValue = document.getElementById('nextReminderValue');
+      const nextReminderLabel = document.getElementById('nextReminderLabel');
+      if (upcomingReminder) {
+        const timeString = upcomingReminder.time.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+        nextReminderValue.textContent = timeString;
+        const dayLabel = upcomingReminder.offset === 0 ? 'today' : 'tomorrow';
+        nextReminderLabel.textContent = `${upcomingReminder.habit.name} • ${dayLabel}`;
+      } else if (totalHabits === 0) {
+        nextReminderValue.textContent = '--';
+        nextReminderLabel.textContent = 'Add a habit to schedule reminders.';
+      } else if (completedCount === totalHabits && totalHabits > 0) {
+        nextReminderValue.textContent = '🎉';
+        nextReminderLabel.textContent = 'All habits completed for today!';
+      } else {
+        nextReminderValue.textContent = '--';
+        nextReminderLabel.textContent = 'Set reminder times in the habit editor.';
+      }
+
+      const topStreakValue = document.getElementById('topStreakValue');
+      const topStreakLabel = document.getElementById('topStreakLabel');
+      if (totalHabits === 0) {
+        topStreakValue.textContent = '0 days';
+        topStreakLabel.textContent = 'Add habits to build your momentum.';
+      } else if (topStreak > 0) {
+        topStreakValue.textContent = `${topStreak} day${topStreak === 1 ? '' : 's'}`;
+        topStreakLabel.textContent = `${topHabitName} is on a roll!`;
+      } else {
+        topStreakValue.textContent = '0 days';
+        topStreakLabel.textContent = 'Take the first step today.';
+      }
     }
 
     // Get status of habit on a particular date
@@ -772,11 +1171,9 @@
       renderTracker();
     }
 
-    // Calculate streak for habit (number of consecutive done days including yesterday)
-    function calculateStreak(habitId) {
+    function calculateStreakFromDate(habitId, anchorDateStr) {
       let streak = 0;
-      let date = parseDate(selectedDate);
-      // don't count the selected date; start from currentDate or previous day? We'll count from latest day including today.
+      let date = parseDate(anchorDateStr);
       while (true) {
         const dateStr = formatDate(date);
         const status = getHabitStatus(dateStr, habitId);
@@ -784,13 +1181,17 @@
           streak++;
           date.setDate(date.getDate() - 1);
         } else if (status === 'skip') {
-          // Skip doesn't break streak
           date.setDate(date.getDate() - 1);
         } else {
           break;
         }
       }
       return streak;
+    }
+
+    // Calculate streak for habit (number of consecutive done days including selected date)
+    function calculateStreak(habitId) {
+      return calculateStreakFromDate(habitId, selectedDate);
     }
 
     // Add a new habit
@@ -808,10 +1209,12 @@
         return;
       }
       const newId = appData.habits.length > 0 ? Math.max(...appData.habits.map(h => h.id)) + 1 : 1;
-      appData.habits.push({ id: newId, name: name, color: color, reminder: null, created: selectedDate });
+      appData.habits.push({ id: newId, name: name, color: color, reminder: null, why: '', impact: '', created: selectedDate });
       nameInput.value = '';
       saveData();
       renderTracker();
+      renderSettings();
+      startReminderLoop();
     }
 
     // Open habit modal for editing/adding
@@ -822,6 +1225,8 @@
       const nameInput = document.getElementById('habitNameInput');
       const colorInput = document.getElementById('habitColorInput');
       const reminderInput = document.getElementById('habitReminderInput');
+      const whyInput = document.getElementById('habitWhyInput');
+      const impactInput = document.getElementById('habitImpactInput');
       const deleteBtn = document.getElementById('deleteHabitBtn');
       if (habitId) {
         editingHabitId = habitId;
@@ -831,6 +1236,8 @@
         nameInput.value = habit.name;
         colorInput.value = habit.color;
         reminderInput.value = habit.reminder || '';
+        whyInput.value = habit.why || '';
+        impactInput.value = habit.impact || '';
         deleteBtn.style.display = 'inline-block';
       } else {
         editingHabitId = null;
@@ -838,6 +1245,8 @@
         nameInput.value = '';
         colorInput.value = '#00bfff';
         reminderInput.value = '';
+        whyInput.value = '';
+        impactInput.value = '';
         deleteBtn.style.display = 'none';
       }
       modal.classList.add('active');
@@ -845,11 +1254,24 @@
     function closeHabitModal() {
       document.getElementById('habitModal').classList.remove('active');
     }
+    function openMotivationModal(habitId) {
+      const habit = appData.habits.find(h => h.id === habitId);
+      if (!habit) return;
+      document.getElementById('motivationTitle').textContent = habit.name;
+      document.getElementById('motivationWhy').textContent = habit.why ? habit.why : 'Add your why to this habit to see it here.';
+      document.getElementById('motivationImpact').textContent = habit.impact ? habit.impact : 'Describe how this habit will shape you to inspire future you.';
+      document.getElementById('motivationModal').classList.add('active');
+    }
+    function closeMotivationModal() {
+      document.getElementById('motivationModal').classList.remove('active');
+    }
     // Save habit from modal
     function saveHabit() {
       const name = document.getElementById('habitNameInput').value.trim();
       const color = document.getElementById('habitColorInput').value;
       const reminder = document.getElementById('habitReminderInput').value || null;
+      const why = document.getElementById('habitWhyInput').value.trim();
+      const impact = document.getElementById('habitImpactInput').value.trim();
       if (!name) {
         alert('Please enter a habit name.');
         return;
@@ -860,6 +1282,8 @@
           habit.name = name;
           habit.color = color;
           habit.reminder = reminder;
+          habit.why = why;
+          habit.impact = impact;
         }
       } else {
         if (appData.habits.length >= MAX_HABITS) {
@@ -867,11 +1291,13 @@
           return;
         }
         const newId = appData.habits.length > 0 ? Math.max(...appData.habits.map(h => h.id)) + 1 : 1;
-        appData.habits.push({ id: newId, name, color, reminder, created: selectedDate });
+        appData.habits.push({ id: newId, name, color, reminder, why, impact, created: selectedDate });
       }
       saveData();
       closeHabitModal();
       renderTracker();
+      renderSettings();
+      startReminderLoop();
     }
     // Delete habit
     function deleteHabit() {
@@ -890,9 +1316,16 @@
           delete appData.missedReasonsLog[date][editingHabitId];
         }
       }
+      for (const date in appData.reminderLog) {
+        if (appData.reminderLog[date][editingHabitId]) {
+          delete appData.reminderLog[date][editingHabitId];
+        }
+      }
       saveData();
       closeHabitModal();
       renderTracker();
+      renderSettings();
+      startReminderLoop();
     }
 
     // Update skip day checkbox state
@@ -984,11 +1417,14 @@
           const imported = JSON.parse(e.target.result);
           if (imported.habits && imported.logs && imported.reasons) {
             appData = imported;
+            normalizeAppData();
             saveData();
             initDateRange();
             renderTracker();
             renderSettings();
             document.querySelector('.nav-tab[data-target="trackerSection"]').click();
+            refreshReminderButton();
+            startReminderLoop();
           } else {
             alert('Invalid data format.');
           }
@@ -1141,6 +1577,7 @@
       });
       // update today display in header
       document.getElementById('todayDisplay').textContent = 'Today: ' + new Date().toLocaleDateString();
+      renderMotivationList();
     }
     // Add reason
     function addReason() {
@@ -1158,6 +1595,195 @@
       appData.reasons.splice(index, 1);
       saveData();
       renderSettings();
+    }
+
+    function renderMotivationList() {
+      const list = document.getElementById('motivationList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (appData.habits.length === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'Add habits to surface your motivations here.';
+        empty.style.color = 'var(--muted-text)';
+        list.appendChild(empty);
+        return;
+      }
+      const withInsight = appData.habits.filter(habit => (habit.why && habit.why.trim()) || (habit.impact && habit.impact.trim()));
+      if (withInsight.length === 0) {
+        const prompt = document.createElement('p');
+        prompt.textContent = 'Use the habit editor to add your why and future change.';
+        prompt.style.color = 'var(--muted-text)';
+        list.appendChild(prompt);
+        return;
+      }
+      withInsight.forEach(habit => {
+        const item = document.createElement('div');
+        item.className = 'motivation-item';
+        const title = document.createElement('h5');
+        title.textContent = habit.name;
+        item.appendChild(title);
+        if (habit.why && habit.why.trim()) {
+          const whyP = document.createElement('p');
+          const strong = document.createElement('strong');
+          strong.textContent = 'Why: ';
+          whyP.appendChild(strong);
+          whyP.appendChild(document.createTextNode(habit.why));
+          item.appendChild(whyP);
+        }
+        if (habit.impact && habit.impact.trim()) {
+          const impactP = document.createElement('p');
+          const strong = document.createElement('strong');
+          strong.textContent = 'Change: ';
+          impactP.appendChild(strong);
+          impactP.appendChild(document.createTextNode(habit.impact));
+          item.appendChild(impactP);
+        }
+        const actions = document.createElement('div');
+        actions.style.marginTop = '8px';
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'small-btn';
+        viewBtn.textContent = 'Open focus card';
+        viewBtn.addEventListener('click', () => openMotivationModal(habit.id));
+        actions.appendChild(viewBtn);
+        item.appendChild(actions);
+        list.appendChild(item);
+      });
+    }
+
+    function showToast(message, type = 'info', detail = '') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      const iconMap = {
+        success: 'fa-circle-check',
+        info: 'fa-bell',
+        warning: 'fa-circle-exclamation',
+        error: 'fa-triangle-exclamation'
+      };
+      const icon = document.createElement('i');
+      icon.className = `fa-solid ${iconMap[type] || iconMap.info}`;
+      toast.appendChild(icon);
+      const content = document.createElement('div');
+      content.style.display = 'flex';
+      content.style.flexDirection = 'column';
+      const title = document.createElement('span');
+      title.style.fontWeight = '600';
+      title.textContent = message;
+      content.appendChild(title);
+      if (detail) {
+        const subtitle = document.createElement('span');
+        subtitle.style.fontSize = '0.8rem';
+        subtitle.style.color = 'var(--muted-text)';
+        subtitle.textContent = detail;
+        content.appendChild(subtitle);
+      }
+      toast.appendChild(content);
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 4500);
+      toast.addEventListener('click', () => {
+        toast.remove();
+      });
+    }
+
+    function refreshReminderButton() {
+      const btn = document.getElementById('enableRemindersBtn');
+      if (!btn) return;
+      if (!('Notification' in window)) {
+        btn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Reminders unavailable';
+        btn.disabled = true;
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        btn.innerHTML = '<i class="fa-solid fa-bell"></i> Reminders on';
+      } else {
+        btn.innerHTML = '<i class="fa-solid fa-bell"></i> Enable reminders';
+      }
+      btn.disabled = false;
+    }
+
+    function requestNotificationPermission() {
+      if (!('Notification' in window)) {
+        showToast('Your browser does not support desktop notifications.', 'warning');
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        showToast('Reminders are already enabled.', 'info');
+        startReminderLoop();
+        refreshReminderButton();
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          showToast('Desktop reminders enabled!', 'success');
+          startReminderLoop();
+        } else if (permission === 'denied') {
+          showToast('Reminders will stay muted. You can enable them in browser settings.', 'warning');
+        }
+        refreshReminderButton();
+      });
+    }
+
+    function startReminderLoop() {
+      if (reminderIntervalId === null) {
+        reminderIntervalId = setInterval(checkReminders, REMINDER_POLL_MS);
+      }
+      checkReminders();
+    }
+
+    function checkReminders() {
+      const now = new Date();
+      const todayStr = formatDate(now);
+      let mutated = false;
+      const retentionCutoff = new Date(now);
+      retentionCutoff.setDate(retentionCutoff.getDate() - 2);
+      for (const date in appData.reminderLog) {
+        if (parseDate(date) < retentionCutoff) {
+          delete appData.reminderLog[date];
+          mutated = true;
+        }
+      }
+      if (!appData.reminderLog[todayStr]) {
+        appData.reminderLog[todayStr] = {};
+        mutated = true;
+      }
+      const windowStart = new Date(now.getTime() - REMINDER_WINDOW_MS);
+      const todayLog = appData.logs[todayStr] || {};
+      appData.habits.forEach(habit => {
+        if (!habit.reminder) return;
+        const [hour, minute] = habit.reminder.split(':').map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return;
+        const reminderMoment = new Date(now);
+        reminderMoment.setHours(hour, minute, 0, 0);
+        if (reminderMoment < windowStart || reminderMoment > now) return;
+        const status = todayLog[habit.id]?.status;
+        if (status === 'done' || status === 'skip') return;
+        if (appData.reminderLog[todayStr][habit.id] === habit.reminder) return;
+        appData.reminderLog[todayStr][habit.id] = habit.reminder;
+        mutated = true;
+        triggerReminder(habit);
+      });
+      if (mutated) {
+        saveData();
+      }
+      updateSnapshotCards();
+    }
+
+    function triggerReminder(habit) {
+      const detail = habit.impact || habit.why || 'Log your progress to keep the streak alive.';
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`Habit reminder: ${habit.name}`, {
+            body: detail,
+            tag: `habit-${habit.id}`
+          });
+        } catch (err) {
+          console.warn('Notification error', err);
+        }
+      }
+      showToast(`Reminder: ${habit.name}`, Notification.permission === 'granted' ? 'success' : 'info', detail);
     }
 
     // Check missed habits from previous day and prompt reasons
@@ -1250,6 +1876,8 @@
     document.getElementById('saveHabitBtn').addEventListener('click', saveHabit);
     document.getElementById('deleteHabitBtn').addEventListener('click', deleteHabit);
     document.getElementById('cancelHabitBtn').addEventListener('click', closeHabitModal);
+    document.getElementById('closeMotivationBtn').addEventListener('click', closeMotivationModal);
+    document.getElementById('enableRemindersBtn').addEventListener('click', requestNotificationPermission);
     document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
     document.getElementById('importInput').addEventListener('change', () => importData(document.getElementById('importInput')));
@@ -1282,11 +1910,25 @@
         }
       });
     });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeHabitModal();
+        closeMotivationModal();
+        document.getElementById('reasonModal').classList.remove('active');
+      }
+    });
     // Initialize
     initDateRange();
     renderTracker();
     renderSettings();
     checkMissedHabits();
+    refreshReminderButton();
+    startReminderLoop();
+    window.addEventListener('focus', () => {
+      refreshReminderButton();
+      checkReminders();
+      updateSnapshotCards();
+    });
   </script>
 </body>
 </html>
