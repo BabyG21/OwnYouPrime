@@ -553,6 +553,8 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       cursor: pointer;
       background: var(--surface-alt);
+      border-radius: 18px;
+      padding: 20px;
     }
 
     .analytics-card.weight-projection-card {
@@ -670,16 +672,19 @@
 
     .analytics-card-header h3 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 10px;
+      letter-spacing: 0.2px;
     }
 
     .analytics-card-subtitle {
       margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      font-size: 0.82rem;
+      color: rgba(217, 222, 255, 0.72);
+      letter-spacing: 0.3px;
     }
 
     .chart-hint {
@@ -1474,12 +1479,45 @@
       padding: 8px 16px;
     }
 
+    .weight-tabs button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .weight-range-controls {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 16px;
       flex-wrap: wrap;
+    }
+
+    .weight-custom-range {
+      display: none;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .weight-custom-range.visible {
+      display: flex;
+    }
+
+    .weight-custom-range label {
+      font-size: 0.8rem;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .weight-custom-range input[type="date"] {
+      background: var(--surface-alt);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: var(--text-strong);
+      font-size: 0.9rem;
     }
 
     .weight-range-controls label {
@@ -1739,13 +1777,13 @@
         <div class="card analytics-card" data-chart="mealSplit" tabindex="0" role="button">
           <div class="analytics-card-header">
             <div>
-              <h3><i class="fa-solid fa-clock"></i> Meal timing</h3>
+              <h3><i class="fa-solid fa-clock"></i> Meals</h3>
               <p class="analytics-card-subtitle">Calorie share by meal</p>
             </div>
             <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
           </div>
           <canvas id="mealSplitChart" height="220"></canvas>
-          <div class="chart-note" id="mealSplitInfo">Add meal times to unlock scheduling insights.</div>
+          <div class="chart-note" id="mealSplitInfo">Add meal times to unlock meal insights.</div>
         </div>
         <div class="card analytics-card weight-projection-card" data-chart="weight" tabindex="0" role="button">
           <div class="analytics-card-header">
@@ -1756,8 +1794,8 @@
             <span class="chart-hint"><i class="fa-solid fa-circle-info"></i> Details</span>
           </div>
           <div class="weight-projection-chart">
-            <canvas id="weightChart" height="240" aria-label="Weight trajectory"></canvas>
-            <div class="weight-chart-empty" id="weightChartEmpty">Log meals with calories and weight entries to unlock projections.</div>
+            <canvas id="weightProjectionCanvas" height="240" aria-label="Weight trajectory"></canvas>
+            <div class="weight-chart-empty" id="weightProjectionEmpty">Log meals with calories and weight entries to unlock projections.</div>
           </div>
           <div class="chart-note" id="weightCardSummary">Log meals with calories and weight entries to unlock projections.</div>
         </div>
@@ -1907,15 +1945,24 @@
         <label for="weightRangeLength">Range</label>
         <select id="weightRangeLength">
           <option value="30">Last 30 days</option>
-          <option value="60">Last 60 days</option>
           <option value="90" selected>Last 90 days</option>
           <option value="180">Last 180 days</option>
-          <option value="all">Full history</option>
+          <option value="custom">Custom range</option>
         </select>
+      </div>
+      <div class="weight-custom-range" id="weightCustomRange">
+        <div>
+          <label for="weightRangeStart">Start</label>
+          <input type="date" id="weightRangeStart">
+        </div>
+        <div>
+          <label for="weightRangeEnd">End</label>
+          <input type="date" id="weightRangeEnd">
+        </div>
       </div>
       <div class="card" style="background:var(--surface-alt);">
         <div class="chart-scroll">
-          <canvas id="weightChart" height="260"></canvas>
+          <canvas id="weightTrendChart" height="260"></canvas>
         </div>
       </div>
       <div class="eta" id="etaText"></div>
@@ -2007,8 +2054,9 @@
     const weightRemainingLabel = document.getElementById('weightRemainingLabel');
     const targetCountdownValue = document.getElementById('targetCountdownValue');
     const weightCardSummary = document.getElementById('weightCardSummary');
-    const weightChartCanvas = document.getElementById('weightChart');
-    const weightChartEmpty = document.getElementById('weightChartEmpty');
+    const weightProjectionCanvas = document.getElementById('weightProjectionCanvas');
+    const weightProjectionEmpty = document.getElementById('weightProjectionEmpty');
+    const weightTrendCanvas = document.getElementById('weightTrendChart');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -2046,6 +2094,9 @@
     const weightForm = document.getElementById('weightForm');
     const weightTabs = document.querySelectorAll('.weight-tabs button');
     const weightRangeLength = document.getElementById('weightRangeLength');
+    const weightRangeStart = document.getElementById('weightRangeStart');
+    const weightRangeEnd = document.getElementById('weightRangeEnd');
+    const weightCustomRange = document.getElementById('weightCustomRange');
     const etaText = document.getElementById('etaText');
     const calorieModal = document.getElementById('calorieModal');
     const calorieModalTitle = document.getElementById('calorieModalTitle');
@@ -2054,7 +2105,7 @@
     const historyDateInput = document.getElementById('historyDateInput');
     const historyEntries = document.getElementById('historyEntries');
 
-    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart;
+    let calorieChart, macroChart, waterChart, mealSplitChart, weightProjectionChart, weightTrendChart;
     let chartZoomInstance;
     const analyticsCache = {
       calories: { labels: [], data: [], target: 0, loggedAverage: 0, maintenance: 0, averageDelta: 0, weeklyDeltaKg: 0, loggedDays: 0 },
@@ -2112,6 +2163,7 @@
     };
 
     const KCAL_PER_KG = 7700;
+    const MS_PER_DAY = 86400000;
 
     function navTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -3306,8 +3358,12 @@
       const totalLoggedCalories = loggedCalories.reduce((sum, value) => sum + value, 0);
       const averageLoggedCalories = loggedCalories.length ? totalLoggedCalories / loggedCalories.length : 0;
       const maintenanceCalories = Math.round(calculateTDEE(profile)) || 0;
-      const averageDailyDelta = maintenanceCalories ? averageLoggedCalories - maintenanceCalories : 0;
-      const weeklyDeltaKg = averageDailyDelta ? (averageDailyDelta * 7) / KCAL_PER_KG : 0;
+      const averageDailyDelta = loggedCalories.length && maintenanceCalories
+        ? averageLoggedCalories - maintenanceCalories
+        : 0;
+      const weeklyDeltaKg = loggedCalories.length && averageDailyDelta
+        ? (averageDailyDelta * 7) / KCAL_PER_KG
+        : 0;
 
       analyticsCache.calories = {
         labels: [...labels],
@@ -3456,7 +3512,7 @@
           .filter(Boolean);
         mealSplitInfo.textContent = timeEntries.length
           ? `Average meal timing · ${timeEntries.join(' · ')}`
-          : 'Add meal times to unlock scheduling insights.';
+          : 'Add meal times to unlock meal insights.';
       }
 
       const mealSplitCanvas = document.getElementById('mealSplitChart');
@@ -3488,7 +3544,7 @@
       const weightAnalytics = computeWeightAnalytics();
       analyticsCache.weight = weightAnalytics;
       updateWeightSummary(weightAnalytics);
-      renderWeightChart(weightAnalytics);
+      renderWeightProjectionChart(weightAnalytics);
     }
 
     function minutesToDisplay(minutes) {
@@ -3975,6 +4031,7 @@
 
       return {
         labels,
+        chartLabels: labels,
         dates: chartDates,
         historySeries: historySeriesFull,
         projectionSeries,
@@ -3982,7 +4039,8 @@
         projectionStartIndex,
         hasHistory: historyHasData,
         hasProjection,
-        message
+        message,
+        chartMessage: message
       };
     }
 
@@ -4130,34 +4188,40 @@
       return datasets;
     }
 
-    function renderWeightChart(weightAnalytics) {
-      if (!weightChartCanvas) return;
+    function renderWeightProjectionChart(weightAnalytics) {
+      if (!weightProjectionCanvas) return;
 
-      if (weightChart) {
-        weightChart.destroy();
-        weightChart = null;
+      if (weightProjectionChart) {
+        weightProjectionChart.destroy();
+        weightProjectionChart = null;
       }
 
-      const labels = Array.isArray(weightAnalytics.chartLabels) ? weightAnalytics.chartLabels : [];
+      const labels = Array.isArray(weightAnalytics.chartLabels)
+        ? weightAnalytics.chartLabels
+        : Array.isArray(weightAnalytics.labels)
+          ? weightAnalytics.labels
+          : [];
       const datasets = getWeightDatasets(weightAnalytics);
       const hasChartData = labels.length && datasets.length;
 
       if (!hasChartData) {
-        weightChartCanvas.style.display = 'none';
-        if (weightChartEmpty) {
-          weightChartEmpty.textContent = weightAnalytics.chartMessage || 'Log meals with calories and weight entries to unlock projections.';
-          weightChartEmpty.classList.remove('hidden');
+        weightProjectionCanvas.style.display = 'none';
+        if (weightProjectionEmpty) {
+          weightProjectionEmpty.textContent = weightAnalytics.chartMessage
+            || weightAnalytics.message
+            || 'Log meals with calories and weight entries to unlock projections.';
+          weightProjectionEmpty.classList.remove('hidden');
         }
         return;
       }
 
-      weightChartCanvas.style.display = 'block';
-      if (weightChartEmpty) {
-        weightChartEmpty.textContent = weightAnalytics.chartMessage || '';
-        weightChartEmpty.classList.add('hidden');
+      weightProjectionCanvas.style.display = 'block';
+      if (weightProjectionEmpty) {
+        weightProjectionEmpty.textContent = weightAnalytics.chartMessage || weightAnalytics.message || '';
+        weightProjectionEmpty.classList.add('hidden');
       }
 
-      const ctx = weightChartCanvas.getContext('2d');
+      const ctx = weightProjectionCanvas.getContext('2d');
       if (!ctx) return;
 
       const options = getChartOptions('Weight trajectory');
@@ -4169,7 +4233,7 @@
       options.scales.y.beginAtZero = false;
       options.interaction = { mode: 'index', intersect: false };
 
-      weightChart = new Chart(ctx, {
+      weightProjectionChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels,
@@ -4192,7 +4256,7 @@
         calories: '<i class="fa-solid fa-fire"></i> Calorie trend',
         macro: '<i class="fa-solid fa-utensils"></i> Macro balance',
         water: '<i class="fa-solid fa-droplet"></i> Hydration',
-        mealSplit: '<i class="fa-solid fa-clock"></i> Meal timing',
+        mealSplit: '<i class="fa-solid fa-clock"></i> Meals',
         weight: '<i class="fa-solid fa-scale-balanced"></i> Weight trajectory'
       };
       chartZoomTitle.innerHTML = titles[type] || '<i class="fa-solid fa-chart-line"></i> Chart insights';
@@ -4621,9 +4685,12 @@
       modal.setAttribute('aria-hidden', open ? 'false' : 'true');
       if (modal === weightModal && open) {
         weightTabs.forEach(btn => btn.classList.remove('active'));
-        weightTabs[0].classList.add('active');
+        if (weightTabs[0]) {
+          weightTabs[0].classList.add('active');
+        }
         selectedWeightRange = 'daily';
-        renderWeightChart();
+        updateWeightRangeUI();
+        renderWeightTrendChart();
       }
       if (modal === chartZoomModal && !open) {
         if (chartZoomInstance) {
@@ -4714,12 +4781,12 @@
         return { valid: false, message: 'Timeline must be positive when gaining or losing weight.' };
       }
       const weeklyChange = diff / timelineWeeks;
-      const maxSafe = Math.max(current * 0.01, 0.5);
+      const maxSafe = Math.max(1.5, current * 0.01);
       if (Math.abs(weeklyChange) > 5) {
         return { valid: false, message: 'Change exceeds ±5 kg per week. Adjust your timeline or goal.' };
       }
       if (Math.abs(weeklyChange) > maxSafe) {
-        return { valid: false, message: `Weekly change of ${weeklyChange.toFixed(2)} kg exceeds the recommended ±1% of bodyweight (${maxSafe.toFixed(2)} kg).` };
+        return { valid: false, message: `Weekly change of ${weeklyChange.toFixed(2)} kg exceeds the recommended ±${maxSafe.toFixed(2)} kg window.` };
       }
       if (selectedGoalType === 'maintain' && Math.abs(diff) > 0.5) {
         return { valid: false, message: 'Maintain goal selected but target weight differs by more than 0.5 kg.' };
@@ -4776,7 +4843,7 @@
       setTimeout(() => targetSuccess.classList.remove('visible'), 2000);
       renderSummary();
       updatePaceUI();
-      renderWeightChart();
+      renderWeightTrendChart();
     });
 
     function refreshWeightWidget() {
@@ -4838,170 +4905,320 @@
       saveWeights(entries);
       weightForm.reset();
       weightDate.value = new Date().toISOString().split('T')[0];
-      renderWeightChart();
+      renderWeightTrendChart();
       refreshWeightWidget();
       updateAnalytics(getMeals(dateInput.value));
     });
 
     weightTabs.forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.disabled) return;
         weightTabs.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         selectedWeightRange = btn.dataset.range;
-        renderWeightChart();
+        renderWeightTrendChart();
       });
     });
 
+    function updateWeightRangeUI() {
+      if (!weightRangeLength || !weightCustomRange) return;
+      const useCustom = weightRangeLength.value === 'custom';
+      weightCustomRange.classList.toggle('visible', useCustom);
+      if (useCustom) {
+        const todayIso = new Date().toISOString().split('T')[0];
+        const weights = getWeights();
+        const latestEntryIso = weights.length ? weights[weights.length - 1].date : todayIso;
+        if (weightRangeEnd && !weightRangeEnd.value) {
+          weightRangeEnd.value = latestEntryIso || todayIso;
+        }
+        if (weightRangeStart && !weightRangeStart.value) {
+          const endDate = weightRangeEnd && weightRangeEnd.value
+            ? new Date(weightRangeEnd.value)
+            : new Date(latestEntryIso || todayIso);
+          if (!Number.isNaN(endDate.getTime())) {
+            endDate.setDate(endDate.getDate() - 29);
+            weightRangeStart.value = endDate.toISOString().split('T')[0];
+          }
+        }
+      }
+    }
+
     if (weightRangeLength) {
       weightRangeLength.addEventListener('change', () => {
-        renderWeightChart();
+        updateWeightRangeUI();
+        renderWeightTrendChart();
+      });
+      updateWeightRangeUI();
+    }
+
+    [weightRangeStart, weightRangeEnd].forEach(input => {
+      if (!input) return;
+      input.addEventListener('change', () => {
+        renderWeightTrendChart();
+      });
+    });
+
+    function normaliseDate(value) {
+      if (!value) return null;
+      const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function isoFromDate(date) {
+      if (!date) return '';
+      return date.toISOString().split('T')[0];
+    }
+
+    function startOfWeek(date) {
+      const base = normaliseDate(date);
+      if (!base) return null;
+      const day = base.getDay();
+      const diff = (day + 6) % 7;
+      base.setDate(base.getDate() - diff);
+      return base;
+    }
+
+    function allowedAggregations(spanDays) {
+      if (!spanDays || spanDays <= 0) return ['daily'];
+      if (spanDays <= 45) return ['daily', 'weekly'];
+      if (spanDays <= 210) return ['daily', 'weekly', 'monthly'];
+      return ['weekly', 'monthly'];
+    }
+
+    function updateWeightAggregationAvailability(spanDays) {
+      const allowed = allowedAggregations(spanDays);
+      if (!allowed.includes(selectedWeightRange)) {
+        selectedWeightRange = allowed[0];
+      }
+      weightTabs.forEach(btn => {
+        const mode = btn.dataset.range;
+        const enabled = allowed.includes(mode);
+        btn.disabled = !enabled;
+        btn.classList.toggle('active', mode === selectedWeightRange);
       });
     }
 
-    function applyWeightWindow(entries) {
-      if (!weightRangeLength || !entries.length) return entries;
-      const value = weightRangeLength.value;
-      if (!value || value === 'all') return entries;
-      const days = Number(value);
-      if (Number.isNaN(days) || days <= 0) return entries;
-      const latest = new Date(entries[entries.length - 1].date);
-      const cutoff = new Date(latest);
-      cutoff.setDate(cutoff.getDate() - (days - 1));
-      return entries.filter(entry => {
-        const date = new Date(entry.date);
-        return date >= cutoff;
-      });
-    }
+    function getWeightRangeBounds(entries) {
+      const latestEntry = entries.length ? entries[entries.length - 1] : null;
+      let latestDate = normaliseDate(latestEntry ? latestEntry.date : new Date());
+      if (!latestDate) latestDate = normaliseDate(new Date());
+      if (!weightRangeLength) {
+        return { start: latestDate, end: latestDate, spanDays: 1 };
+      }
+      const mode = weightRangeLength.value || '90';
+      let startDate;
+      let endDate;
 
-    function renderWeightChart() {
-      const entries = getWeights();
-      const validEntries = entries.filter(entry => Number(entry.weight) > 0);
-      const targets = getTargets();
-      const ctx = document.getElementById('weightChart').getContext('2d');
-      if (weightChart) weightChart.destroy();
-
-      if (!validEntries.length) {
-        const profileWeight = getProfile().weight || targets.weightTarget;
-        const start = profileWeight || 70;
-        const goal = targets.weightTarget || start;
-        const timelineWeeks = Number(targets.goalTimeline) || 0;
-        const steps = timelineWeeks > 0 ? Math.min(12, Math.max(6, timelineWeeks)) : 6;
-        const pseudo = [];
-        const now = new Date();
-        const totalDays = timelineWeeks > 0 ? Math.max(1, timelineWeeks * 7) : steps;
-        for (let i = 0; i <= steps; i++) {
-          const progress = steps === 0 ? 1 : i / steps;
-          const dayOffset = Math.round(totalDays * progress);
-          const projectedDate = new Date(now.getTime() + dayOffset * 86400000);
-          let projectedWeight;
-          if (!timelineWeeks || goal === start) {
-            projectedWeight = start + (goal - start) * progress;
-          } else {
-            projectedWeight = start + (goal - start) * Math.min(1, progress);
-          }
-          pseudo.push({
-            date: projectedDate,
-            weight: projectedWeight
-          });
+      if (mode === 'custom') {
+        const customStart = normaliseDate(weightRangeStart && weightRangeStart.value);
+        const customEnd = normaliseDate(weightRangeEnd && weightRangeEnd.value);
+        if (customStart && customEnd) {
+          startDate = customStart <= customEnd ? customStart : customEnd;
+          endDate = customEnd >= customStart ? customEnd : customStart;
+        } else if (customStart) {
+          startDate = customStart;
+          endDate = latestDate >= customStart ? latestDate : customStart;
+        } else if (customEnd) {
+          endDate = customEnd;
+          startDate = normaliseDate(new Date(customEnd.getTime() - (29 * MS_PER_DAY)));
+        } else {
+          endDate = latestDate;
+          startDate = normaliseDate(new Date(latestDate.getTime() - (89 * MS_PER_DAY)));
         }
-        drawWeightChart(pseudo, ctx, targets);
-        etaText.textContent = 'Log your weight to personalise the projection.';
+      } else {
+        const days = Number(mode) || 90;
+        endDate = latestDate;
+        startDate = normaliseDate(new Date(latestDate.getTime() - ((Math.max(1, days) - 1) * MS_PER_DAY)));
+      }
+
+      if (!startDate || !endDate) {
+        return { start: latestDate, end: latestDate, spanDays: 1 };
+      }
+
+      const spanDays = Math.max(1, Math.round((endDate - startDate) / MS_PER_DAY) + 1);
+      return { start: startDate, end: endDate, spanDays };
+    }
+
+    function aggregateWeightEntries(entries, startDate, endDate, mode) {
+      if (!entries.length || !startDate || !endDate) return [];
+      const buckets = new Map();
+      entries.forEach(entry => {
+        const date = normaliseDate(entry.date);
+        if (!date || date < startDate || date > endDate) return;
+        let bucketDate;
+        if (mode === 'weekly') {
+          bucketDate = startOfWeek(date);
+        } else if (mode === 'monthly') {
+          bucketDate = normaliseDate(new Date(date.getFullYear(), date.getMonth(), 1));
+        } else {
+          bucketDate = date;
+        }
+        const iso = isoFromDate(bucketDate);
+        if (!buckets.has(iso)) buckets.set(iso, []);
+        buckets.get(iso).push(Number(entry.weight || 0));
+      });
+      const keys = Array.from(buckets.keys()).sort((a, b) => new Date(a) - new Date(b));
+      return keys.map(key => {
+        const values = buckets.get(key) || [];
+        const avg = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+        const bucketDate = normaliseDate(key);
+        const label = mode === 'monthly'
+          ? bucketDate.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+          : bucketDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        return { iso: key, date: bucketDate, label, weight: Number(avg.toFixed(2)) };
+      });
+    }
+
+    function computeEnergyBalanceInsights(startDate, endDate) {
+      const profile = getProfile();
+      const tdee = calculateTDEE(profile);
+      if (!startDate || !endDate || !tdee) {
+        return { tdee: tdee || 0, dailyIntake: 0, netDeficit: 0, slopePerDay: 0, loggedDays: 0 };
+      }
+      const spanDays = Math.max(1, Math.round((endDate - startDate) / MS_PER_DAY) + 1);
+      let totalCalories = 0;
+      let loggedDays = 0;
+      const cursor = new Date(startDate);
+      while (cursor <= endDate) {
+        const iso = isoFromDate(cursor);
+        const meals = getMeals(iso);
+        if (meals && meals.length) {
+          const dayCalories = meals.reduce((sum, meal) => sum + Number(meal.calories || 0), 0);
+          totalCalories += dayCalories;
+          if (dayCalories > 0) loggedDays += 1;
+        }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      const dailyIntake = loggedDays ? totalCalories / spanDays : 0;
+      const netDeficit = loggedDays ? tdee - dailyIntake : 0;
+      const slopePerDay = loggedDays ? -netDeficit / KCAL_PER_KG : 0;
+      return { tdee, dailyIntake, netDeficit, slopePerDay, loggedDays };
+    }
+
+    function buildProjectionSeries(buckets, slopePerDay) {
+      if (!buckets.length || !Number.isFinite(slopePerDay)) return [];
+      const baseline = buckets[0];
+      if (!baseline || !Number.isFinite(baseline.weight)) return [];
+      return buckets.map(bucket => {
+        const diffDays = Math.round((bucket.date - baseline.date) / MS_PER_DAY);
+        const projected = baseline.weight + slopePerDay * diffDays;
+        return Number(projected.toFixed(2));
+      });
+    }
+
+    function renderWeightTrendChart() {
+      if (!weightTrendCanvas) return;
+      if (weightTrendChart) {
+        weightTrendChart.destroy();
+        weightTrendChart = null;
+      }
+
+      const rawEntries = getWeights().filter(entry => Number(entry.weight) > 0);
+      if (!rawEntries.length) {
+        const ctx = weightTrendCanvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, weightTrendCanvas.width || weightTrendCanvas.clientWidth || 0, weightTrendCanvas.height || weightTrendCanvas.clientHeight || 0);
+        }
+        if (etaText) {
+          etaText.textContent = 'Log weight entries to unlock the trend view.';
+        }
         return;
       }
 
-      drawWeightChart(validEntries.map(e => ({ date: new Date(e.date), weight: e.weight })), ctx, targets);
-      etaText.textContent = buildETA(validEntries, targets);
+      const range = getWeightRangeBounds(rawEntries);
+      updateWeightAggregationAvailability(range.spanDays);
 
-    }
+      const filteredRaw = rawEntries.filter(entry => {
+        const date = normaliseDate(entry.date);
+        return date && date >= range.start && date <= range.end;
+      });
 
-    function aggregateWeights(entries, range) {
-      if (range === 'daily') {
-        return entries.map(e => ({ date: new Date(e.date), weight: e.weight }));
-      }
-      const map = new Map();
-      entries.forEach(entry => {
-        const date = new Date(entry.date);
-        let key;
-        if (range === 'weekly') {
-          const firstDay = new Date(date);
-          const day = firstDay.getDay();
-          const diff = firstDay.getDate() - day + (day === 0 ? -6 : 1);
-          firstDay.setDate(diff);
-          firstDay.setHours(0,0,0,0);
-          key = firstDay.toISOString().split('T')[0];
-        } else {
-          key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+      if (!filteredRaw.length) {
+        const ctx = weightTrendCanvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, weightTrendCanvas.width || weightTrendCanvas.clientWidth || 0, weightTrendCanvas.height || weightTrendCanvas.clientHeight || 0);
         }
-        if (!map.has(key)) map.set(key, []);
-        map.get(key).push(entry.weight);
-      });
-      const aggregated = [];
-      map.forEach((weights, key) => {
-        const date = range === 'monthly' ? new Date(key + '-01') : new Date(key);
-        const avg = weights.reduce((a,b) => a + b, 0) / weights.length;
-        aggregated.push({ date, weight: avg });
-      });
-      aggregated.sort((a,b) => a.date - b.date);
-      return aggregated;
-    }
+        if (etaText) {
+          etaText.textContent = 'No weight entries in the selected range yet.';
+        }
+        return;
+      }
 
-    function drawWeightChart(entries, ctx, targets) {
-      const data = aggregateWeights(entries, selectedWeightRange);
-      const labels = data.map(e => selectedWeightRange === 'monthly'
-        ? e.date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
-        : e.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-      const weights = data.map(e => Number(e.weight.toFixed(2)));
-      const canvas = document.getElementById('weightChart');
-      const idealLine = [];
-      if (data.length) {
-        const startWeight = data[0].weight;
-        const goalWeight = targets.weightTarget || startWeight;
-        const timelineWeeks = Number(targets.goalTimeline) || 0;
-        const startDate = data[0].date;
-        const totalDays = timelineWeeks > 0 ? Math.max(1, timelineWeeks * 7) : 0;
-        data.forEach(point => {
-          let idealWeight;
-          if (!timelineWeeks || goalWeight === startWeight) {
-            idealWeight = goalWeight;
-          } else {
-            const dayDiff = Math.max(0, Math.round((point.date - startDate) / 86400000));
-            const progress = Math.min(1, dayDiff / totalDays);
-            idealWeight = startWeight + (goalWeight - startWeight) * progress;
-          }
-          idealLine.push(Number(idealWeight.toFixed(2)));
+      const filtered = filteredRaw.map(entry => ({
+        date: normaliseDate(entry.date),
+        weight: Number(entry.weight)
+      }));
+
+      const buckets = aggregateWeightEntries(filtered, range.start, range.end, selectedWeightRange);
+      if (!buckets.length) {
+        if (selectedWeightRange !== 'daily') {
+          selectedWeightRange = 'daily';
+          updateWeightAggregationAvailability(range.spanDays);
+          renderWeightTrendChart();
+        }
+        return;
+      }
+
+      const labels = buckets.map(bucket => bucket.label);
+      const actualWeights = buckets.map(bucket => bucket.weight);
+      const targets = getTargets();
+      const energy = computeEnergyBalanceInsights(range.start, range.end);
+      const projection = buildProjectionSeries(buckets, energy.slopePerDay);
+      const projectionAvailable = energy.loggedDays > 0 && projection.some((value, index) => {
+        if (!Number.isFinite(value) || Number.isNaN(value)) return false;
+        return index === 0 ? false : Math.abs(value - projection[0]) > 0.01;
+      });
+      const goalWeight = Number(targets.weightTarget) || 0;
+      const datasets = [
+        {
+          label: 'Actual weight',
+          data: actualWeights,
+          fill: false,
+          borderColor: '#5c7cfa',
+          backgroundColor: '#5c7cfa',
+          tension: 0.35,
+          pointRadius: actualWeights.length === 1 ? 4 : 3,
+          pointHoverRadius: 5
+        }
+      ];
+      if (projectionAvailable) {
+        datasets.push({
+          label: 'Projected weight',
+          data: projection,
+          borderColor: '#15c5a3',
+          backgroundColor: 'rgba(21, 197, 163, 0.12)',
+          borderDash: [6, 6],
+          tension: 0.2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: false
         });
       }
-      if (canvas) {
-        const minWidth = Math.max(640, data.length * 90);
-        canvas.style.minWidth = `${minWidth}px`;
+      if (goalWeight) {
+        const goalSeries = buckets.map(() => Number(goalWeight.toFixed(2)));
+        datasets.push({
+          label: 'Goal weight',
+          data: goalSeries,
+          borderColor: '#ffb347',
+          borderDash: [2, 6],
+          tension: 0,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false
+        });
       }
 
-      weightChart = new Chart(ctx, {
+      const minWidth = Math.max(640, buckets.length * 90);
+      weightTrendCanvas.style.minWidth = `${minWidth}px`;
+
+      const ctx = weightTrendCanvas.getContext('2d');
+      weightTrendChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels,
-          datasets: [
-            {
-              label: 'Actual weight',
-              data: weights,
-              fill: false,
-              borderColor: '#5c7cfa',
-              backgroundColor: '#5c7cfa',
-              tension: 0.35,
-              pointRadius: 4,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Ideal trajectory',
-              data: idealLine,
-              borderColor: '#15c5a3',
-              borderDash: [6,6],
-              pointRadius: data.length === 1 ? 4 : 0,
-              pointHoverRadius: data.length === 1 ? 5 : 0,
-              tension: 0,
-              fill: false
-            }
-          ]
+          datasets
         },
         options: {
           plugins: {
@@ -5028,6 +5245,25 @@
           }
         }
       });
+
+      if (etaText) {
+        const weeklyChange = energy.netDeficit ? (energy.netDeficit * 7) / KCAL_PER_KG : 0;
+        let energyMessage;
+        if (energy.tdee && energy.loggedDays) {
+          if (Math.abs(weeklyChange) < 0.05) {
+            energyMessage = `Energy balance is near maintenance (~${formatNumber(energy.dailyIntake, 0)} kcal intake vs ${formatNumber(energy.tdee, 0)} kcal TDEE).`;
+          } else {
+            const directionWord = weeklyChange >= 0 ? 'loss' : 'gain';
+            energyMessage = `Energy balance (~${formatNumber(energy.dailyIntake, 0)} kcal intake vs ${formatNumber(energy.tdee, 0)} kcal TDEE) points to about ${formatNumber(Math.abs(weeklyChange), 2)} kg ${directionWord} per week.`;
+          }
+        } else if (energy.tdee) {
+          energyMessage = 'Log meals with calories to estimate your energy balance.';
+        } else {
+          energyMessage = 'Add profile details to estimate energy balance.';
+        }
+        const etaMessage = buildETA(filteredRaw, targets);
+        etaText.textContent = `${energyMessage} ${etaMessage}`.trim();
+      }
     }
 
     function buildETA(entries, targets) {
