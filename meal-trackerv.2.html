@@ -162,6 +162,10 @@
       gap: 16px;
     }
 
+    #summaryCards {
+      margin-top: 12px;
+    }
+
     .summary-banner {
       display: none;
       margin: 0 40px;
@@ -361,6 +365,24 @@
       margin-bottom: 18px;
     }
 
+    .meal-type-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .meal-type-options button {
+      flex: 1 1 120px;
+      justify-content: center;
+    }
+
+    .meal-type-options button.active {
+      background: var(--accent);
+      color: #081014;
+      box-shadow: 0 12px 24px rgba(21, 197, 163, 0.35);
+    }
+
     .quick-presets button {
       display: flex;
       flex-direction: column;
@@ -412,6 +434,137 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 16px;
+    }
+
+    .chart-note {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .meal-meta-row {
+      grid-template-columns: minmax(0, 1fr) 160px;
+      align-items: end;
+      gap: 16px;
+    }
+
+    .meal-meta-row .calorie-field,
+    .meal-meta-row .time-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meal-meta-row .calorie-field {
+      max-width: 220px;
+    }
+
+    .meal-meta-row .time-field {
+      justify-self: end;
+      max-width: 160px;
+    }
+
+    .macro-toggle-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .meal-log {
+      margin-top: 18px;
+    }
+
+    .meal-log-toggle {
+      background: var(--surface-alt);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 14px 18px;
+    }
+
+    .meal-log-toggle > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 2px 0;
+    }
+
+    .meal-log-toggle > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .meal-log-toggle > summary::after,
+    .meal-type-block > summary::after {
+      content: '\f078';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .meal-log-toggle[open] > summary::after,
+    .meal-type-block[open] > summary::after {
+      transform: rotate(180deg);
+    }
+
+    .meal-log-summary {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .meal-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .meal-type-block {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 12px 14px;
+    }
+
+    .meal-type-block > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 2px 0;
+    }
+
+    .meal-type-block > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .meal-type-info {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .meal-type-empty {
+      padding: 14px;
+      text-align: center;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .summary-card[data-metric="protein"] .value,
+    .summary-card[data-metric="carbs"] .value,
+    .summary-card[data-metric="fat"] .value {
+      font-size: 1.15rem;
     }
 
     .history-list {
@@ -961,6 +1114,14 @@
               <div class="card" style="background:var(--surface-alt);">
                 <canvas id="macroChart" height="220"></canvas>
               </div>
+              <div class="card" style="background:var(--surface-alt);">
+                <canvas id="waterChart" height="220"></canvas>
+                <div class="chart-note" id="waterSummary"></div>
+              </div>
+              <div class="card" style="background:var(--surface-alt);">
+                <canvas id="mealSplitChart" height="220"></canvas>
+                <div class="chart-note" id="mealSplitInfo">Click the chart to reveal your average meal times.</div>
+              </div>
             </div>
           </div>
           <div>
@@ -970,13 +1131,23 @@
           </div>
           <div>
             <h2><i class="fa-solid fa-utensils"></i> Add Meal</h2>
+            <div class="meal-type-options" id="mealTypeOptions" role="group" aria-label="Select meal type">
+              <button type="button" class="secondary" data-meal-type="breakfast">Breakfast</button>
+              <button type="button" class="secondary" data-meal-type="lunch">Lunch</button>
+              <button type="button" class="secondary" data-meal-type="snack">Snack</button>
+              <button type="button" class="secondary" data-meal-type="dinner">Dinner</button>
+            </div>
             <form id="mealForm" style="display:flex; flex-direction:column; gap:14px;">
               <div>
                 <label for="mealName">Meal Name</label>
                 <input type="text" id="mealName" placeholder="e.g. Breakfast Bowl">
               </div>
-              <div class="form-row">
-                <div>
+              <div class="form-row meal-meta-row">
+                <div class="calorie-field">
+                  <label for="calories">Calories (kcal)</label>
+                  <input type="number" id="calories" min="0" step="1">
+                </div>
+                <div class="time-field">
                   <label for="mealTime">Time</label>
                   <input type="time" id="mealTime" step="60">
                 </div>
@@ -985,11 +1156,7 @@
                 <label for="ingredients">Ingredients</label>
                 <textarea id="ingredients" class="ingredients-area" placeholder="Chicken, quinoa, spinach..."></textarea>
               </div>
-              <div class="form-row">
-                <div>
-                  <label for="calories">Calories (kcal)</label>
-                  <input type="number" id="calories" min="0" step="1">
-                </div>
+              <div class="macro-toggle-row">
                 <div class="macro-toggle">
                   <label for="showMacros" style="margin:0;">Track macros</label>
                   <input type="checkbox" id="showMacros">
@@ -1013,31 +1180,14 @@
                 <button class="primary" type="submit"><i class="fa-solid fa-plus"></i> Log Meal</button>
               </div>
             </form>
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Meal</th>
-                  <th>Ingredients</th>
-                  <th>Calories</th>
-                  <th>Protein</th>
-                  <th>Carbs</th>
-                  <th>Fat</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="mealBody"></tbody>
-            </table>
-          </div>
-          <div>
-            <h2><i class="fa-solid fa-chart-pie"></i> Analytics</h2>
-            <div class="analytics-grid">
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="calorieChart" height="220"></canvas>
-              </div>
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="macroChart" height="220"></canvas>
-              </div>
+            <div class="meal-log">
+              <details id="mealLogToggle" class="meal-log-toggle" open>
+                <summary>
+                  <span>Today's meals</span>
+                  <span id="mealLogSummary" class="meal-log-summary"></span>
+                </summary>
+                <div id="mealSections" class="meal-sections"></div>
+              </details>
             </div>
           </div>
         </section>
@@ -1197,11 +1347,11 @@
         <h3><i class="fa-solid fa-pen-to-square"></i> Edit Meal History</h3>
         <button class="close-btn" data-close="historyModal"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="history-manager">
-        <div class="history-manager-controls">
-          <label for="historyDateSelect">Select day</label>
-          <select id="historyDateSelect"></select>
-        </div>
+        <div class="history-manager">
+          <div class="history-manager-controls">
+            <label for="historyDateInput">Select day</label>
+            <input type="date" id="historyDateInput">
+          </div>
         <div id="historyEntries" class="history-edit-list"></div>
       </div>
     </div>
@@ -1221,7 +1371,10 @@
   document.addEventListener('DOMContentLoaded', () => {
     const navButtons = document.querySelectorAll('nav button');
     const dateInput = document.getElementById('dateInput');
-    const mealBody = document.getElementById('mealBody');
+    const mealSections = document.getElementById('mealSections');
+    const mealLogSummary = document.getElementById('mealLogSummary');
+    const mealTypeOptions = document.getElementById('mealTypeOptions');
+    const mealLogToggle = document.getElementById('mealLogToggle');
     const summaryCards = document.getElementById('summaryCards');
     const waterTotal = document.getElementById('waterTotal');
     const waterProgress = document.getElementById('waterProgress');
@@ -1242,6 +1395,8 @@
     const weightTrend = document.getElementById('weightTrend');
     const summaryCelebration = document.getElementById('summaryCelebration');
     const summaryWarning = document.getElementById('summaryWarning');
+    const waterSummary = document.getElementById('waterSummary');
+    const mealSplitInfo = document.getElementById('mealSplitInfo');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -1281,14 +1436,16 @@
     const calorieModal = document.getElementById('calorieModal');
     const calorieSummary = document.getElementById('calorieSummary');
     const historyModal = document.getElementById('historyModal');
-    const historyDateSelect = document.getElementById('historyDateSelect');
+    const historyDateInput = document.getElementById('historyDateInput');
     const historyEntries = document.getElementById('historyEntries');
 
-    let calorieChart, macroChart, weightChart;
+    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart;
     let selectedGoalType = 'maintain';
     let selectedWeightRange = 'daily';
     let selectedPace = 'normal';
     let latestSummary = { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0 };
+    let manualMealTypeSelection = false;
+    let selectedMealType = '';
 
     setDefaultMealTime();
 
@@ -1317,6 +1474,13 @@
       { name: 'Salmon & Greens', ingredients: 'Baked salmon, asparagus, lemon', calories: 410, protein: 38, carbs: 6, fat: 24 }
     ];
 
+    const mealTypes = [
+      { key: 'breakfast', label: 'Breakfast' },
+      { key: 'lunch', label: 'Lunch' },
+      { key: 'snack', label: 'Snack' },
+      { key: 'dinner', label: 'Dinner' }
+    ];
+
     const paceRates = {
       slow: { rate: 0.25, label: 'Slow' },
       normal: { rate: 0.5, label: 'Normal' },
@@ -1335,6 +1499,27 @@
     navButtons.forEach(btn => {
       btn.addEventListener('click', () => navTo(btn.dataset.page));
     });
+
+    if (mealTypeOptions) {
+      mealTypeOptions.addEventListener('click', event => {
+        const button = event.target.closest('button[data-meal-type]');
+        if (!button) return;
+        const type = button.dataset.mealType;
+        if (manualMealTypeSelection && selectedMealType === type) {
+          manualMealTypeSelection = false;
+          syncMealTypeWithTime(true);
+          return;
+        }
+        manualMealTypeSelection = true;
+        selectedMealType = type;
+        updateMealTypeButtons(selectedMealType);
+      });
+    }
+
+    if (mealTimeInput) {
+      mealTimeInput.addEventListener('change', () => syncMealTypeWithTime(false));
+      mealTimeInput.addEventListener('input', () => syncMealTypeWithTime(false));
+    }
 
     function getProfile() {
       const raw = localStorage.getItem('profile');
@@ -1373,6 +1558,8 @@
     function setDefaultMealTime() {
       if (mealTimeInput) {
         mealTimeInput.value = currentTimeValue();
+        manualMealTypeSelection = false;
+        syncMealTypeWithTime(true);
       }
     }
 
@@ -1388,6 +1575,60 @@
       const [hours, minutes] = String(value).split(':');
       if (hours === undefined || minutes === undefined) return '--:--';
       return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    }
+
+    function timeStringToMinutes(value) {
+      if (!value) return null;
+      const [hours, minutes] = String(value).split(':').map(Number);
+      if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+      return (hours * 60) + minutes;
+    }
+
+    function inferMealType(timeValue) {
+      const minutes = timeStringToMinutes(timeValue);
+      if (minutes === null) return 'snack';
+      if (minutes >= 300 && minutes < 690) return 'breakfast';
+      if (minutes >= 690 && minutes < 930) return 'lunch';
+      if (minutes >= 930 && minutes < 1050) return 'snack';
+      if (minutes >= 1050 && minutes < 1440) return 'dinner';
+      return 'snack';
+    }
+
+    function formatMealTypeLabel(type) {
+      const found = mealTypes.find(item => item.key === type);
+      return found ? found.label : 'Meal';
+    }
+
+    function updateMealTypeButtons(type) {
+      if (!mealTypeOptions) return;
+      mealTypeOptions.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mealType === type);
+      });
+    }
+
+    function syncMealTypeWithTime(force = false) {
+      if (!mealTimeInput) return;
+      const inferred = inferMealType(normaliseTime(mealTimeInput.value));
+      if (force || !manualMealTypeSelection) {
+        selectedMealType = inferred;
+        updateMealTypeButtons(selectedMealType);
+        if (force) {
+          manualMealTypeSelection = false;
+        }
+      }
+      return inferred;
+    }
+
+    function determineMealTypeForTime(timeValue) {
+      if (manualMealTypeSelection && selectedMealType) {
+        return selectedMealType;
+      }
+      return inferMealType(timeValue);
+    }
+
+    function resolveMealType(meal) {
+      if (meal && meal.type) return meal.type;
+      return inferMealType(meal ? meal.time : '');
     }
 
     function escapeHtml(value) {
@@ -1736,54 +1977,117 @@
     }
 
     function renderMeals() {
+      if (!mealSections) return;
+      const wasOpen = mealLogToggle ? mealLogToggle.open : true;
       const date = dateInput.value;
       const meals = getMeals(date);
-      mealBody.innerHTML = '';
+      mealSections.innerHTML = '';
+      const totalCalories = meals.reduce((sum, meal) => sum + Number(meal.calories || 0), 0);
+      if (mealLogSummary) {
+        mealLogSummary.textContent = meals.length
+          ? `${meals.length} meal${meals.length !== 1 ? 's' : ''} · ${formatNumber(totalCalories)} kcal`
+          : 'Nothing logged';
+      }
+
       if (!meals.length) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 8;
-        cell.className = 'empty-state';
-        cell.textContent = 'No meals logged yet';
-        row.appendChild(cell);
-        mealBody.appendChild(row);
+        const empty = document.createElement('div');
+        empty.className = 'meal-type-empty';
+        empty.textContent = 'No meals logged yet';
+        mealSections.appendChild(empty);
+        if (mealLogToggle) mealLogToggle.open = true;
         return;
       }
+
+      const grouped = {};
       meals.forEach((meal, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${formatMealTime(meal.time)}</td>
-          <td>${meal.name}</td>
-          <td>${meal.ingredients || '—'}</td>
-          <td>${formatNumber(meal.calories)}</td>
-          <td>${meal.protein ? formatNumber(meal.protein) : '—'}</td>
-          <td>${meal.carbs ? formatNumber(meal.carbs) : '—'}</td>
-          <td>${meal.fat ? formatNumber(meal.fat) : '—'}</td>
-          <td><button class="secondary" data-delete="${index}"><i class="fa-solid fa-trash"></i></button></td>
+        const type = resolveMealType(meal);
+        if (!grouped[type]) grouped[type] = [];
+        grouped[type].push({ meal, index });
+      });
+
+      mealTypes.forEach(({ key, label }) => {
+        const entries = grouped[key] || [];
+        if (!entries.length) return;
+        entries.sort((a, b) => (a.meal.time || '').localeCompare(b.meal.time || ''));
+        const section = document.createElement('details');
+        section.className = 'meal-type-block';
+        section.open = true;
+        const totalCalories = entries.reduce((sum, entry) => sum + Number(entry.meal.calories || 0), 0);
+        const summary = document.createElement('summary');
+        summary.innerHTML = `
+          <span>${label}</span>
+          <span class="meal-type-info">${entries.length} item${entries.length !== 1 ? 's' : ''} · ${formatNumber(totalCalories)} kcal</span>
         `;
-        mealBody.appendChild(row);
+        section.appendChild(summary);
+
+        const table = document.createElement('table');
+        table.className = 'meal-table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Meal</th>
+              <th>Ingredients</th>
+              <th>Calories</th>
+              <th>Protein</th>
+              <th>Carbs</th>
+              <th>Fat</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
+        entries.forEach(({ meal, index }) => {
+          const row = document.createElement('tr');
+          const ingredients = meal.ingredients
+            ? escapeHtml(meal.ingredients).replace(/\n/g, '<br>')
+            : '—';
+          row.innerHTML = `
+            <td>${formatMealTime(meal.time)}</td>
+            <td>${escapeHtml(meal.name || '')}</td>
+            <td>${ingredients}</td>
+            <td>${formatNumber(meal.calories)}</td>
+            <td>${meal.protein ? formatNumber(meal.protein) : '—'}</td>
+            <td>${meal.carbs ? formatNumber(meal.carbs) : '—'}</td>
+            <td>${meal.fat ? formatNumber(meal.fat) : '—'}</td>
+            <td><button class="secondary" data-delete="${index}"><i class="fa-solid fa-trash"></i></button></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        section.appendChild(table);
+        mealSections.appendChild(section);
+      });
+
+      if (mealLogToggle) mealLogToggle.open = wasOpen;
+    }
+
+    if (mealSections) {
+      mealSections.addEventListener('click', event => {
+        const button = event.target.closest('button[data-delete]');
+        if (!button) return;
+        const index = Number(button.dataset.delete);
+        const date = dateInput.value;
+        const meals = getMeals(date);
+        if (Number.isNaN(index) || index < 0 || index >= meals.length) return;
+        meals.splice(index, 1);
+        saveMeals(date, meals);
+        renderMeals();
+        renderSummary();
       });
     }
 
-    mealBody.addEventListener('click', event => {
-      const button = event.target.closest('button[data-delete]');
-      if (!button) return;
-      const index = Number(button.dataset.delete);
-      const date = dateInput.value;
-      const meals = getMeals(date);
-      meals.splice(index, 1);
-      saveMeals(date, meals);
-      renderMeals();
-      renderSummary();
-    });
-
     mealForm.addEventListener('submit', event => {
       event.preventDefault();
+      const timeValue = normaliseTime(mealTimeInput ? mealTimeInput.value : '');
       const meal = {
         name: document.getElementById('mealName').value.trim() || 'Meal',
         ingredients: document.getElementById('ingredients').value.trim(),
         calories: Number(document.getElementById('calories').value) || 0,
-        time: normaliseTime(mealTimeInput ? mealTimeInput.value : ''),
+        time: timeValue,
+        type: determineMealTypeForTime(timeValue),
         protein: 0,
         carbs: 0,
         fat: 0
@@ -1845,11 +2149,13 @@
           <span class="preset-cal">${formatNumber(preset.calories)} kcal${preset.protein ? ` · ${formatNumber(preset.protein)}g P` : ''}</span>
         `;
         btn.addEventListener('click', () => {
+          const timeValue = currentTimeValue();
           const meal = {
             name: preset.name,
             ingredients: preset.ingredients || '',
             calories: Number(preset.calories) || 0,
-            time: currentTimeValue(),
+            time: timeValue,
+            type: determineMealTypeForTime(timeValue),
             protein: Number(preset.protein) || 0,
             carbs: Number(preset.carbs) || 0,
             fat: Number(preset.fat) || 0
@@ -1895,27 +2201,23 @@
     }
 
     function populateHistoryManager(preserveSelection = false) {
-      if (!historyDateSelect || !historyEntries) return;
+      if (!historyDateInput || !historyEntries) return;
       const dates = getLoggedMealDates();
-      const previous = preserveSelection ? historyDateSelect.value : '';
-      historyDateSelect.innerHTML = '';
+      const previous = preserveSelection ? historyDateInput.value : '';
       if (!dates.length) {
-        historyDateSelect.disabled = true;
+        historyDateInput.disabled = true;
+        historyDateInput.value = '';
+        historyDateInput.removeAttribute('min');
+        historyDateInput.removeAttribute('max');
         historyEntries.innerHTML = '<div class="history-edit-empty">Log meals to edit them.</div>';
         return;
       }
 
-      historyDateSelect.disabled = false;
-      dates.forEach(date => {
-        const option = document.createElement('option');
-        option.value = date;
-        const labelDate = new Date(date + 'T00:00:00');
-        option.textContent = labelDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        historyDateSelect.appendChild(option);
-      });
-
+      historyDateInput.disabled = false;
+      historyDateInput.min = dates[dates.length - 1];
+      historyDateInput.max = dates[0];
       const targetDate = preserveSelection && previous && dates.includes(previous) ? previous : dates[0];
-      historyDateSelect.value = targetDate;
+      historyDateInput.value = targetDate;
       renderHistoryEditor(targetDate);
     }
 
@@ -1936,9 +2238,11 @@
         const row = document.createElement('div');
         row.className = 'history-edit-row';
         const timeValue = normaliseTime(meal.time || '', '12:00');
+        const typeValue = resolveMealType(meal);
         row.innerHTML = `
           <div class="history-edit-grid">
             <label>Time<input type="time" step="60" value="${timeValue}" data-field="time" data-index="${index}"></label>
+            <label>Type<select data-field="type" data-index="${index}">${mealTypes.map(option => `<option value="${option.key}"${option.key === typeValue ? ' selected' : ''}>${option.label}</option>`).join('')}</select></label>
             <label>Meal<input type="text" value="${escapeHtml(meal.name || '')}" data-field="name" data-index="${index}"></label>
             <label>Calories<input type="number" min="0" step="1" value="${meal.calories !== undefined ? meal.calories : ''}" data-field="calories" data-index="${index}"></label>
             <label>Protein<input type="number" min="0" step="1" value="${meal.protein !== undefined ? meal.protein : ''}" data-field="protein" data-index="${index}"></label>
@@ -1971,9 +2275,9 @@
       });
     }
 
-    if (historyDateSelect) {
-      historyDateSelect.addEventListener('change', () => {
-        renderHistoryEditor(historyDateSelect.value);
+    if (historyDateInput) {
+      historyDateInput.addEventListener('change', () => {
+        renderHistoryEditor(historyDateInput.value);
       });
     }
 
@@ -1983,7 +2287,7 @@
         if (!actionBtn) return;
         const action = actionBtn.dataset.historyAction;
         const index = Number(actionBtn.dataset.index);
-        const selectedDate = historyDateSelect ? historyDateSelect.value : '';
+        const selectedDate = historyDateInput ? historyDateInput.value : '';
         if (!selectedDate) return;
         const meals = getMeals(selectedDate);
         if (Number.isNaN(index) || index < 0 || index >= meals.length) return;
@@ -2005,6 +2309,7 @@
           if (!row) return;
           const updated = { ...meals[index] };
           const timeInput = row.querySelector('[data-field="time"]');
+          const typeInput = row.querySelector('[data-field="type"]');
           const nameInput = row.querySelector('[data-field="name"]');
           const ingredientsInput = row.querySelector('[data-field="ingredients"]');
           const caloriesInput = row.querySelector('[data-field="calories"]');
@@ -2013,6 +2318,7 @@
           const fatInput = row.querySelector('[data-field="fat"]');
 
           updated.time = normaliseTime(timeInput ? timeInput.value : updated.time, updated.time || '12:00');
+          updated.type = typeInput ? typeInput.value : resolveMealType(updated);
           updated.name = nameInput ? nameInput.value.trim() || 'Meal' : updated.name;
           updated.ingredients = ingredientsInput ? ingredientsInput.value.trim() : updated.ingredients;
           updated.calories = caloriesInput && caloriesInput.value !== '' ? Number(caloriesInput.value) : 0;
@@ -2040,68 +2346,195 @@
     function updateAnalytics(currentMeals = []) {
       const labels = [];
       const caloriesData = [];
-      const now = new Date(dateInput.value);
+      const waterData = [];
+      const referenceDate = dateInput.value ? new Date(dateInput.value) : new Date();
+      const targets = getTargets();
       for (let i = 6; i >= 0; i--) {
-        const day = new Date(now);
+        const day = new Date(referenceDate);
         day.setDate(day.getDate() - i);
         const dateStr = day.toISOString().split('T')[0];
         labels.push(day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
         const meals = getMeals(dateStr);
-        let c = 0;
-        meals.forEach(meal => {
-          c += Number(meal.calories || 0);
-        });
-        caloriesData.push(c);
+        const caloriesForDay = meals.reduce((sum, meal) => sum + Number(meal.calories || 0), 0);
+        caloriesData.push(caloriesForDay);
+        waterData.push(getWater(dateStr));
       }
 
-      const calorieCtx = document.getElementById('calorieChart').getContext('2d');
-      if (calorieChart) calorieChart.destroy();
-      calorieChart = new Chart(calorieCtx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Calories',
-              data: caloriesData,
-              fill: true,
-              borderColor: 'rgba(21,197,163,0.9)',
-              backgroundColor: 'rgba(21,197,163,0.18)',
-              tension: 0.35,
-              pointRadius: 4,
-              pointHoverRadius: 6
-            }
-          ]
-        },
-        options: getChartOptions('Calories (7 days)')
-      });
+      const calorieCanvas = document.getElementById('calorieChart');
+      if (calorieCanvas) {
+        if (calorieChart) calorieChart.destroy();
+        calorieChart = new Chart(calorieCanvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Calories',
+                data: caloriesData,
+                fill: true,
+                borderColor: 'rgba(21,197,163,0.9)',
+                backgroundColor: 'rgba(21,197,163,0.18)',
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6
+              }
+            ]
+          },
+          options: getChartOptions('Calories (7 days)')
+        });
+      }
 
       const totalProtein = currentMeals.reduce((sum, meal) => sum + Number(meal.protein || 0), 0);
       const totalCarbs = currentMeals.reduce((sum, meal) => sum + Number(meal.carbs || 0), 0);
       const totalFat = currentMeals.reduce((sum, meal) => sum + Number(meal.fat || 0), 0);
-      const macroCtx = document.getElementById('macroChart').getContext('2d');
-      if (macroChart) macroChart.destroy();
-      macroChart = new Chart(macroCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Protein', 'Carbs', 'Fat'],
-          datasets: [{
-            data: [totalProtein, totalCarbs, totalFat],
-            backgroundColor: ['#5c7cfa', '#ffb347', '#f75f78'],
-            borderWidth: 0,
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              labels: {
-                color: '#d9deff'
+      const macroCanvas = document.getElementById('macroChart');
+      if (macroCanvas) {
+        if (macroChart) macroChart.destroy();
+        macroChart = new Chart(macroCanvas.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Protein', 'Carbs', 'Fat'],
+            datasets: [{
+              data: [totalProtein, totalCarbs, totalFat],
+              backgroundColor: ['#5c7cfa', '#ffb347', '#f75f78'],
+              borderWidth: 0,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#d9deff'
+                }
               }
             }
           }
+        });
+      }
+
+      const waterCanvas = document.getElementById('waterChart');
+      if (waterCanvas) {
+        if (waterChart) waterChart.destroy();
+        waterChart = new Chart(waterCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Water (ml)',
+                data: waterData,
+                backgroundColor: 'rgba(48, 220, 188, 0.45)',
+                borderColor: 'rgba(48, 220, 188, 0.9)',
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false
+              }
+            ]
+          },
+          options: getChartOptions('Water intake (7 days)')
+        });
+      }
+
+      if (waterSummary) {
+        const todayWater = getWater(dateInput.value);
+        const averageWater = waterData.length ? waterData.reduce((sum, value) => sum + Number(value || 0), 0) / waterData.length : 0;
+        const parts = [`Today: ${formatNumber(todayWater)} ml`];
+        if (targets.water) {
+          parts.push(`Target ${formatNumber(targets.water)} ml`);
+        }
+        parts.push(`7-day avg ${formatNumber(Math.round(averageWater))} ml`);
+        waterSummary.textContent = parts.join(' · ');
+      }
+
+      if (mealSplitInfo) {
+        mealSplitInfo.textContent = 'Click the chart to reveal your average meal times.';
+      }
+
+      const mealSplitCanvas = document.getElementById('mealSplitChart');
+      if (mealSplitCanvas) {
+        const typeTotals = { breakfast: 0, lunch: 0, snack: 0, dinner: 0 };
+        currentMeals.forEach(meal => {
+          const type = resolveMealType(meal);
+          if (!(type in typeTotals)) typeTotals[type] = 0;
+          typeTotals[type] += Number(meal.calories || 0);
+        });
+        const otherCalories = typeTotals.breakfast + typeTotals.snack;
+        if (mealSplitChart) mealSplitChart.destroy();
+        mealSplitChart = new Chart(mealSplitCanvas.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Lunch', 'Dinner', 'Breakfast/Snacks'],
+            datasets: [{
+              data: [typeTotals.lunch, typeTotals.dinner, otherCalories],
+              backgroundColor: ['#5c7cfa', '#f75f78', '#ffb347'],
+              borderWidth: 0,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            onClick: () => showAverageMealTimes(),
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#d9deff'
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function minutesToDisplay(minutes) {
+      if (minutes === null || minutes === undefined || Number.isNaN(minutes)) return null;
+      const total = Math.round(minutes);
+      const hours = Math.floor(total / 60) % 24;
+      const mins = total % 60;
+      const date = new Date();
+      date.setHours(hours);
+      date.setMinutes(mins);
+      date.setSeconds(0);
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function calculateAverageMealTimes() {
+      const totals = {};
+      mealTypes.forEach(({ key }) => {
+        totals[key] = { minutes: 0, count: 0 };
+      });
+      const dates = getLoggedMealDates();
+      dates.forEach(date => {
+        const meals = getMeals(date);
+        meals.forEach(meal => {
+          const type = resolveMealType(meal);
+          if (!totals[type]) totals[type] = { minutes: 0, count: 0 };
+          const minutes = timeStringToMinutes(normaliseTime(meal.time, '12:00'));
+          if (minutes !== null) {
+            totals[type].minutes += minutes;
+            totals[type].count += 1;
+          }
+        });
+      });
+      const averages = {};
+      Object.keys(totals).forEach(key => {
+        const bucket = totals[key];
+        if (bucket.count) {
+          averages[key] = minutesToDisplay(bucket.minutes / bucket.count);
         }
       });
+      return averages;
+    }
+
+    function showAverageMealTimes() {
+      if (!mealSplitInfo) return;
+      const averages = calculateAverageMealTimes();
+      const entries = mealTypes
+        .map(({ key, label }) => (averages[key] ? `${label} ~ ${averages[key]}` : null))
+        .filter(Boolean);
+      mealSplitInfo.textContent = entries.length
+        ? entries.join(' · ')
+        : 'Log meals to unlock timing insights.';
     }
 
     function getChartOptions(title) {
