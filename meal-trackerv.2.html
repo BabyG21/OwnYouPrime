@@ -436,6 +436,115 @@
       gap: 16px;
     }
 
+    .analytics-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .analytics-hero-header p {
+      margin: 6px 0 0;
+      color: var(--text-muted);
+      max-width: 540px;
+      line-height: 1.5;
+    }
+
+    .analytics-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface-alt);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-strong);
+    }
+
+    .stat-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .analytics-card {
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      background: var(--surface-alt);
+    }
+
+    .analytics-card:hover,
+    .analytics-card:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+      border-color: rgba(21, 197, 163, 0.4);
+      outline: none;
+    }
+
+    .analytics-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .analytics-card-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .analytics-card-subtitle {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .chart-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .analytics-card canvas {
+      width: 100%;
+    }
+
+    .analytics-card .chart-note {
+      margin-top: 10px;
+      font-size: 0.8rem;
+    }
+
     .chart-note {
       margin-top: 12px;
       font-size: 0.85rem;
@@ -444,31 +553,59 @@
     }
 
     .meal-meta-row {
-      grid-template-columns: minmax(0, 1fr) 160px;
+      grid-template-columns: minmax(0, 1fr) 180px;
       align-items: end;
       gap: 16px;
     }
 
-    .meal-meta-row .calorie-field,
     .meal-meta-row .time-field {
       display: flex;
       flex-direction: column;
       gap: 6px;
-    }
-
-    .meal-meta-row .calorie-field {
-      max-width: 220px;
-    }
-
-    .meal-meta-row .time-field {
       justify-self: end;
-      max-width: 160px;
+      max-width: 180px;
     }
 
-    .macro-toggle-row {
+    .calorie-group {
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 100%;
+    }
+
+    .calorie-input-row {
+      display: flex;
       align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .calorie-input-row input[type="number"] {
+      flex: 1 1 160px;
+      min-width: 0;
+    }
+
+    .macro-toggle-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .macro-toggle-inline:hover {
+      background: var(--surface-highlight);
+      color: var(--text-strong);
+    }
+
+    .macro-toggle-inline input[type="checkbox"] {
+      width: auto;
+      accent-color: var(--accent);
     }
 
     .meal-log {
@@ -516,6 +653,21 @@
       color: var(--text-muted);
       font-size: 0.85rem;
       font-weight: 500;
+    }
+
+    .macro-highlight {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(21, 197, 163, 0.12);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .macro-highlight.active {
+      background: rgba(21, 197, 163, 0.2);
+      color: var(--text-strong);
     }
 
     .meal-sections {
@@ -673,6 +825,51 @@
       overflow-y: auto;
       box-shadow: var(--shadow);
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-content.large {
+      width: min(960px, 96vw);
+    }
+
+    .chart-zoom-body {
+      display: grid;
+      gap: 20px;
+    }
+
+    .chart-zoom-canvas {
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--surface-alt);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .chart-zoom-details {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .chart-zoom-details h4 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-strong);
+    }
+
+    .chart-zoom-details ul {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chart-zoom-details li strong {
+      color: var(--text-strong);
     }
 
     .modal-header {
@@ -1050,6 +1247,7 @@
     </div>
     <nav>
       <button class="active" data-page="overview"><i class="fa-solid fa-gauge"></i> Overview</button>
+      <button data-page="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</button>
       <button data-page="settings"><i class="fa-solid fa-gear"></i> Settings</button>
     </nav>
   </header>
@@ -1069,6 +1267,7 @@
               </div>
             </div>
             <div id="summaryCards" class="summary-stack"></div>
+            <div id="macroHighlight" class="macro-highlight">Tap a nutrient card to see its top contributor.</div>
           </div>
           <div class="card">
             <h2><i class="fa-solid fa-droplet"></i> Hydration</h2>
@@ -1106,25 +1305,6 @@
         </aside>
         <section class="card" style="display:flex; flex-direction:column; gap:26px;">
           <div>
-            <h2><i class="fa-solid fa-chart-pie"></i> Analytics</h2>
-            <div class="analytics-grid">
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="calorieChart" height="220"></canvas>
-              </div>
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="macroChart" height="220"></canvas>
-              </div>
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="waterChart" height="220"></canvas>
-                <div class="chart-note" id="waterSummary"></div>
-              </div>
-              <div class="card" style="background:var(--surface-alt);">
-                <canvas id="mealSplitChart" height="220"></canvas>
-                <div class="chart-note" id="mealSplitInfo">Click the chart to reveal your average meal times.</div>
-              </div>
-            </div>
-          </div>
-          <div>
             <h2><i class="fa-solid fa-bolt"></i> Quick Presets</h2>
             <div id="presetButtons" class="quick-presets"></div>
             <div class="empty-state" id="noPresets" style="display:none;">No presets yet. Configure them in Settings → Preset Meals.</div>
@@ -1143,23 +1323,19 @@
                 <input type="text" id="mealName" placeholder="e.g. Breakfast Bowl">
               </div>
               <div class="form-row meal-meta-row">
-                <div class="calorie-field">
+                <div class="calorie-group">
                   <label for="calories">Calories (kcal)</label>
-                  <input type="number" id="calories" min="0" step="1">
+                  <div class="calorie-input-row">
+                    <input type="number" id="calories" min="0" step="1">
+                    <label class="macro-toggle-inline" for="showMacros">
+                      <input type="checkbox" id="showMacros">
+                      <span>Track macros</span>
+                    </label>
+                  </div>
                 </div>
                 <div class="time-field">
                   <label for="mealTime">Time</label>
                   <input type="time" id="mealTime" step="60">
-                </div>
-              </div>
-              <div>
-                <label for="ingredients">Ingredients</label>
-                <textarea id="ingredients" class="ingredients-area" placeholder="Chicken, quinoa, spinach..."></textarea>
-              </div>
-              <div class="macro-toggle-row">
-                <div class="macro-toggle">
-                  <label for="showMacros" style="margin:0;">Track macros</label>
-                  <input type="checkbox" id="showMacros">
                 </div>
               </div>
               <div id="macroFields" style="display:none;" class="form-row">
@@ -1176,6 +1352,10 @@
                   <input type="number" id="fat" min="0" step="1">
                 </div>
               </div>
+              <div>
+                <label for="ingredients">Ingredients</label>
+                <textarea id="ingredients" class="ingredients-area" placeholder="Chicken, quinoa, spinach..."></textarea>
+              </div>
               <div style="display:flex; justify-content:flex-end;">
                 <button class="primary" type="submit"><i class="fa-solid fa-plus"></i> Log Meal</button>
               </div>
@@ -1191,6 +1371,89 @@
             </div>
           </div>
         </section>
+      </div>
+    </section>
+
+    <section id="analyticsPage" class="page">
+      <div class="analytics-hero card">
+        <div class="analytics-hero-header">
+          <h2><i class="fa-solid fa-chart-line"></i> Performance Pulse</h2>
+          <p>Explore the bigger picture across calories, macros, hydration, timing, and weight momentum.</p>
+        </div>
+        <div class="analytics-stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total weight change</span>
+            <span class="stat-value" id="weightChangeValue">--</span>
+            <span class="stat-note" id="weightChangeDirection">Log weights to unlock trends.</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Days to target</span>
+            <span class="stat-value" id="targetCountdownValue">--</span>
+            <span class="stat-note">Based on your selected pace.</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Remaining to goal</span>
+            <span class="stat-value" id="weightRemainingValue">--</span>
+            <span class="stat-note" id="weightRemainingLabel">Set a goal weight in Settings to see this.</span>
+          </div>
+        </div>
+      </div>
+      <div class="analytics-grid">
+        <div class="card analytics-card" data-chart="calories" tabindex="0" role="button">
+          <div class="analytics-card-header">
+            <div>
+              <h3><i class="fa-solid fa-fire"></i> Calorie trend</h3>
+              <p class="analytics-card-subtitle">7-day energy view</p>
+            </div>
+            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+          </div>
+          <canvas id="calorieChart" height="220"></canvas>
+          <div class="chart-note">Hover for daily totals, tap to deep dive.</div>
+        </div>
+        <div class="card analytics-card" data-chart="macro" tabindex="0" role="button">
+          <div class="analytics-card-header">
+            <div>
+              <h3><i class="fa-solid fa-utensils"></i> Macro balance</h3>
+              <p class="analytics-card-subtitle">Protein · Carbs · Fat</p>
+            </div>
+            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+          </div>
+          <canvas id="macroChart" height="220"></canvas>
+          <div class="chart-note">Keep macros proportional to your plan.</div>
+        </div>
+        <div class="card analytics-card" data-chart="water" tabindex="0" role="button">
+          <div class="analytics-card-header">
+            <div>
+              <h3><i class="fa-solid fa-droplet"></i> Hydration</h3>
+              <p class="analytics-card-subtitle">Last 7 days</p>
+            </div>
+            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+          </div>
+          <canvas id="waterChart" height="220"></canvas>
+          <div class="chart-note" id="waterSummary"></div>
+        </div>
+        <div class="card analytics-card" data-chart="mealSplit" tabindex="0" role="button">
+          <div class="analytics-card-header">
+            <div>
+              <h3><i class="fa-solid fa-clock"></i> Meal timing</h3>
+              <p class="analytics-card-subtitle">Calorie share by meal</p>
+            </div>
+            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+          </div>
+          <canvas id="mealSplitChart" height="220"></canvas>
+          <div class="chart-note" id="mealSplitInfo">Tap to zoom for average meal times.</div>
+        </div>
+        <div class="card analytics-card" data-chart="weight" tabindex="0" role="button">
+          <div class="analytics-card-header">
+            <div>
+              <h3><i class="fa-solid fa-scale-balanced"></i> Weight momentum</h3>
+              <p class="analytics-card-subtitle">Snapshot of your trend</p>
+            </div>
+            <span class="chart-hint"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Zoom</span>
+          </div>
+          <canvas id="weightSparkline" height="220"></canvas>
+          <div class="chart-note" id="weightCardSummary">Log weights to see your trajectory.</div>
+        </div>
       </div>
     </section>
 
@@ -1341,6 +1604,21 @@
     </div>
   </div>
 
+  <div id="chartZoomModal" class="modal" aria-hidden="true">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3 id="chartZoomTitle"><i class="fa-solid fa-chart-line"></i> Chart insights</h3>
+        <button class="close-btn" data-close="chartZoomModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="chart-zoom-body">
+        <div class="chart-zoom-canvas">
+          <canvas id="chartZoomCanvas" height="360"></canvas>
+        </div>
+        <div id="chartZoomDetails" class="chart-zoom-details"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="historyModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
@@ -1397,6 +1675,19 @@
     const summaryWarning = document.getElementById('summaryWarning');
     const waterSummary = document.getElementById('waterSummary');
     const mealSplitInfo = document.getElementById('mealSplitInfo');
+    const macroHighlight = document.getElementById('macroHighlight');
+    const analyticsCards = document.querySelectorAll('.analytics-card[data-chart]');
+    const chartZoomModal = document.getElementById('chartZoomModal');
+    const chartZoomTitle = document.getElementById('chartZoomTitle');
+    const chartZoomDetails = document.getElementById('chartZoomDetails');
+    const chartZoomCanvas = document.getElementById('chartZoomCanvas');
+    const weightChangeValue = document.getElementById('weightChangeValue');
+    const weightChangeDirection = document.getElementById('weightChangeDirection');
+    const weightRemainingValue = document.getElementById('weightRemainingValue');
+    const weightRemainingLabel = document.getElementById('weightRemainingLabel');
+    const targetCountdownValue = document.getElementById('targetCountdownValue');
+    const weightCardSummary = document.getElementById('weightCardSummary');
+    const weightSparklineCanvas = document.getElementById('weightSparkline');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -1439,7 +1730,15 @@
     const historyDateInput = document.getElementById('historyDateInput');
     const historyEntries = document.getElementById('historyEntries');
 
-    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart;
+    let calorieChart, macroChart, waterChart, mealSplitChart, weightChart, weightSparklineChart;
+    let chartZoomInstance;
+    const analyticsCache = {
+      calories: { labels: [], data: [], target: 0 },
+      macros: { protein: 0, carbs: 0, fat: 0, targets: {} },
+      water: { labels: [], data: [], target: 0, today: 0, average: 0 },
+      mealSplit: { totals: {}, averages: {} },
+      weight: {}
+    };
     let selectedGoalType = 'maintain';
     let selectedWeightRange = 'daily';
     let selectedPace = 'normal';
@@ -1498,6 +1797,30 @@
 
     navButtons.forEach(btn => {
       btn.addEventListener('click', () => navTo(btn.dataset.page));
+    });
+
+    if (summaryCards) {
+      summaryCards.addEventListener('click', event => {
+        const card = event.target.closest('.summary-card');
+        if (!card) return;
+        showMacroContributor(card.dataset.metric);
+      });
+      summaryCards.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.summary-card');
+        if (!card) return;
+        event.preventDefault();
+        showMacroContributor(card.dataset.metric);
+      });
+    }
+
+    analyticsCards.forEach(card => {
+      card.addEventListener('click', () => openChartZoom(card.dataset.chart));
+      card.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        openChartZoom(card.dataset.chart);
+      });
     });
 
     if (mealTypeOptions) {
@@ -1798,6 +2121,33 @@
       return Number(value || 0).toFixed(decimals);
     }
 
+    function formatDateLabel(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatSignedValue(value, decimals = 1, unit = '') {
+      if (value === null || value === undefined) {
+        return unit ? `0 ${unit}` : '0';
+      }
+      const abs = Math.abs(value);
+      if (abs < (decimals ? Math.pow(10, -decimals) : 0.01)) {
+        return unit ? `0 ${unit}` : '0';
+      }
+      const formatted = abs.toFixed(decimals);
+      const sign = value > 0 ? '+' : '−';
+      return unit ? `${sign}${formatted} ${unit}` : `${sign}${formatted}`;
+    }
+
+    function formatDaysToTarget(days) {
+      if (!days || Number.isNaN(days) || days <= 0) return '—';
+      if (days === 1) return '1 day';
+      const weeks = days / 7;
+      return weeks >= 1 ? `${days} days (~${weeks.toFixed(1)} wk)` : `${days} days`;
+    }
+
     function calcBMI(weight, height) {
       if (!weight || !height) return null;
       const h = height / 100;
@@ -1844,6 +2194,10 @@
       });
       const water = getWater(date);
       summaryCards.innerHTML = '';
+      if (macroHighlight) {
+        macroHighlight.textContent = 'Tap a nutrient card to see its top contributor.';
+        macroHighlight.classList.remove('active');
+      }
 
       const summaryData = [
         { icon: 'fa-fire', label: 'Calories', value: totalCalories, unit: 'kcal', target: targets.calories, key: 'calories' },
@@ -1868,6 +2222,9 @@
         const card = document.createElement('div');
         card.className = 'summary-card';
         card.dataset.metric = item.key;
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `Show the meal contributing most to ${item.label.toLowerCase()}`);
         card.innerHTML = `
           <div class="summary-icon"><i class="fa-solid ${item.icon}"></i></div>
           <div class="summary-details">
@@ -2064,6 +2421,51 @@
       if (mealLogToggle) mealLogToggle.open = wasOpen;
     }
 
+    function showMacroContributor(metric) {
+      if (!macroHighlight) return;
+      const validKeys = ['calories', 'protein', 'carbs', 'fat'];
+      if (!validKeys.includes(metric)) {
+        macroHighlight.textContent = 'This insight is available for calories and macros.';
+        macroHighlight.classList.remove('active');
+        return;
+      }
+      const meals = getMeals(dateInput.value);
+      if (!meals.length) {
+        macroHighlight.textContent = 'No meals logged yet for this day.';
+        macroHighlight.classList.remove('active');
+        return;
+      }
+      const prop = metric;
+      const leader = meals.reduce((best, meal) => {
+        const value = Number(meal[prop] || 0);
+        if (value > best.value) {
+          return { meal, value };
+        }
+        return best;
+      }, { meal: null, value: -Infinity });
+      if (!leader.meal || leader.value <= 0) {
+        const label = metric === 'calories' ? 'calories' : metric;
+        macroHighlight.textContent = `Log ${label} details to surface your top contributor.`;
+        macroHighlight.classList.remove('active');
+        return;
+      }
+      const label = metric.charAt(0).toUpperCase() + metric.slice(1);
+      const unit = metric === 'calories' ? 'kcal' : 'g';
+      const timeDisplay = minutesToDisplay(timeStringToMinutes(normaliseTime(leader.meal.time, '12:00')));
+      const parts = [`<strong>${label} leader:</strong> ${formatMealDescriptor(leader.meal)}`];
+      if (timeDisplay) parts.push(`at ${timeDisplay}`);
+      parts.push(`· ${formatNumber(leader.value, unit === 'kcal' ? 0 : 1)} ${unit}`);
+      macroHighlight.innerHTML = parts.join(' ');
+      macroHighlight.classList.add('active');
+    }
+
+    function formatMealDescriptor(meal) {
+      if (!meal) return 'Meal';
+      const name = meal.name ? meal.name.trim() : '';
+      if (name) return escapeHtml(name);
+      return escapeHtml(formatMealTypeLabel(resolveMealType(meal)));
+    }
+
     if (mealSections) {
       mealSections.addEventListener('click', event => {
         const button = event.target.closest('button[data-delete]');
@@ -2110,14 +2512,6 @@
 
     showMacros.addEventListener('change', () => {
       macroFields.style.display = showMacros.checked ? 'grid' : 'none';
-    });
-
-    summaryCards.addEventListener('click', event => {
-      const card = event.target.closest('.summary-card');
-      if (!card) return;
-      if (card.dataset.metric === 'calories') {
-        openCalorieModal();
-      }
     });
 
     function addWater(amount) {
@@ -2360,6 +2754,12 @@
         waterData.push(getWater(dateStr));
       }
 
+      analyticsCache.calories = {
+        labels: [...labels],
+        data: [...caloriesData],
+        target: Number(targets.calories) || 0
+      };
+
       const calorieCanvas = document.getElementById('calorieChart');
       if (calorieCanvas) {
         if (calorieChart) calorieChart.destroy();
@@ -2387,6 +2787,19 @@
       const totalProtein = currentMeals.reduce((sum, meal) => sum + Number(meal.protein || 0), 0);
       const totalCarbs = currentMeals.reduce((sum, meal) => sum + Number(meal.carbs || 0), 0);
       const totalFat = currentMeals.reduce((sum, meal) => sum + Number(meal.fat || 0), 0);
+
+      analyticsCache.macros = {
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fat: totalFat,
+        total: totalProtein + totalCarbs + totalFat,
+        targets: {
+          protein: Number(targets.protein) || 0,
+          carbs: Number(targets.carbs) || 0,
+          fat: Number(targets.fat) || 0
+        }
+      };
+
       const macroCanvas = document.getElementById('macroChart');
       if (macroCanvas) {
         if (macroChart) macroChart.destroy();
@@ -2413,6 +2826,20 @@
         });
       }
 
+      const activeDate = dateInput.value || new Date().toISOString().split('T')[0];
+      const todayWater = getWater(activeDate);
+      const averageWater = waterData.length
+        ? waterData.reduce((sum, value) => sum + Number(value || 0), 0) / waterData.length
+        : 0;
+
+      analyticsCache.water = {
+        labels: [...labels],
+        data: [...waterData],
+        target: Number(targets.water) || 0,
+        today: todayWater,
+        average: averageWater
+      };
+
       const waterCanvas = document.getElementById('waterChart');
       if (waterCanvas) {
         if (waterChart) waterChart.destroy();
@@ -2437,8 +2864,6 @@
       }
 
       if (waterSummary) {
-        const todayWater = getWater(dateInput.value);
-        const averageWater = waterData.length ? waterData.reduce((sum, value) => sum + Number(value || 0), 0) / waterData.length : 0;
         const parts = [`Today: ${formatNumber(todayWater)} ml`];
         if (targets.water) {
           parts.push(`Target ${formatNumber(targets.water)} ml`);
@@ -2447,33 +2872,48 @@
         waterSummary.textContent = parts.join(' · ');
       }
 
+      const typeTotals = { breakfast: 0, lunch: 0, snack: 0, dinner: 0 };
+      currentMeals.forEach(meal => {
+        const type = resolveMealType(meal);
+        if (!(type in typeTotals)) typeTotals[type] = 0;
+        typeTotals[type] += Number(meal.calories || 0);
+      });
+      const otherCalories = (typeTotals.breakfast || 0) + (typeTotals.snack || 0);
+      const totalSplitCalories = Object.values(typeTotals).reduce((sum, value) => sum + value, 0);
+      const mealSplitData = [typeTotals.lunch || 0, typeTotals.dinner || 0, otherCalories];
+      const averages = calculateAverageMealTimes();
+
+      analyticsCache.mealSplit = {
+        totals: { ...typeTotals },
+        combined: { other: otherCalories },
+        totalCalories: totalSplitCalories,
+        averages
+      };
+
       if (mealSplitInfo) {
-        mealSplitInfo.textContent = 'Click the chart to reveal your average meal times.';
+        const timeEntries = mealTypes
+          .map(({ key, label }) => (averages[key] ? `${label} ~ ${averages[key]}` : null))
+          .filter(Boolean);
+        mealSplitInfo.textContent = timeEntries.length
+          ? `Averages: ${timeEntries.join(' · ')} · Zoom for full breakdown.`
+          : 'Tap to zoom for average meal times.';
       }
 
       const mealSplitCanvas = document.getElementById('mealSplitChart');
       if (mealSplitCanvas) {
-        const typeTotals = { breakfast: 0, lunch: 0, snack: 0, dinner: 0 };
-        currentMeals.forEach(meal => {
-          const type = resolveMealType(meal);
-          if (!(type in typeTotals)) typeTotals[type] = 0;
-          typeTotals[type] += Number(meal.calories || 0);
-        });
-        const otherCalories = typeTotals.breakfast + typeTotals.snack;
         if (mealSplitChart) mealSplitChart.destroy();
         mealSplitChart = new Chart(mealSplitCanvas.getContext('2d'), {
           type: 'doughnut',
           data: {
             labels: ['Lunch', 'Dinner', 'Breakfast/Snacks'],
             datasets: [{
-              data: [typeTotals.lunch, typeTotals.dinner, otherCalories],
+              data: mealSplitData,
               backgroundColor: ['#5c7cfa', '#f75f78', '#ffb347'],
               borderWidth: 0,
               hoverOffset: 6
             }]
           },
           options: {
-            onClick: () => showAverageMealTimes(),
             plugins: {
               legend: {
                 labels: {
@@ -2484,6 +2924,11 @@
           }
         });
       }
+
+      const weightAnalytics = computeWeightAnalytics();
+      analyticsCache.weight = weightAnalytics;
+      updateWeightSummary(weightAnalytics);
+      renderWeightSparkline(weightAnalytics);
     }
 
     function minutesToDisplay(minutes) {
@@ -2526,15 +2971,551 @@
       return averages;
     }
 
-    function showAverageMealTimes() {
-      if (!mealSplitInfo) return;
-      const averages = calculateAverageMealTimes();
-      const entries = mealTypes
-        .map(({ key, label }) => (averages[key] ? `${label} ~ ${averages[key]}` : null))
-        .filter(Boolean);
-      mealSplitInfo.textContent = entries.length
-        ? entries.join(' · ')
-        : 'Log meals to unlock timing insights.';
+    function computeWeightAnalytics() {
+      const entries = getWeights();
+      const targets = getTargets();
+      const profile = getProfile();
+      const hasEntries = entries.length > 0;
+      const paceKey = targets.goalPace || 'normal';
+      const paceMeta = paceRates[paceKey] || null;
+      const rawTargetWeight = Number(targets.weightTarget);
+      const hasGoal = rawTargetWeight > 0;
+      const targetWeight = hasGoal ? rawTargetWeight : 0;
+      let startWeight;
+      let startDate;
+      let latestWeight;
+      let latestDate;
+
+      if (hasEntries) {
+        const first = entries[0];
+        const last = entries[entries.length - 1];
+        startWeight = Number(first.weight || 0);
+        startDate = first.date;
+        latestWeight = Number(last.weight || 0);
+        latestDate = last.date;
+      } else if (profile.weight) {
+        startWeight = Number(profile.weight);
+        latestWeight = Number(profile.weight);
+        const today = new Date().toISOString().split('T')[0];
+        startDate = today;
+        latestDate = today;
+      } else {
+        const fallback = targetWeight || 0;
+        startWeight = fallback;
+        latestWeight = fallback;
+        const today = new Date().toISOString().split('T')[0];
+        startDate = today;
+        latestDate = today;
+      }
+
+      const labels = hasEntries
+        ? entries.map(entry => new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
+        : ['Current'];
+      const data = hasEntries
+        ? entries.map(entry => Number(entry.weight || 0))
+        : [latestWeight || 0];
+
+      const totalChange = (latestWeight || 0) - (startWeight || 0);
+      const totalChangeAbs = Math.abs(totalChange);
+
+      const totalObjective = targetWeight ? targetWeight - (startWeight || 0) : 0;
+      const totalObjectiveAbs = Math.abs(totalObjective);
+
+      const remaining = targetWeight ? targetWeight - (latestWeight || 0) : 0;
+      const remainingAbs = Math.abs(remaining);
+      let remainingDirection = 'flat';
+      if (remaining > 0.05) remainingDirection = 'gain';
+      else if (remaining < -0.05) remainingDirection = 'loss';
+
+      let daysToTarget = 0;
+      if (paceMeta && paceMeta.rate && paceMeta.rate > 0 && remainingAbs > 0.05) {
+        daysToTarget = Math.ceil((remainingAbs / paceMeta.rate) * 7);
+      }
+
+      const paceLabel = paceMeta ? paceMeta.label : 'Normal';
+
+      const summaryParts = [];
+      if (latestWeight) {
+        summaryParts.push(`Latest ${formatNumber(latestWeight, 1)} kg`);
+      }
+      if (hasGoal) {
+        summaryParts.push(`Goal ${formatNumber(targetWeight, 1)} kg`);
+        if (remainingAbs >= 0.05) {
+          let descriptor = remainingDirection === 'loss' ? 'to lose' : 'to gain';
+          if ((totalObjective < 0 && remainingDirection === 'gain') || (totalObjective > 0 && remainingDirection === 'loss')) {
+            descriptor = 'ahead of target';
+          }
+          summaryParts.push(`${formatNumber(remainingAbs, 1)} kg ${descriptor}`);
+        } else {
+          summaryParts.push('Goal met');
+        }
+      }
+      const summaryNote = summaryParts.join(' · ');
+
+      let daysElapsed = 0;
+      if (startDate && latestDate) {
+        const start = new Date(startDate);
+        const end = new Date(latestDate);
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+          daysElapsed = Math.max(0, Math.round((end - start) / 86400000));
+        }
+      }
+
+      let direction = 'flat';
+      if (totalChange > 0.05) direction = 'gain';
+      else if (totalChange < -0.05) direction = 'loss';
+
+      let objectiveDirection = 'flat';
+      if (totalObjective > 0.05) objectiveDirection = 'gain';
+      else if (totalObjective < -0.05) objectiveDirection = 'loss';
+
+      return {
+        labels,
+        data,
+        startWeight,
+        startDate,
+        latestWeight,
+        latestDate,
+        totalChange,
+        totalChangeAbs,
+        direction,
+        targetWeight,
+        totalObjective,
+        totalObjectiveAbs,
+        objectiveDirection,
+        remaining,
+        remainingAbs,
+        remainingDirection,
+        daysToTarget,
+        paceLabel,
+        daysElapsed,
+        hasEntries,
+        hasGoal,
+        paceRate: paceMeta ? paceMeta.rate : 0,
+        summaryNote
+      };
+    }
+
+    function updateWeightSummary(weightAnalytics) {
+      if (!weightChangeValue || !weightRemainingValue || !weightRemainingLabel) return;
+      const {
+        startDate,
+        latestWeight,
+        latestDate,
+        totalChange,
+        totalChangeAbs,
+        hasGoal,
+        remainingAbs,
+        remainingDirection,
+        targetWeight,
+        daysToTarget,
+        summaryNote,
+        objectiveDirection
+      } = weightAnalytics;
+
+      if (!latestWeight || latestWeight <= 0) {
+        weightChangeValue.textContent = '--';
+        weightChangeDirection.textContent = 'Log weights to unlock trends.';
+      } else {
+        weightChangeValue.textContent = totalChangeAbs < 0.05
+          ? '0.0 kg'
+          : formatSignedValue(totalChange, 1, 'kg');
+        const since = startDate ? formatDateLabel(startDate) : '';
+        const latest = latestDate ? formatDateLabel(latestDate) : '';
+        if (since && latest && since !== latest) {
+          weightChangeDirection.textContent = `Since ${since} · Latest update ${latest}`;
+        } else if (since) {
+          weightChangeDirection.textContent = `Since ${since}`;
+        } else {
+          weightChangeDirection.textContent = 'Tracking just started';
+        }
+      }
+
+      if (!hasGoal || !targetWeight) {
+        weightRemainingValue.textContent = '--';
+        weightRemainingLabel.textContent = 'Set a goal weight in Settings to see this.';
+      } else if (remainingAbs < 0.05) {
+        weightRemainingValue.textContent = '0.0 kg';
+        weightRemainingLabel.textContent = 'Goal reached — great job!';
+      } else {
+        weightRemainingValue.textContent = `${formatNumber(remainingAbs, 1)} kg`;
+        const ahead = (objectiveDirection === 'loss' && remainingDirection === 'gain')
+          || (objectiveDirection === 'gain' && remainingDirection === 'loss');
+        if (ahead) {
+          weightRemainingLabel.textContent = 'ahead of target';
+        } else {
+          weightRemainingLabel.textContent = remainingDirection === 'loss' ? 'to lose' : 'to gain';
+        }
+      }
+
+      if (targetCountdownValue) {
+        targetCountdownValue.textContent = hasGoal ? formatDaysToTarget(daysToTarget) : '—';
+      }
+
+      if (weightCardSummary) {
+        weightCardSummary.textContent = summaryNote || 'Log weights to see your trajectory.';
+      }
+    }
+
+    function renderWeightSparkline(weightAnalytics) {
+      if (!weightSparklineCanvas) return;
+      const ctx = weightSparklineCanvas.getContext('2d');
+      if (!ctx) return;
+      if (!weightAnalytics.latestWeight || weightAnalytics.latestWeight <= 0) {
+        if (weightSparklineChart) {
+          weightSparklineChart.destroy();
+          weightSparklineChart = null;
+        }
+        ctx.clearRect(0, 0, weightSparklineCanvas.width, weightSparklineCanvas.height);
+        return;
+      }
+      if (weightSparklineChart) weightSparklineChart.destroy();
+      const labels = Array.isArray(weightAnalytics.labels) && weightAnalytics.labels.length
+        ? [...weightAnalytics.labels]
+        : ['Current'];
+      const data = Array.isArray(weightAnalytics.data) && weightAnalytics.data.length
+        ? [...weightAnalytics.data]
+        : [weightAnalytics.latestWeight || 0];
+
+      weightSparklineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            borderColor: 'rgba(92, 124, 250, 0.9)',
+            backgroundColor: 'rgba(92, 124, 250, 0.18)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: data.length > 1 ? 3 : 4,
+            pointHoverRadius: 4,
+            pointBackgroundColor: 'rgba(92,124,250,1)',
+            pointBorderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(20,23,36,0.95)',
+              titleColor: '#fff',
+              bodyColor: '#dfe3ff'
+            }
+          },
+          scales: {
+            x: { display: false, grid: { display: false } },
+            y: { display: false, grid: { display: false } }
+          },
+          elements: {
+            line: { borderWidth: 2 },
+            point: { radius: data.length > 1 ? 3 : 4 }
+          }
+        }
+      });
+    }
+
+    function openChartZoom(type) {
+      if (!chartZoomModal || !chartZoomCanvas) return;
+      const ctx = chartZoomCanvas.getContext('2d');
+      if (!ctx) return;
+      if (chartZoomInstance) {
+        chartZoomInstance.destroy();
+        chartZoomInstance = null;
+      }
+
+      const titles = {
+        calories: '<i class="fa-solid fa-fire"></i> Calorie trend',
+        macro: '<i class="fa-solid fa-utensils"></i> Macro balance',
+        water: '<i class="fa-solid fa-droplet"></i> Hydration',
+        mealSplit: '<i class="fa-solid fa-clock"></i> Meal timing',
+        weight: '<i class="fa-solid fa-scale-balanced"></i> Weight momentum'
+      };
+      chartZoomTitle.innerHTML = titles[type] || '<i class="fa-solid fa-chart-line"></i> Chart insights';
+
+      let chartVisible = false;
+
+      if (type === 'calories') {
+        const cache = analyticsCache.calories || {};
+        if (cache.labels && cache.labels.length) {
+          const options = getChartOptions('Calories (7 days)');
+          options.maintainAspectRatio = false;
+          chartZoomInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: cache.labels,
+              datasets: [{
+                label: 'Calories',
+                data: cache.data,
+                fill: true,
+                borderColor: 'rgba(21,197,163,0.9)',
+                backgroundColor: 'rgba(21,197,163,0.18)',
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6
+              }]
+            },
+            options
+          });
+          chartVisible = true;
+        }
+      } else if (type === 'macro') {
+        const cache = analyticsCache.macros || {};
+        if (cache.total && cache.total > 0) {
+          chartZoomInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Protein', 'Carbs', 'Fat'],
+              datasets: [{
+                data: [cache.protein || 0, cache.carbs || 0, cache.fat || 0],
+                backgroundColor: ['#5c7cfa', '#ffb347', '#f75f78'],
+                borderWidth: 0,
+                hoverOffset: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { color: '#d9deff' }
+                }
+              }
+            }
+          });
+          chartVisible = true;
+        }
+      } else if (type === 'water') {
+        const cache = analyticsCache.water || {};
+        if (cache.labels && cache.labels.length) {
+          const options = getChartOptions('Water intake (7 days)');
+          options.maintainAspectRatio = false;
+          chartZoomInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: cache.labels,
+              datasets: [{
+                label: 'Water (ml)',
+                data: cache.data,
+                backgroundColor: 'rgba(48, 220, 188, 0.45)',
+                borderColor: 'rgba(48, 220, 188, 0.9)',
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false
+              }]
+            },
+            options
+          });
+          chartVisible = true;
+        }
+      } else if (type === 'mealSplit') {
+        const cache = analyticsCache.mealSplit || {};
+        const totals = cache.totals || {};
+        const values = [totals.lunch || 0, totals.dinner || 0, (totals.breakfast || 0) + (totals.snack || 0)];
+        if (values.some(value => value > 0)) {
+          chartZoomInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Lunch', 'Dinner', 'Breakfast/Snacks'],
+              datasets: [{
+                data: values,
+                backgroundColor: ['#5c7cfa', '#f75f78', '#ffb347'],
+                borderWidth: 0,
+                hoverOffset: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { color: '#d9deff' }
+                }
+              }
+            }
+          });
+          chartVisible = true;
+        }
+      } else if (type === 'weight') {
+        const cache = analyticsCache.weight || {};
+        if (cache.labels && cache.labels.length && cache.latestWeight && cache.latestWeight > 0) {
+          const options = getChartOptions('Weight progress');
+          options.maintainAspectRatio = false;
+          options.plugins.legend.display = false;
+          chartZoomInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: cache.labels,
+              datasets: [{
+                label: 'Weight (kg)',
+                data: cache.data,
+                borderColor: 'rgba(92, 124, 250, 0.9)',
+                backgroundColor: 'rgba(92, 124, 250, 0.18)',
+                tension: 0.3,
+                fill: true,
+                pointRadius: cache.data.length > 1 ? 4 : 5,
+                pointHoverRadius: 6
+              }]
+            },
+            options
+          });
+          chartVisible = true;
+        }
+      }
+
+      chartZoomDetails.innerHTML = buildZoomDetails(type);
+
+      if (chartZoomCanvas.parentElement) {
+        chartZoomCanvas.parentElement.style.display = chartVisible ? 'block' : 'none';
+      }
+
+      toggleModal(chartZoomModal, true);
+    }
+
+    function buildZoomDetails(type) {
+      if (type === 'calories') {
+        const cache = analyticsCache.calories || {};
+        if (!cache.labels || !cache.labels.length) {
+          return '<p>Log meals to unlock calorie insights.</p>';
+        }
+        const total = cache.data.reduce((sum, value) => sum + Number(value || 0), 0);
+        const average = cache.data.length ? total / cache.data.length : 0;
+        const max = Math.max(...cache.data);
+        const min = Math.min(...cache.data);
+        const maxIndex = cache.data.indexOf(max);
+        const minIndex = cache.data.indexOf(min);
+        const items = [
+          `<li><strong>7-day total:</strong> ${formatNumber(total)} kcal</li>`,
+          `<li><strong>Daily average:</strong> ${formatNumber(average, 0)} kcal</li>`
+        ];
+        if (maxIndex >= 0) {
+          items.push(`<li><strong>Peak day:</strong> ${cache.labels[maxIndex]} (${formatNumber(max)} kcal)</li>`);
+        }
+        if (minIndex >= 0) {
+          items.push(`<li><strong>Lightest day:</strong> ${cache.labels[minIndex]} (${formatNumber(min)} kcal)</li>`);
+        }
+        if (cache.target) {
+          items.push(`<li><strong>Daily target:</strong> ${formatNumber(cache.target)} kcal</li>`);
+        }
+        return `<h4>Highlights</h4><ul>${items.join('')}</ul>`;
+      }
+
+      if (type === 'macro') {
+        const cache = analyticsCache.macros || {};
+        if (!cache.total || cache.total <= 0) {
+          return '<p>Enable macro tracking when logging meals to see this view.</p>';
+        }
+        const breakdown = [
+          { label: 'Protein', value: cache.protein || 0, target: cache.targets ? cache.targets.protein : 0 },
+          { label: 'Carbs', value: cache.carbs || 0, target: cache.targets ? cache.targets.carbs : 0 },
+          { label: 'Fat', value: cache.fat || 0, target: cache.targets ? cache.targets.fat : 0 }
+        ];
+        const items = breakdown.map(({ label, value, target }) => {
+          const percent = cache.total ? Math.round((value / cache.total) * 100) : 0;
+          const targetText = target ? ` · Target ${formatNumber(target)} g` : '';
+          return `<li><strong>${label}:</strong> ${formatNumber(value, 1)} g (${percent}%)${targetText}</li>`;
+        });
+        const dominant = breakdown.reduce((best, item) => (item.value > best.value ? item : best), { value: -Infinity });
+        if (dominant.value > 0) {
+          items.push(`<li><strong>Dominant macro:</strong> ${dominant.label}</li>`);
+        }
+        return `<h4>Macro balance</h4><ul>${items.join('')}</ul>`;
+      }
+
+      if (type === 'water') {
+        const cache = analyticsCache.water || {};
+        if (!cache.labels || !cache.labels.length) {
+          return '<p>Log water to unlock hydration trends.</p>';
+        }
+        const total = cache.data.reduce((sum, value) => sum + Number(value || 0), 0);
+        const best = Math.max(...cache.data);
+        const bestIndex = cache.data.indexOf(best);
+        const items = [
+          `<li><strong>Today:</strong> ${formatNumber(cache.today)} ml</li>`,
+          `<li><strong>7-day average:</strong> ${formatNumber(Math.round(cache.average))} ml</li>`,
+          `<li><strong>Weekly total:</strong> ${formatNumber(total)} ml</li>`
+        ];
+        if (bestIndex >= 0) {
+          items.push(`<li><strong>Best day:</strong> ${cache.labels[bestIndex]} (${formatNumber(best)} ml)</li>`);
+        }
+        if (cache.target) {
+          items.push(`<li><strong>Daily target:</strong> ${formatNumber(cache.target)} ml</li>`);
+        }
+        return `<h4>Hydration</h4><ul>${items.join('')}</ul>`;
+      }
+
+      if (type === 'mealSplit') {
+        const cache = analyticsCache.mealSplit || {};
+        const totals = cache.totals || {};
+        const totalCalories = cache.totalCalories || 0;
+        if (!totalCalories) {
+          return '<p>Log meals with calories to see timing distribution.</p>';
+        }
+        const categories = [
+          { key: 'breakfast', label: 'Breakfast' },
+          { key: 'lunch', label: 'Lunch' },
+          { key: 'snack', label: 'Snacks' },
+          { key: 'dinner', label: 'Dinner' }
+        ];
+        const distribution = categories
+          .map(({ key, label }) => {
+            const value = Number(totals[key] || 0);
+            const percent = totalCalories ? Math.round((value / totalCalories) * 100) : 0;
+            return `<li><strong>${label}:</strong> ${formatNumber(value)} kcal (${percent}%)</li>`;
+          })
+          .join('');
+        const averages = cache.averages || {};
+        const timeItems = categories
+          .map(({ key, label }) => (averages[key] ? `<li><strong>${label}:</strong> ${averages[key]}</li>` : null))
+          .filter(Boolean)
+          .join('');
+        const timesSection = timeItems
+          ? `<h4>Average meal times</h4><ul>${timeItems}</ul>`
+          : '<p>Log meal times to unlock timing insights.</p>';
+        return `<h4>Distribution</h4><ul>${distribution}</ul>${timesSection}`;
+      }
+
+      if (type === 'weight') {
+        const weight = analyticsCache.weight || {};
+        if (!weight.latestWeight || weight.latestWeight <= 0) {
+          return '<p>Log weight entries to unlock progress analytics.</p>';
+        }
+        const items = [];
+        if (weight.startWeight) {
+          const startDate = formatDateLabel(weight.startDate);
+          items.push(`<li><strong>Start:</strong> ${formatNumber(weight.startWeight, 1)} kg${startDate ? ` (${startDate})` : ''}</li>`);
+        }
+        if (weight.latestWeight) {
+          const latestDate = formatDateLabel(weight.latestDate);
+          items.push(`<li><strong>Latest:</strong> ${formatNumber(weight.latestWeight, 1)} kg${latestDate ? ` (${latestDate})` : ''}</li>`);
+        }
+        items.push(`<li><strong>Change:</strong> ${formatSignedValue(weight.totalChange, 1, 'kg')}</li>`);
+        if (weight.targetWeight) {
+          items.push(`<li><strong>Goal:</strong> ${formatNumber(weight.targetWeight, 1)} kg</li>`);
+          if (weight.totalObjectiveAbs >= 0.05) {
+            const planDescriptor = weight.totalObjective > 0 ? 'gain planned' : 'loss planned';
+            items.push(`<li><strong>Total plan:</strong> ${formatSignedValue(weight.totalObjective, 1, 'kg')} (${planDescriptor})</li>`);
+          }
+          if (weight.remainingAbs >= 0.05) {
+            const ahead = (weight.objectiveDirection === 'loss' && weight.remainingDirection === 'gain')
+              || (weight.objectiveDirection === 'gain' && weight.remainingDirection === 'loss');
+            const gapLabel = ahead ? 'ahead of target' : weight.remainingDirection === 'loss' ? 'to lose' : 'to gain';
+            items.push(`<li><strong>Current gap:</strong> ${formatNumber(weight.remainingAbs, 1)} kg ${gapLabel}</li>`);
+          } else {
+            items.push('<li><strong>Current gap:</strong> Goal achieved</li>');
+          }
+          if (weight.daysToTarget) {
+            items.push(`<li><strong>Estimated time:</strong> ${formatDaysToTarget(weight.daysToTarget)} (${weight.paceLabel} pace)</li>`);
+          }
+        }
+        if (weight.daysElapsed) {
+          items.push(`<li><strong>Tracking span:</strong> ${weight.daysElapsed} day${weight.daysElapsed === 1 ? '' : 's'}</li>`);
+        }
+        return `<h4>Weight insights</h4><ul>${items.join('')}</ul>`;
+      }
+
+      return '<p>Log data to unlock insights.</p>';
     }
 
     function getChartOptions(title) {
@@ -2665,6 +3646,18 @@
         weightTabs[0].classList.add('active');
         selectedWeightRange = 'daily';
         renderWeightChart();
+      }
+      if (modal === chartZoomModal && !open) {
+        if (chartZoomInstance) {
+          chartZoomInstance.destroy();
+          chartZoomInstance = null;
+        }
+        if (chartZoomDetails) {
+          chartZoomDetails.innerHTML = '';
+        }
+        if (chartZoomCanvas && chartZoomCanvas.parentElement) {
+          chartZoomCanvas.parentElement.style.display = 'block';
+        }
       }
     }
 
@@ -2862,6 +3855,7 @@
       weightDate.value = new Date().toISOString().split('T')[0];
       renderWeightChart();
       refreshWeightWidget();
+      updateAnalytics(getMeals(dateInput.value));
     });
 
     weightTabs.forEach(btn => {
