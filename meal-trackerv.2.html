@@ -162,6 +162,38 @@
       gap: 16px;
     }
 
+    .summary-banner {
+      display: none;
+      margin: 0 40px;
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-banner.show {
+      display: block;
+      animation: popIn 0.4s ease;
+    }
+
+    .summary-banner.celebration {
+      background: linear-gradient(120deg, rgba(92, 215, 184, 0.2), rgba(92, 215, 184, 0.4));
+      color: #c8fff1;
+    }
+
+    .summary-banner.warning {
+      background: linear-gradient(120deg, rgba(247, 95, 120, 0.2), rgba(247, 95, 120, 0.35));
+      color: #ffd2db;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     .summary-card {
       background: linear-gradient(140deg, var(--surface), var(--surface-soft));
       border-radius: 14px;
@@ -281,6 +313,10 @@
     textarea {
       resize: vertical;
       min-height: 80px;
+    }
+
+    .ingredients-area {
+      min-height: 140px;
     }
 
     button.primary {
@@ -514,7 +550,7 @@
 
     .preset-row {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr)) 44px;
+      grid-template-columns: repeat(6, minmax(0, 1fr)) 44px;
       gap: 10px;
       padding: 16px;
       background: var(--surface-alt);
@@ -554,6 +590,72 @@
     .settings-card p {
       margin: 0;
       font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .pace-panel {
+      margin-top: 18px;
+      background: var(--surface-alt);
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pace-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pace-title {
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .pace-summary {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .pace-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .pace-card.active {
+      border-color: rgba(21, 197, 163, 0.6);
+      box-shadow: 0 10px 20px rgba(21, 197, 163, 0.15);
+    }
+
+    .pace-card h4 {
+      margin: 0;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .pace-card .pace-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .pace-card .pace-note {
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
 
@@ -618,6 +720,46 @@
       color: #7ff0d1;
     }
 
+    .chart-scroll {
+      overflow-x: auto;
+    }
+
+    .chart-scroll canvas {
+      min-width: 640px;
+    }
+
+    .calorie-summary {
+      display: grid;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .calorie-summary .stat {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+    }
+
+    .calorie-summary .stat span:last-child {
+      color: var(--accent);
+    }
+
+    .calorie-summary .stat.diff.surplus span:last-child {
+      color: var(--warning);
+    }
+
+    .calorie-summary .stat.diff.deficit span:last-child {
+      color: var(--success);
+    }
+
+    .calorie-summary .note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
     .weight-tabs {
       display: flex;
       gap: 8px;
@@ -649,6 +791,10 @@
         padding: 24px;
       }
 
+      .summary-banner {
+        margin: 0 0 16px;
+      }
+
       .preset-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-auto-rows: minmax(0, auto);
@@ -667,7 +813,6 @@
         <h1><i class="fa-solid fa-bowl-food"></i> OwnYourPrime Meal Tracker</h1>
         <div class="tagline">Precision logging, intelligent trends, and coach-level feedback</div>
       </div>
-      <div class="badge"><i class="fa-solid fa-moon"></i> Dark Mode</div>
     </div>
     <nav>
       <button class="active" data-page="overview"><i class="fa-solid fa-gauge"></i> Overview</button>
@@ -676,6 +821,8 @@
   </header>
 
   <main>
+    <div id="summaryCelebration" class="summary-banner celebration" role="status" aria-live="polite"></div>
+    <div id="summaryWarning" class="summary-banner warning" role="alert" aria-live="assertive"></div>
     <section id="overviewPage" class="page active">
       <div class="overview-grid">
         <aside class="summary-stack">
@@ -724,6 +871,17 @@
         </aside>
         <section class="card" style="display:flex; flex-direction:column; gap:26px;">
           <div>
+            <h2><i class="fa-solid fa-chart-pie"></i> Analytics</h2>
+            <div class="analytics-grid">
+              <div class="card" style="background:var(--surface-alt);">
+                <canvas id="calorieChart" height="220"></canvas>
+              </div>
+              <div class="card" style="background:var(--surface-alt);">
+                <canvas id="macroChart" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+          <div>
             <h2><i class="fa-solid fa-bolt"></i> Quick Presets</h2>
             <div id="presetButtons" class="quick-presets"></div>
             <div class="empty-state" id="noPresets" style="display:none;">No presets yet. Configure them in Settings → Preset Meals.</div>
@@ -731,19 +889,13 @@
           <div>
             <h2><i class="fa-solid fa-utensils"></i> Add Meal</h2>
             <form id="mealForm" style="display:flex; flex-direction:column; gap:14px;">
-              <div class="form-row">
-                <div>
-                  <label for="mealName">Meal Name</label>
-                  <input type="text" id="mealName" placeholder="e.g. Breakfast Bowl">
-                </div>
-                <div>
-                  <label for="mealTime">Time (optional)</label>
-                  <input type="time" id="mealTime">
-                </div>
+              <div>
+                <label for="mealName">Meal Name</label>
+                <input type="text" id="mealName" placeholder="e.g. Breakfast Bowl">
               </div>
               <div>
                 <label for="ingredients">Ingredients</label>
-                <textarea id="ingredients" placeholder="Chicken, quinoa, spinach..."></textarea>
+                <textarea id="ingredients" class="ingredients-area" placeholder="Chicken, quinoa, spinach..."></textarea>
               </div>
               <div class="form-row">
                 <div>
@@ -776,7 +928,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>Time</th>
                   <th>Meal</th>
                   <th>Ingredients</th>
                   <th>Calories</th>
@@ -842,11 +993,11 @@
         </div>
       </div>
 
-      <div class="card settings-card">
-        <h2><i class="fa-solid fa-bullseye"></i> Targets & Safety</h2>
-        <p>All targets power the dashboard. Guardrails ensure a sustainable pace.</p>
-        <form id="targetsForm" class="settings-grid">
-          <div>
+          <div class="card settings-card">
+            <h2><i class="fa-solid fa-bullseye"></i> Targets & Safety</h2>
+            <p>All targets power the dashboard. Guardrails ensure a sustainable pace.</p>
+            <form id="targetsForm" class="settings-grid">
+              <div>
             <label for="targetCalories">Daily Calories (kcal)</label>
             <input type="number" id="targetCalories" min="0" step="1">
           </div>
@@ -871,10 +1022,6 @@
             <input type="number" id="targetWeight" min="0" step="0.1">
           </div>
           <div>
-            <label for="goalTimeline">Goal timeline (weeks)</label>
-            <input type="number" id="goalTimeline" min="1" max="52" step="1">
-          </div>
-          <div>
             <label>Goal type</label>
             <div class="segmented" id="goalTypeGroup">
               <button type="button" data-goal="loss">Loss</button>
@@ -883,6 +1030,19 @@
             </div>
           </div>
         </form>
+        <div class="pace-panel">
+          <div class="pace-header">
+            <span class="pace-title">Goal timeline (auto)</span>
+            <div class="segmented" id="paceSelector">
+              <button type="button" data-pace="slow">Slow</button>
+              <button type="button" data-pace="normal" class="active">Normal</button>
+              <button type="button" data-pace="fast">Fast</button>
+              <button type="button" data-pace="extreme">Extreme</button>
+            </div>
+          </div>
+          <div id="paceSummary" class="pace-summary"></div>
+          <input type="hidden" id="goalTimeline" value="12">
+        </div>
         <div id="targetAlert" class="alert"></div>
         <div id="targetSuccess" class="alert success"></div>
         <div style="display:flex; justify-content:flex-end; margin-top:16px; gap:10px;">
@@ -899,7 +1059,7 @@
         <h3><i class="fa-solid fa-rectangle-list"></i> Preset Meals</h3>
         <button class="close-btn" data-close="presetModal"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p style="color:var(--text-muted); margin-bottom:14px;">Create up to 10 presets for rapid logging. Macros and time are optional.</p>
+      <p style="color:var(--text-muted); margin-bottom:14px;">Create up to 10 presets for rapid logging. Macros are optional.</p>
       <div id="presetLimit" class="alert" style="margin-bottom:12px;"></div>
       <div class="preset-editor" id="presetEditor"></div>
       <div style="display:flex; justify-content:space-between; margin-top:16px;">
@@ -934,9 +1094,21 @@
         <button class="secondary" data-range="monthly">Monthly</button>
       </div>
       <div class="card" style="background:var(--surface-alt);">
-        <canvas id="weightChart" height="260"></canvas>
+        <div class="chart-scroll">
+          <canvas id="weightChart" height="260"></canvas>
+        </div>
       </div>
       <div class="eta" id="etaText"></div>
+    </div>
+  </div>
+
+  <div id="calorieModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-fire"></i> Daily Calorie Breakdown</h3>
+        <button class="close-btn" data-close="calorieModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="calorieSummary" class="calorie-summary"></div>
     </div>
   </div>
 
@@ -960,6 +1132,8 @@
     const weightWidget = document.getElementById('weightWidget');
     const weightValue = document.getElementById('weightValue');
     const weightTrend = document.getElementById('weightTrend');
+    const summaryCelebration = document.getElementById('summaryCelebration');
+    const summaryWarning = document.getElementById('summaryWarning');
 
     const ageInput = document.getElementById('ageInput');
     const weightInput = document.getElementById('weightInput');
@@ -980,6 +1154,8 @@
     const targetAlert = document.getElementById('targetAlert');
     const targetSuccess = document.getElementById('targetSuccess');
     const saveSettingsBtn = document.getElementById('saveSettings');
+    const paceSelector = document.getElementById('paceSelector');
+    const paceSummary = document.getElementById('paceSummary');
 
     const presetModal = document.getElementById('presetModal');
     const presetEditor = document.getElementById('presetEditor');
@@ -994,10 +1170,14 @@
     const weightForm = document.getElementById('weightForm');
     const weightTabs = document.querySelectorAll('.weight-tabs button');
     const etaText = document.getElementById('etaText');
+    const calorieModal = document.getElementById('calorieModal');
+    const calorieSummary = document.getElementById('calorieSummary');
 
     let calorieChart, macroChart, weightChart;
     let selectedGoalType = 'maintain';
     let selectedWeightRange = 'daily';
+    let selectedPace = 'normal';
+    let latestSummary = { calories: 0, protein: 0, carbs: 0, fat: 0, water: 0 };
 
     const defaultProfile = {
       age: 30,
@@ -1014,14 +1194,24 @@
       water: 2500,
       weightTarget: 70,
       goalType: 'maintain',
-      goalTimeline: 12
+      goalTimeline: 12,
+      goalPace: 'normal'
     };
 
     const defaultPresets = [
-      { name: 'Chicken Power Bowl', ingredients: 'Grilled chicken, quinoa, kale, avocado', calories: 520, protein: 45, carbs: 42, fat: 18, time: '12:30' },
-      { name: 'Greek Yogurt Parfait', ingredients: 'Yogurt, berries, granola, chia', calories: 320, protein: 22, carbs: 38, fat: 9, time: '08:00' },
-      { name: 'Salmon & Greens', ingredients: 'Baked salmon, asparagus, lemon', calories: 410, protein: 38, carbs: 6, fat: 24, time: '19:00' }
+      { name: 'Chicken Power Bowl', ingredients: 'Grilled chicken, quinoa, kale, avocado', calories: 520, protein: 45, carbs: 42, fat: 18 },
+      { name: 'Greek Yogurt Parfait', ingredients: 'Yogurt, berries, granola, chia', calories: 320, protein: 22, carbs: 38, fat: 9 },
+      { name: 'Salmon & Greens', ingredients: 'Baked salmon, asparagus, lemon', calories: 410, protein: 38, carbs: 6, fat: 24 }
     ];
+
+    const paceRates = {
+      slow: { rate: 0.25, label: 'Slow' },
+      normal: { rate: 0.5, label: 'Normal' },
+      fast: { rate: 0.75, label: 'Fast' },
+      extreme: { rate: 1, label: 'Extreme' }
+    };
+
+    const KCAL_PER_KG = 7700;
 
     function navTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1058,6 +1248,117 @@
 
     function savePresetData(presets) {
       localStorage.setItem('presets', JSON.stringify(presets));
+    }
+
+    function calculateBMR(profile) {
+      if (!profile.weight || !profile.height || !profile.age) return 0;
+      return 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5;
+    }
+
+    function activityMultiplier(level) {
+      switch (level) {
+        case 'sedentary': return 1.2;
+        case 'light': return 1.375;
+        case 'moderate': return 1.55;
+        case 'active': return 1.725;
+        case 'athlete': return 1.9;
+        default: return 1.4;
+      }
+    }
+
+    function calculateTDEE(profile) {
+      const bmr = calculateBMR(profile);
+      if (!bmr) return 0;
+      return bmr * activityMultiplier(profile.lifestyle || 'moderate');
+    }
+
+    function getDraftProfile() {
+      return {
+        age: Number(ageInput.value) || defaultProfile.age,
+        weight: Number(weightInput.value) || defaultProfile.weight,
+        height: Number(heightInput.value) || defaultProfile.height,
+        lifestyle: lifestyleInput.value || 'moderate'
+      };
+    }
+
+    function computePaceData(profile, targetWeightValue) {
+      const results = {};
+      const tdee = calculateTDEE(profile);
+      const maintenance = Math.round(tdee);
+      const currentWeight = profile.weight || targetWeightValue || 0;
+      const targetWeightSafe = targetWeightValue || currentWeight;
+      const diff = targetWeightSafe - currentWeight;
+      const absDiff = Math.abs(diff);
+      const direction = absDiff < 0.05 ? 'maintain' : diff > 0 ? 'gain' : 'loss';
+
+      Object.entries(paceRates).forEach(([key, meta]) => {
+        let weeks = 0;
+        let dailyDelta = 0;
+        let calorieTarget = maintenance;
+        if (direction !== 'maintain' && meta.rate > 0 && maintenance) {
+          weeks = Math.max(1, Math.ceil(absDiff / meta.rate));
+          dailyDelta = Math.round((meta.rate * KCAL_PER_KG) / 7);
+          const adjust = direction === 'loss' ? -dailyDelta : dailyDelta;
+          calorieTarget = Math.max(900, Math.round(maintenance + adjust));
+        }
+        results[key] = {
+          label: meta.label,
+          weeks,
+          dailyDelta,
+          calorieTarget,
+          direction,
+          rate: meta.rate,
+          maintenance
+        };
+      });
+      results.direction = direction;
+      results.maintenance = maintenance;
+      return results;
+    }
+
+    function updatePaceUI() {
+      if (!paceSelector || !paceSummary) return;
+      const profile = getDraftProfile();
+      const targetWeightValue = Number(targetWeight.value) || profile.weight;
+      const paceData = computePaceData(profile, targetWeightValue);
+      const direction = paceData.direction;
+
+      paceSelector.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.pace === selectedPace);
+      });
+
+      paceSummary.innerHTML = '';
+      if (!paceData.maintenance) {
+        paceSummary.innerHTML = '<div class="empty-state">Update your profile details to unlock calorie guidance.</div>';
+        goalTimeline.value = 0;
+        return;
+      }
+
+      Object.keys(paceRates).forEach(key => {
+        const info = paceData[key];
+        if (!info) return;
+        const card = document.createElement('div');
+        card.className = `pace-card${selectedPace === key ? ' active' : ''}`;
+        card.dataset.pace = key;
+        const weeksLabel = info.direction === 'maintain' ? 'Maintain' : `~${info.weeks} wk${info.weeks !== 1 ? 's' : ''}`;
+        const rateLabel = info.rate.toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+        let note;
+        if (info.direction === 'maintain') {
+          note = `Hold steady near ${formatNumber(info.calorieTarget)} kcal/day.`;
+        } else {
+          const changeWord = info.direction === 'loss' ? 'deficit' : 'surplus';
+          note = `${formatNumber(info.dailyDelta)} kcal ${changeWord}/day · Target ${formatNumber(info.calorieTarget)} kcal/day · ~${rateLabel} kg/week`;
+        }
+        card.innerHTML = `
+          <h4>${info.label}</h4>
+          <div class="pace-value">${weeksLabel}</div>
+          <div class="pace-note">${note}</div>
+        `;
+        paceSummary.appendChild(card);
+      });
+
+      const chosen = paceData[selectedPace];
+      goalTimeline.value = chosen && chosen.direction !== 'maintain' ? chosen.weeks : 0;
     }
 
     function getMeals(date) {
@@ -1141,16 +1442,29 @@
       summaryCards.innerHTML = '';
 
       const summaryData = [
-        { icon: 'fa-fire', label: 'Calories', value: totalCalories, unit: 'kcal', target: targets.calories },
-        { icon: 'fa-drumstick-bite', label: 'Protein', value: totalProtein, unit: 'g', target: targets.protein },
-        { icon: 'fa-bread-slice', label: 'Carbs', value: totalCarbs, unit: 'g', target: targets.carbs },
-        { icon: 'fa-bacon', label: 'Fat', value: totalFat, unit: 'g', target: targets.fat }
+        { icon: 'fa-fire', label: 'Calories', value: totalCalories, unit: 'kcal', target: targets.calories, key: 'calories' },
+        { icon: 'fa-drumstick-bite', label: 'Protein', value: totalProtein, unit: 'g', target: targets.protein, key: 'protein' },
+        { icon: 'fa-bread-slice', label: 'Carbs', value: totalCarbs, unit: 'g', target: targets.carbs, key: 'carbs' },
+        { icon: 'fa-bacon', label: 'Fat', value: totalFat, unit: 'g', target: targets.fat, key: 'fat' },
+        { icon: 'fa-droplet', label: 'Water', value: water, unit: 'ml', target: targets.water, key: 'water' }
       ];
+
+      const celebrates = [];
+      const warnings = [];
+
+      latestSummary = {
+        calories: totalCalories,
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fat: totalFat,
+        water
+      };
 
       summaryData.forEach(item => {
         const percent = item.target ? Math.min(100, (item.value / item.target) * 100) : 0;
         const card = document.createElement('div');
         card.className = 'summary-card';
+        card.dataset.metric = item.key;
         card.innerHTML = `
           <div class="summary-icon"><i class="fa-solid ${item.icon}"></i></div>
           <div class="summary-details">
@@ -1160,11 +1474,23 @@
           </div>
         `;
         summaryCards.appendChild(card);
+
+        if (item.target > 0 && ['calories', 'protein', 'carbs', 'fat'].includes(item.key)) {
+          const ratio = item.value / item.target;
+          if (ratio >= 0.95 && ratio <= 1.05) {
+            celebrates.push(item.label);
+          } else if (ratio > 1.05) {
+            warnings.push(`${item.label} overshot by ${formatNumber(item.value - item.target)} ${item.unit}`);
+          }
+        }
       });
 
       waterTotal.textContent = formatNumber(water);
       const waterPercent = targets.water ? Math.min(100, (water / targets.water) * 100) : 0;
       waterProgress.style.width = waterPercent + '%';
+
+      showCelebrations(celebrates);
+      showWarnings(warnings);
       updateAnalytics(meals);
       updateHistory();
       refreshWeightWidget();
@@ -1172,8 +1498,76 @@
     function comparisonLabel(current, target) {
       if (!target || target <= 0) return 'No target set';
       const diff = current - target;
-      if (Math.abs(diff) < 5) return 'On target';
+      const tolerance = target * 0.05;
+      if (Math.abs(diff) <= tolerance) return 'Within 5% of goal';
       return diff > 0 ? `Over by ${formatNumber(diff)}` : `Under by ${formatNumber(Math.abs(diff))}`;
+    }
+
+    function showCelebrations(items) {
+      if (items.length) {
+        const text = items.length === 1 ? items[0] : `${items.slice(0, -1).join(', ')} and ${items.slice(-1)}`;
+        summaryCelebration.textContent = `🎉 Congratulations! You nailed your ${text} target${items.length > 1 ? 's' : ''}.`;
+        summaryCelebration.classList.add('show');
+      } else {
+        summaryCelebration.classList.remove('show');
+        summaryCelebration.textContent = '';
+      }
+    }
+
+    function showWarnings(messages) {
+      if (messages.length) {
+        summaryWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${messages.join(' · ')}`;
+        summaryWarning.classList.add('show');
+      } else {
+        summaryWarning.classList.remove('show');
+        summaryWarning.textContent = '';
+      }
+    }
+
+    function openCalorieModal() {
+      if (!calorieModal) return;
+      const profile = getProfile();
+      const bmr = Math.round(calculateBMR(profile));
+      const tdee = Math.round(calculateTDEE(profile));
+      const consumed = Math.round(latestSummary.calories || 0);
+      const diff = tdee ? consumed - tdee : 0;
+      const weeklyDelta = tdee ? (diff * 7) / KCAL_PER_KG : 0;
+      let kgText = Math.abs(weeklyDelta).toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+      if (!kgText) kgText = '0';
+      let note;
+      if (!tdee) {
+        note = 'Update your profile details to unlock metabolic comparisons.';
+      } else if (diff === 0) {
+        note = 'You are perfectly aligned with your maintenance calories today.';
+      } else if (diff > 0) {
+        note = `Estimated surplus of ${formatNumber(diff)} kcal (~${kgText} kg/week).`;
+      } else {
+        note = `Estimated deficit of ${formatNumber(Math.abs(diff))} kcal (~${kgText} kg/week).`;
+      }
+
+      const diffClass = !tdee || diff === 0 ? '' : diff > 0 ? 'surplus' : 'deficit';
+      let diffLabel = '--';
+      if (tdee) {
+        if (diff > 0) {
+          diffLabel = `+${formatNumber(Math.abs(diff))} kcal`;
+        } else if (diff < 0) {
+          diffLabel = `-${formatNumber(Math.abs(diff))} kcal`;
+        } else {
+          diffLabel = '0 kcal';
+        }
+      }
+
+      const diffClassName = diffClass ? `stat diff ${diffClass}` : 'stat diff';
+
+      calorieSummary.innerHTML = `
+        <div class="stat"><span>Calories eaten</span><span>${formatNumber(consumed)} kcal</span></div>
+        <div class="stat"><span>Resting burn (BMR)</span><span>${bmr ? formatNumber(bmr) : '--'} kcal</span></div>
+        <div class="stat"><span>Estimated burn (TDEE)</span><span>${tdee ? formatNumber(tdee) : '--'} kcal</span></div>
+        <div class="${diffClassName}"><span>Net difference</span><span>${diffLabel}</span></div>
+        <div class="note">${note}</div>
+      `;
+
+      toggleModal(calorieModal, true);
     }
 
     function renderMeals() {
@@ -1183,7 +1577,7 @@
       if (!meals.length) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 8;
+        cell.colSpan = 7;
         cell.className = 'empty-state';
         cell.textContent = 'No meals logged yet';
         row.appendChild(cell);
@@ -1193,7 +1587,6 @@
       meals.forEach((meal, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${meal.time || '—'}</td>
           <td>${meal.name}</td>
           <td>${meal.ingredients || '—'}</td>
           <td>${formatNumber(meal.calories)}</td>
@@ -1222,7 +1615,6 @@
       event.preventDefault();
       const meal = {
         name: document.getElementById('mealName').value.trim() || 'Meal',
-        time: document.getElementById('mealTime').value,
         ingredients: document.getElementById('ingredients').value.trim(),
         calories: Number(document.getElementById('calories').value) || 0,
         protein: 0,
@@ -1246,6 +1638,14 @@
 
     showMacros.addEventListener('change', () => {
       macroFields.style.display = showMacros.checked ? 'grid' : 'none';
+    });
+
+    summaryCards.addEventListener('click', event => {
+      const card = event.target.closest('.summary-card');
+      if (!card) return;
+      if (card.dataset.metric === 'calories') {
+        openCalorieModal();
+      }
     });
 
     function addWater(amount) {
@@ -1275,12 +1675,10 @@
         btn.innerHTML = `
           <span class="preset-name">${preset.name}</span>
           <span class="preset-cal">${formatNumber(preset.calories)} kcal${preset.protein ? ` · ${formatNumber(preset.protein)}g P` : ''}</span>
-          ${preset.time ? `<span class="preset-time"><i class="fa-solid fa-clock"></i> ${preset.time}</span>` : ''}
         `;
         btn.addEventListener('click', () => {
           const meal = {
             name: preset.name,
-            time: preset.time || '',
             ingredients: preset.ingredients || '',
             calories: Number(preset.calories) || 0,
             protein: Number(preset.protein) || 0,
@@ -1440,7 +1838,6 @@
           <input type="number" placeholder="Protein" value="${preset.protein || ''}" data-field="protein" data-index="${index}" min="0" step="1">
           <input type="number" placeholder="Carbs" value="${preset.carbs || ''}" data-field="carbs" data-index="${index}" min="0" step="1">
           <input type="number" placeholder="Fat" value="${preset.fat || ''}" data-field="fat" data-index="${index}" min="0" step="1">
-          <input type="time" value="${preset.time || ''}" data-field="time" data-index="${index}">
           <button class="secondary" data-remove="${index}"><i class="fa-solid fa-trash"></i></button>
         `;
         presetEditor.appendChild(row);
@@ -1464,7 +1861,7 @@
         updatePresetLimitMessage(presets.length);
         return;
       }
-      presets.push({ name: '', ingredients: '', calories: '', protein: '', carbs: '', fat: '', time: '' });
+      presets.push({ name: '', ingredients: '', calories: '', protein: '', carbs: '', fat: '' });
       savePresetData(presets);
       renderPresetEditor();
     });
@@ -1536,6 +1933,7 @@
       heightInput.value = profile.height || '';
       lifestyleInput.value = profile.lifestyle || 'moderate';
       updateBMI();
+      updatePaceUI();
     }
 
     function loadTargetsForm() {
@@ -1548,7 +1946,9 @@
       targetWeight.value = targets.weightTarget || '';
       goalTimeline.value = targets.goalTimeline || 12;
       selectedGoalType = targets.goalType || 'maintain';
+      selectedPace = targets.goalPace || 'normal';
       updateGoalTypeButtons();
+      updatePaceUI();
     }
 
     function updateGoalTypeButtons() {
@@ -1562,13 +1962,37 @@
       if (!btn) return;
       selectedGoalType = btn.dataset.goal;
       updateGoalTypeButtons();
+      updatePaceUI();
     });
+
+    paceSelector.addEventListener('click', event => {
+      const btn = event.target.closest('button[data-pace]');
+      if (!btn) return;
+      selectedPace = btn.dataset.pace;
+      updatePaceUI();
+    });
+
+    paceSummary.addEventListener('click', event => {
+      const card = event.target.closest('.pace-card');
+      if (!card) return;
+      selectedPace = card.dataset.pace;
+      updatePaceUI();
+    });
+
+    [targetWeight, weightInput, ageInput, heightInput].forEach(input => {
+      input.addEventListener('input', () => updatePaceUI());
+    });
+    lifestyleInput.addEventListener('change', updatePaceUI);
 
     function validateGoal(targetWeightValue, timelineWeeks) {
       const profile = getProfile();
-      if (!profile.weight || !targetWeightValue || !timelineWeeks) return { valid: true };
+      if (!profile.weight || !targetWeightValue) return { valid: true };
       const current = profile.weight;
       const diff = targetWeightValue - current;
+      if (Math.abs(diff) < 0.05) return { valid: true };
+      if (!timelineWeeks || timelineWeeks <= 0) {
+        return { valid: false, message: 'Timeline must be positive when gaining or losing weight.' };
+      }
       const weeklyChange = diff / timelineWeeks;
       const maxSafe = Math.max(current * 0.01, 0.5);
       if (Math.abs(weeklyChange) > 5) {
@@ -1599,15 +2023,22 @@
       saveProfile(profile);
       updateBMI();
 
+      const weightGoal = Number(targetWeight.value) || profile.weight;
+      const paceData = computePaceData(profile, weightGoal);
+      const chosenPace = paceData[selectedPace];
+      const autoTimeline = chosenPace && chosenPace.direction !== 'maintain' ? chosenPace.weeks : 0;
+      goalTimeline.value = autoTimeline;
+
       const targets = {
         calories: Number(targetCalories.value) || 0,
         protein: Number(targetProtein.value) || 0,
         carbs: Number(targetCarbs.value) || 0,
         fat: Number(targetFat.value) || 0,
         water: Number(targetWater.value) || 0,
-        weightTarget: Number(targetWeight.value) || profile.weight,
+        weightTarget: weightGoal,
         goalType: selectedGoalType,
-        goalTimeline: Number(goalTimeline.value) || 12
+        goalTimeline: autoTimeline,
+        goalPace: selectedPace
       };
 
       const validation = validateGoal(targets.weightTarget, targets.goalTimeline);
@@ -1624,6 +2055,7 @@
       targetSuccess.classList.add('visible');
       setTimeout(() => targetSuccess.classList.remove('visible'), 2000);
       renderSummary();
+      updatePaceUI();
     });
 
     function refreshWeightWidget() {
@@ -1761,7 +2193,25 @@
         ? e.date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
         : e.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
       const weights = data.map(e => Number(e.weight.toFixed(2)));
-      const targetLine = new Array(data.length).fill(targets.weightTarget || weights[weights.length - 1]);
+      const canvas = document.getElementById('weightChart');
+      const idealLine = [];
+      if (data.length) {
+        const start = data[0].weight;
+        const goal = targets.weightTarget || start;
+        if (data.length === 1) {
+          idealLine.push(Number(goal.toFixed(2)));
+        } else {
+          data.forEach((point, index) => {
+            const ratio = index / (data.length - 1);
+            const idealWeight = start + (goal - start) * ratio;
+            idealLine.push(Number(idealWeight.toFixed(2)));
+          });
+        }
+      }
+      if (canvas) {
+        const minWidth = Math.max(640, data.length * 90);
+        canvas.style.minWidth = `${minWidth}px`;
+      }
 
       weightChart = new Chart(ctx, {
         type: 'line',
@@ -1769,7 +2219,7 @@
           labels,
           datasets: [
             {
-              label: 'Weight',
+              label: 'Actual weight',
               data: weights,
               fill: false,
               borderColor: '#5c7cfa',
@@ -1779,11 +2229,13 @@
               pointHoverRadius: 5
             },
             {
-              label: 'Goal',
-              data: targetLine,
-              borderColor: '#f75f78',
-              borderDash: [8,6],
-              pointRadius: 0,
+              label: 'Ideal trajectory',
+              data: idealLine,
+              borderColor: '#15c5a3',
+              borderDash: [6,6],
+              pointRadius: data.length === 1 ? 4 : 0,
+              pointHoverRadius: data.length === 1 ? 5 : 0,
+              tension: 0,
               fill: false
             }
           ]
@@ -1866,6 +2318,7 @@
       if (event.key === 'Escape') {
         toggleModal(presetModal, false);
         toggleModal(weightModal, false);
+        toggleModal(calorieModal, false);
       }
     });
 
