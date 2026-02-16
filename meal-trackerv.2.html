@@ -2164,6 +2164,81 @@
 
     const KCAL_PER_KG = 7700;
     const MS_PER_DAY = 86400000;
+    const STORAGE_KEYS = {
+      profile: 'lifeos:meals:profile',
+      targets: 'lifeos:meals:targets',
+      presets: 'lifeos:meals:presets',
+      weights: 'lifeos:meals:weights'
+    };
+    const LEGACY_STORAGE_KEYS = {
+      profile: 'profile',
+      targets: 'targets',
+      presets: 'presets',
+      weights: 'weights'
+    };
+
+    function safeParseJSON(raw, fallback, keyForQuarantine = '') {
+      if (typeof raw !== 'string') return fallback;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`Invalid JSON in storage key "${keyForQuarantine}"`, error);
+        if (keyForQuarantine) {
+          localStorage.setItem(`${keyForQuarantine}__corrupt__${Date.now()}`, raw);
+          localStorage.removeItem(keyForQuarantine);
+        }
+        return fallback;
+      }
+    }
+
+    function safeGetStorage(key, fallback = null) {
+      const raw = localStorage.getItem(key);
+      return raw ? safeParseJSON(raw, fallback, key) : fallback;
+    }
+
+    function safeSetStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function mealKey(date) { return `lifeos:meals:entries:${date}`; }
+    function waterKey(date) { return `lifeos:meals:water:${date}`; }
+
+    function migrateStorageKeys() {
+      Object.entries(STORAGE_KEYS).forEach(([name, nextKey]) => {
+        if (localStorage.getItem(nextKey) !== null) return;
+        const legacyKey = LEGACY_STORAGE_KEYS[name];
+        const legacyRaw = localStorage.getItem(legacyKey);
+        if (legacyRaw === null) return;
+        const parsed = safeParseJSON(legacyRaw, null, legacyKey);
+        if (parsed !== null) safeSetStorage(nextKey, parsed);
+        localStorage.removeItem(legacyKey);
+      });
+      const keysToMigrate = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.startsWith('meals_')) keysToMigrate.push(key);
+        if (key.startsWith('water_')) keysToMigrate.push(key);
+      }
+      keysToMigrate.forEach((legacyKey) => {
+        const isMeals = legacyKey.startsWith('meals_');
+        const date = legacyKey.slice(isMeals ? 6 : 6);
+        const targetKey = isMeals ? mealKey(date) : waterKey(date);
+        if (localStorage.getItem(targetKey) !== null) return;
+        const raw = localStorage.getItem(legacyKey);
+        if (raw === null) return;
+        if (isMeals) {
+          const parsed = safeParseJSON(raw, [], legacyKey);
+          safeSetStorage(targetKey, parsed);
+        } else {
+          const n = Number(raw);
+          localStorage.setItem(targetKey, String(Number.isFinite(n) ? n : 0));
+        }
+        localStorage.removeItem(legacyKey);
+      });
+    }
+
+    migrateStorageKeys();
 
     function navTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2235,30 +2310,30 @@
     }
 
     function getProfile() {
-      const raw = localStorage.getItem('profile');
-      return raw ? { ...defaultProfile, ...JSON.parse(raw) } : { ...defaultProfile };
+      const stored = safeGetStorage(STORAGE_KEYS.profile, {});
+      return { ...defaultProfile, ...(stored && typeof stored === 'object' ? stored : {}) };
     }
 
     function saveProfile(profile) {
-      localStorage.setItem('profile', JSON.stringify(profile));
+      safeSetStorage(STORAGE_KEYS.profile, profile);
     }
 
     function getTargets() {
-      const raw = localStorage.getItem('targets');
-      return raw ? { ...defaultTargets, ...JSON.parse(raw) } : { ...defaultTargets };
+      const stored = safeGetStorage(STORAGE_KEYS.targets, {});
+      return { ...defaultTargets, ...(stored && typeof stored === 'object' ? stored : {}) };
     }
 
     function saveTargets(targets) {
-      localStorage.setItem('targets', JSON.stringify(targets));
+      safeSetStorage(STORAGE_KEYS.targets, targets);
     }
 
     function getPresets() {
-      const raw = localStorage.getItem('presets');
-      return raw ? JSON.parse(raw) : defaultPresets;
+      const parsed = safeGetStorage(STORAGE_KEYS.presets, defaultPresets);
+      return Array.isArray(parsed) ? parsed : defaultPresets;
     }
 
     function savePresetData(presets) {
-      localStorage.setItem('presets', JSON.stringify(presets));
+      safeSetStorage(STORAGE_KEYS.presets, presets);
     }
 
     function currentTimeValue() {
@@ -2516,20 +2591,21 @@
     }
 
     function getMeals(date) {
-      const raw = localStorage.getItem('meals_' + date);
-      return raw ? JSON.parse(raw) : [];
+      const parsed = safeGetStorage(mealKey(date), []);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map(normalizeMealEntry).filter(Boolean);
     }
 
     function saveMeals(date, meals) {
-      localStorage.setItem('meals_' + date, JSON.stringify(meals));
+      safeSetStorage(mealKey(date), meals);
     }
 
     function getLoggedMealDates() {
       const dates = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('meals_')) {
-          dates.push(key.slice(6));
+        if (key && key.startsWith('lifeos:meals:entries:')) {
+          dates.push(key.slice('lifeos:meals:entries:'.length));
         }
       }
       dates.sort((a, b) => new Date(b) - new Date(a));
@@ -2537,23 +2613,51 @@
     }
 
     function getWater(date) {
-      const raw = localStorage.getItem('water_' + date);
+      const raw = localStorage.getItem(waterKey(date));
       return raw ? Number(raw) : 0;
     }
 
     function saveWater(date, amount) {
-      localStorage.setItem('water_' + date, String(amount));
+      localStorage.setItem(waterKey(date), String(amount));
     }
 
     function getWeights() {
-      const raw = localStorage.getItem('weights');
-      const data = raw ? JSON.parse(raw) : [];
-      data.sort((a, b) => new Date(a.date) - new Date(b.date));
-      return data;
+      const data = safeGetStorage(STORAGE_KEYS.weights, []);
+      if (!Array.isArray(data)) return [];
+      const normalized = data.map(normalizeWeightEntry).filter(Boolean);
+      normalized.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return normalized;
+    }
+
+    function normalizeMealEntry(entry) {
+      if (!entry || typeof entry !== 'object') return null;
+      const calories = Number(entry.calories);
+      const name = typeof entry.name === 'string' ? entry.name.trim() : '';
+      if (!name || Number.isNaN(calories)) return null;
+      return {
+        id: entry.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name,
+        calories: Math.max(0, calories),
+        ingredients: typeof entry.ingredients === 'string' ? entry.ingredients : '',
+        protein: Number(entry.protein) || 0,
+        carbs: Number(entry.carbs) || 0,
+        fat: Number(entry.fat) || 0,
+        type: typeof entry.type === 'string' ? entry.type : inferMealType(entry.time),
+        time: typeof entry.time === 'string' ? entry.time : currentTimeValue(),
+        date: typeof entry.date === 'string' ? entry.date : dateInput.value
+      };
+    }
+
+    function normalizeWeightEntry(entry) {
+      if (!entry || typeof entry !== 'object') return null;
+      const weight = Number(entry.weight);
+      const date = typeof entry.date === 'string' ? entry.date : '';
+      if (!date || !Number.isFinite(weight) || weight <= 0) return null;
+      return { date, weight };
     }
 
     function saveWeights(entries) {
-      localStorage.setItem('weights', JSON.stringify(entries));
+      safeSetStorage(STORAGE_KEYS.weights, entries);
     }
 
     function formatNumber(value, decimals = 0) {
@@ -3287,7 +3391,7 @@
           if (meals.length) {
             saveMeals(selectedDate, meals);
           } else {
-            localStorage.removeItem('meals_' + selectedDate);
+            localStorage.removeItem(mealKey(selectedDate));
           }
           updateHistory();
           refreshCurrentDayIfMatched(selectedDate);

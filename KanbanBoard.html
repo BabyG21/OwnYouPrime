@@ -810,6 +810,12 @@
           <p id="overdueMessage"></p>
         </div>
       </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 16px;align-items:center;">
+        <strong>WIP limits:</strong>
+        <label>To Do <input type="number" id="limit-todo" min="0" placeholder="∞" style="width:88px"></label>
+        <label>Doing <input type="number" id="limit-doing" min="0" placeholder="∞" style="width:88px"></label>
+        <label>Done <input type="number" id="limit-done" min="0" placeholder="∞" style="width:88px"></label>
+      </div>
       <div class="kanban-board" id="kanbanBoard">
         <div class="kanban-column todo" data-status="todo">
           <h3><span class="column-title">To Do</span><span class="task-count" id="count-todo">0</span></h3>
@@ -877,6 +883,15 @@
 
   <script>
     const STORAGE_KEYS = {
+      tasks: 'lifeos:kanban:tasks',
+      wip: 'lifeos:kanban:wipLimits',
+      filters: 'lifeos:kanban:filters',
+      focusCollapsed: 'lifeos:kanban:focusCollapsed',
+      focusSnoozeUntil: 'lifeos:kanban:focusSnoozeUntil',
+      localSnapshot: 'lifeos:kanban:localSnapshot'
+    };
+
+    const LEGACY_STORAGE_KEYS = {
       tasks: 'ownYourPrime.tasks',
       wip: 'ownYourPrime.wipLimits',
       filters: 'ownYourPrime.filters',
@@ -949,6 +964,36 @@
 
     if (elements.filterBtn) elements.filterBtn.setAttribute('aria-expanded', 'false');
 
+    function safeParseJSON(raw, fallback, keyForQuarantine = '') {
+      if (typeof raw !== 'string') return fallback;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`Storage parse failed for ${keyForQuarantine}`, error);
+        if (keyForQuarantine) {
+          const ts = Date.now();
+          localStorage.setItem(`${keyForQuarantine}__corrupt__${ts}`, raw);
+          localStorage.removeItem(keyForQuarantine);
+        }
+        return fallback;
+      }
+    }
+
+    function migrateStorageKeys() {
+      Object.entries(STORAGE_KEYS).forEach(([name, key]) => {
+        if (localStorage.getItem(key) !== null) return;
+        const legacyKey = LEGACY_STORAGE_KEYS[name];
+        const legacyRaw = legacyKey ? localStorage.getItem(legacyKey) : null;
+        if (!legacyRaw) return;
+        const parsed = safeParseJSON(legacyRaw, null, legacyKey);
+        if (parsed !== null) {
+          localStorage.setItem(key, JSON.stringify(parsed));
+        }
+      });
+    }
+
+    migrateStorageKeys();
+
     function saveToStorage(key, data) {
       try {
         localStorage.setItem(key, JSON.stringify(data));
@@ -958,13 +1003,8 @@
     }
 
     function loadFromStorage(key) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : null;
-      } catch (error) {
-        console.warn('Storage load failed', error);
-        return null;
-      }
+      const raw = localStorage.getItem(key);
+      return raw ? safeParseJSON(raw, null, key) : null;
     }
 
     function removeFromStorage(key) {
@@ -1187,6 +1227,17 @@
       return normalized;
     }
 
+    function normalizeWipLimits(raw) {
+      const fallback = { todo: null, doing: null, done: null };
+      if (!raw || typeof raw !== 'object') return fallback;
+      const out = { ...fallback };
+      ['todo', 'doing', 'done'].forEach((status) => {
+        const n = Number(raw[status]);
+        out[status] = Number.isFinite(n) && n >= 0 ? n : null;
+      });
+      return out;
+    }
+
     function completedDaysAgo(task, now = new Date()) {
       if (!task.completedAt) return -1;
       const completed = new Date(task.completedAt);
@@ -1203,7 +1254,7 @@
     syncFilterMenuToState();
 
     let tasks = (loadFromStorage(STORAGE_KEYS.tasks) || []).map(normalizeTask);
-    let wipLimits = loadFromStorage(STORAGE_KEYS.wip) || { todo: null, doing: null, done: null };
+    let wipLimits = normalizeWipLimits(loadFromStorage(STORAGE_KEYS.wip));
     let editingTaskId = null;
     let historyStageIndex = 0;
     let focusCollapsed = loadFromStorage(STORAGE_KEYS.focusCollapsed);
@@ -1675,6 +1726,16 @@
       renderBoard();
     }
 
+    function showNonBlockingWarning(message) {
+      console.warn(message);
+      if (!elements.overdueMessage || !elements.overdueNotice) return;
+      elements.overdueNotice.style.display = 'block';
+      elements.overdueNotice.classList.remove('collapsed');
+      elements.overdueMessage.textContent = message;
+      clearTimeout(showNonBlockingWarning._timer);
+      showNonBlockingWarning._timer = setTimeout(() => updateOverdueNotice(new Date()), 2200);
+    }
+
     function deleteTask(taskId) {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
@@ -1724,7 +1785,22 @@
       if (Number.isNaN(targetLimit) || targetLimit < 0) return true;
       const currentDoing = tasks.filter((t) => t.status === 'doing' && t.id !== taskId).length;
       if (currentDoing >= targetLimit) {
-        alert(`Cannot move to DOING: WIP limit is ${targetLimit}.`);
+        showNonBlockingWarning(`Cannot move to DOING: WIP limit is ${targetLimit}.`);
+        return false;
+      }
+      return true;
+    }
+
+    function canEnterStatus(status, taskId = null) {
+      if (!['todo', 'doing', 'done'].includes(status)) return false;
+      if (status === 'doing') return canEnterDoing(taskId);
+      const limit = wipLimits[status];
+      if (limit === null || limit === undefined || limit === '') return true;
+      const targetLimit = Number(limit);
+      if (!Number.isFinite(targetLimit) || targetLimit < 0) return true;
+      const current = tasks.filter((t) => t.status === status && t.id !== taskId).length;
+      if (current >= targetLimit) {
+        showNonBlockingWarning(`Cannot move to ${status.toUpperCase()}: WIP limit is ${targetLimit}.`);
         return false;
       }
       return true;
@@ -1924,6 +2000,7 @@
           task.subtasks = subtasks;
         }
       } else {
+        if (!canEnterStatus('todo')) return;
         tasks.push(normalizeTask({
           id: generateId(),
           title,
@@ -1970,9 +2047,17 @@
       element.addEventListener('drop', (event) => {
         event.preventDefault();
         const taskId = event.dataTransfer.getData('text/plain');
+        if (!taskId) {
+          showNonBlockingWarning('Drop ignored: invalid task payload.');
+          return;
+        }
         const task = tasks.find((t) => t.id === taskId);
-        if (!task || task.status === status) return;
-        if (status === 'doing' && !canEnterDoing(taskId)) return;
+        if (!task) {
+          showNonBlockingWarning('Drop ignored: task not found.');
+          return;
+        }
+        if (task.status === status) return;
+        if (!canEnterStatus(status, taskId)) return;
         if (task.status === 'doing' && status !== 'doing' && task.startedAt) {
           task.timeSpent = (task.timeSpent || 0) + (Date.now() - task.startedAt);
           delete task.startedAt;
@@ -2106,7 +2191,7 @@
       }
       const sanitized = JSON.parse(JSON.stringify(snapshot));
       tasks = sanitized.tasks.map(normalizeTask);
-      wipLimits = sanitized.wipLimits || { todo: null, doing: null, done: null };
+      wipLimits = normalizeWipLimits(sanitized.wipLimits);
       Object.entries(wipLimits).forEach(([status, value]) => {
         const input = elements.limits[status];
         if (input) input.value = value ?? '';
@@ -2142,7 +2227,10 @@
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
-          const parsed = JSON.parse(event.target.result);
+          const parsed = safeParseJSON(event.target.result, null);
+          if (!parsed) {
+            throw new Error('Invalid backup JSON.');
+          }
           applySnapshot(parsed);
           alert('Backup imported successfully.');
           closeBackupMenu();
@@ -2180,9 +2268,12 @@
       Object.entries(elements.limits).forEach(([status, input]) => {
         if (!input) return;
         input.addEventListener('change', () => {
-          const value = input.value;
-          wipLimits[status] = value === '' ? null : Number(value);
+          const value = input.value.trim();
+          const parsed = value === '' ? null : Number(value);
+          wipLimits[status] = Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+          input.value = wipLimits[status] ?? '';
           persistWipLimits();
+          renderBoard();
         });
       });
 

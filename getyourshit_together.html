@@ -1416,12 +1416,64 @@
     */
 
     // ===== UTILITY FUNCTIONS =====
-    function saveToStorage(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
+    const STORAGE_KEYS = {
+      meals: 'lifeos:gyst:meals',
+      presetMeals: 'lifeos:gyst:presetMeals',
+      profile: 'lifeos:gyst:profile',
+      targets: 'lifeos:gyst:targets',
+      weightHistory: 'lifeos:gyst:weightHistory',
+      tasks: 'lifeos:gyst:kanban:tasks',
+      wipLimits: 'lifeos:gyst:kanban:wipLimits',
+      habits: 'lifeos:gyst:habits'
+    };
+
+    function resolveStorageKey(key) {
+      return STORAGE_KEYS[key] || key;
     }
-    function loadFromStorage(key) {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
+
+    function safeParseJSON(raw, fallback, keyForQuarantine = '') {
+      if (typeof raw !== 'string') return fallback;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`Invalid JSON in storage key "${keyForQuarantine}"`, error);
+        if (keyForQuarantine) {
+          const ts = Date.now();
+          localStorage.setItem(`${keyForQuarantine}__corrupt__${ts}`, raw);
+          localStorage.removeItem(keyForQuarantine);
+        }
+        return fallback;
+      }
+    }
+
+    function safeGetStorage(key, fallback = null) {
+      const namespacedKey = resolveStorageKey(key);
+      const raw = localStorage.getItem(namespacedKey);
+      return raw ? safeParseJSON(raw, fallback, namespacedKey) : fallback;
+    }
+
+    function safeSetStorage(key, data) {
+      localStorage.setItem(resolveStorageKey(key), JSON.stringify(data));
+    }
+
+    function migrateStorageKeys() {
+      Object.entries(STORAGE_KEYS).forEach(([legacy, namespaced]) => {
+        if (localStorage.getItem(namespaced) !== null) return;
+        const legacyRaw = localStorage.getItem(legacy);
+        if (legacyRaw === null) return;
+        const parsed = safeParseJSON(legacyRaw, null, legacy);
+        if (parsed !== null) {
+          localStorage.setItem(namespaced, JSON.stringify(parsed));
+        }
+        localStorage.removeItem(legacy);
+      });
+    }
+
+    function saveToStorage(key, data) {
+      safeSetStorage(key, data);
+    }
+    function loadFromStorage(key, fallback = null) {
+      return safeGetStorage(key, fallback);
     }
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -1447,6 +1499,71 @@
       const d = String(date.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
     }
+
+    function normalizeMeal(meal) {
+      if (!meal || typeof meal !== 'object') return null;
+      const calories = Number(meal.calories);
+      const date = typeof meal.date === 'string' ? meal.date : '';
+      const name = typeof meal.name === 'string' ? meal.name.trim() : '';
+      if (!date || !name || Number.isNaN(calories)) return null;
+      return {
+        id: meal.id || generateId(),
+        date,
+        time: typeof meal.time === 'string' ? meal.time : '',
+        name,
+        ingredients: Array.isArray(meal.ingredients) ? meal.ingredients.map(i => String(i).trim()).filter(Boolean) : [],
+        calories: Math.max(0, Math.round(calories))
+      };
+    }
+
+    function normalizeTask(task) {
+      if (!task || typeof task !== 'object') return null;
+      const status = ['todo', 'doing', 'done'].includes(task.status) ? task.status : 'todo';
+      const title = typeof task.title === 'string' ? task.title.trim() : '';
+      if (!title) return null;
+      const assignedRaw = Array.isArray(task.assigned) ? task.assigned : [];
+      return {
+        id: task.id || generateId(),
+        title,
+        description: typeof task.description === 'string' ? task.description : '',
+        priority: ['low', 'medium', 'high', 'urgent'].includes(task.priority) ? task.priority : 'low',
+        assigned: assignedRaw.map(a => String(a).trim()).filter(Boolean),
+        status
+      };
+    }
+
+    function normalizeHabit(habit) {
+      if (!habit || typeof habit !== 'object') return null;
+      const name = typeof habit.name === 'string' ? habit.name.trim() : '';
+      if (!name) return null;
+      const history = {};
+      const rawHistory = habit.history && typeof habit.history === 'object' ? habit.history : {};
+      Object.entries(rawHistory).forEach(([date, state]) => {
+        if (typeof date !== 'string') return;
+        if (state === 'done' || state === 'skip' || state === 'none') {
+          history[date] = state;
+        }
+      });
+      return {
+        id: habit.id || generateId(),
+        name,
+        color: typeof habit.color === 'string' ? habit.color : '#6B5B95',
+        history
+      };
+    }
+
+    function normalizeWipLimits(value) {
+      const fallback = { todo: null, doing: 3, done: null };
+      if (!value || typeof value !== 'object') return fallback;
+      const out = { ...fallback };
+      ['todo', 'doing', 'done'].forEach((status) => {
+        const n = Number(value[status]);
+        out[status] = Number.isFinite(n) && n >= 0 ? n : null;
+      });
+      return out;
+    }
+
+    migrateStorageKeys();
 
     // ===== NAVIGATION HANDLING =====
     const navMealBtn = document.getElementById('navMeal');
@@ -1481,7 +1598,7 @@
     navSettingsBtn.addEventListener('click', () => showSection('settings'));
 
     // ===== MEAL TRACKER =====
-    let meals = loadFromStorage('meals') || [];
+    let meals = (loadFromStorage('meals', []) || []).map(normalizeMeal).filter(Boolean);
     // If there are no meals, set default example data for demonstration
     if (meals.length === 0) {
       const today = new Date();
@@ -1494,7 +1611,7 @@
       saveToStorage('meals', meals);
     }
 
-    let presetMeals = loadFromStorage('presetMeals');
+    let presetMeals = loadFromStorage('presetMeals', []);
     if (!Array.isArray(presetMeals) || presetMeals.length === 0) {
       presetMeals = [
         { id: generateId(), name: 'Protein oats', calories: 420, time: '07:30', ingredients: 'oats, whey, banana' },
@@ -1513,18 +1630,18 @@
       saveToStorage('presetMeals', presetMeals);
     }
 
-    let profile = loadFromStorage('profile') || {
+    let profile = loadFromStorage('profile', {
       age: 29,
       height: 175,
       weight: 72.5,
       lifestyle: 'moderate',
-    };
+    });
 
-    let targets = loadFromStorage('targets') || {
+    let targets = loadFromStorage('targets', {
       targetWeight: 68,
       goalType: 'loss',
       weeklyChange: -0.5,
-    };
+    });
     targets = {
       targetWeight: targets.targetWeight === '' || targets.targetWeight === null || targets.targetWeight === undefined
         ? ''
@@ -1533,7 +1650,7 @@
       weeklyChange: Number(targets.weeklyChange || 0),
     };
 
-    let weightHistory = loadFromStorage('weightHistory');
+    let weightHistory = loadFromStorage('weightHistory', []);
     if (!Array.isArray(weightHistory)) weightHistory = [];
     weightHistory = weightHistory.map(entry => ({
       date: entry.date,
@@ -2213,8 +2330,25 @@
       updateTargetProjection();
     }
 
+    function getDraftTargetsFromForm() {
+      const targetWeightValue = targetWeightInput.value;
+      const goalType = goalTypeSelect.value || 'maintain';
+      const parsedTargetWeight = targetWeightValue === '' ? '' : Number(targetWeightValue);
+      const baseWeekly = weeklyChangeInput.value === '' ? 0 : Number(weeklyChangeInput.value);
+      const weeklyAbs = Number.isFinite(baseWeekly) ? Math.min(Math.abs(baseWeekly), 5) : 0;
+      let weeklyChange = 0;
+      if (goalType === 'loss') weeklyChange = -weeklyAbs;
+      else if (goalType === 'gain') weeklyChange = weeklyAbs;
+      return {
+        targetWeight: parsedTargetWeight === '' || Number.isNaN(parsedTargetWeight) ? '' : parsedTargetWeight,
+        goalType,
+        weeklyChange
+      };
+    }
+
     function updateTargetProjection() {
-      const targetWeight = targets.targetWeight !== '' ? Number(targets.targetWeight) : null;
+      const draftTargets = getDraftTargetsFromForm();
+      const targetWeight = draftTargets.targetWeight !== '' ? Number(draftTargets.targetWeight) : null;
       if (!targetWeight) {
         targetProjection.textContent = 'Set your targets to unlock smart projections.';
         return;
@@ -2225,7 +2359,7 @@
         return;
       }
       const diff = targetWeight - currentWeight;
-      const weeklyChange = Number(targets.weeklyChange || 0);
+      const weeklyChange = Number(draftTargets.weeklyChange || 0);
       if (Math.abs(diff) < 0.1) {
         targetProjection.textContent = 'You are already sitting at your target weight – amazing work!';
         return;
@@ -2470,7 +2604,7 @@
     renderWeightCard();
 
     // ===== KANBAN BOARD =====
-    let tasks = loadFromStorage('tasks') || [];
+    let tasks = (loadFromStorage('tasks', []) || []).map(normalizeTask).filter(Boolean);
     if (tasks.length === 0) {
       // Demo tasks
       tasks = [
@@ -2481,7 +2615,7 @@
       saveToStorage('tasks', tasks);
     }
     // WIP limits: default values loaded from storage or defaults
-    let wipLimits = loadFromStorage('wipLimits') || { todo: null, doing: 3, done: null };
+    let wipLimits = normalizeWipLimits(loadFromStorage('wipLimits', { todo: null, doing: 3, done: null }));
     document.getElementById('limit-todo').value = wipLimits.todo ?? '';
     document.getElementById('limit-doing').value = wipLimits.doing ?? '';
     document.getElementById('limit-done').value = wipLimits.done ?? '';
@@ -2494,6 +2628,27 @@
     const cancelTaskBtn = document.getElementById('cancelTaskBtn');
 
     let editingTaskId = null;
+
+    const boardWarning = document.createElement('div');
+    boardWarning.className = 'callout';
+    boardWarning.style.display = 'none';
+    const kanbanSection = document.getElementById('kanbanSection');
+    if (kanbanSection) {
+      const board = kanbanSection.querySelector('.kanban-board');
+      if (board && board.parentNode) {
+        board.parentNode.insertBefore(boardWarning, board);
+      }
+    }
+
+    function showBoardWarning(message) {
+      if (!boardWarning) return;
+      boardWarning.textContent = message;
+      boardWarning.style.display = 'block';
+      clearTimeout(showBoardWarning._timer);
+      showBoardWarning._timer = setTimeout(() => {
+        boardWarning.style.display = 'none';
+      }, 2200);
+    }
 
     function renderBoard() {
       // Clear existing tasks
@@ -2555,16 +2710,24 @@
       element.addEventListener('drop', (ev) => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
+        if (!id) {
+          showBoardWarning('Drop ignored: invalid task payload.');
+          return;
+        }
+        const task = tasks.find(t => t.id === id);
+        if (!task) {
+          showBoardWarning('Drop ignored: task no longer exists.');
+          return;
+        }
         const targetStatus = status;
         const limit = wipLimits[targetStatus];
         if (limit !== null && limit !== undefined && limit !== '' && limit >= 0) {
           const currentCount = tasks.filter(t => t.status === targetStatus).length;
-          if (currentCount >= limit && tasks.find(t => t.id === id).status !== targetStatus) {
-            alert(`Cannot move: WIP limit for ${targetStatus.toUpperCase()} is ${limit}`);
+          if (currentCount >= limit && task.status !== targetStatus) {
+            showBoardWarning(`Cannot move: WIP limit for ${targetStatus.toUpperCase()} is ${limit}.`);
             return;
           }
         }
-        const task = tasks.find(t => t.id === id);
         if (task) {
           task.status = targetStatus;
           saveToStorage('tasks', tasks);
@@ -2588,8 +2751,10 @@
       input.addEventListener('change', () => {
         const status = inputId.split('-')[1];
         const value = input.value;
-        wipLimits[status] = value ? Number(value) : null;
+        const parsed = value === '' ? null : Number(value);
+        wipLimits[status] = Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
         saveToStorage('wipLimits', wipLimits);
+        renderBoard();
       });
     });
 
@@ -2638,7 +2803,7 @@
     renderBoard();
 
     // ===== HABIT TRACKER =====
-    let habits = loadFromStorage('habits') || [];
+    let habits = (loadFromStorage('habits', []) || []).map(normalizeHabit).filter(Boolean);
     if (habits.length === 0) {
       // Demo habits with example history for last few days
       const today = new Date();
@@ -2877,14 +3042,19 @@
       const reader = new FileReader();
       reader.onload = (evt) => {
         try {
-          const imported = JSON.parse(evt.target.result);
-          if (Array.isArray(imported)) {
-            habits = imported;
-            saveToStorage('habits', habits);
-            renderHabits();
-          } else {
-            alert('Invalid file format.');
+          const imported = safeParseJSON(evt.target.result, null);
+          if (!Array.isArray(imported)) {
+            alert('Invalid file format. Expected an array of habits.');
+            return;
           }
+          const normalized = imported.map(normalizeHabit).filter(Boolean);
+          if (!normalized.length && imported.length) {
+            alert('Import rejected: no valid habits found in file.');
+            return;
+          }
+          habits = normalized;
+          saveToStorage('habits', habits);
+          renderHabits();
         } catch (err) {
           alert('Failed to import habits: ' + err.message);
         }
@@ -2893,6 +3063,15 @@
       // Reset input so the same file can be uploaded again later
       importHabitsInput.value = '';
     });
+
+    window.lifeOsSelfTest = function lifeOsSelfTest() {
+      const report = [];
+      report.push({ check: 'meals normalized', pass: meals.every(m => m && m.id && m.name) });
+      report.push({ check: 'tasks normalized', pass: tasks.every(t => t && t.id && t.title && t.status) });
+      report.push({ check: 'habits normalized', pass: habits.every(h => h && h.id && h.name && h.history) });
+      console.table(report);
+      return report;
+    };
 
     renderHabits();
   </script>
