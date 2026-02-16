@@ -1028,8 +1028,9 @@
   <div id="toastContainer" style="position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:10px; z-index:300;"></div>
   <script>
 (function() {
-  const STORAGE_KEY = 'habitTracker.v3';
+  const STORAGE_KEY = 'lifeos:habits:data';
   const LEGACY_KEY = 'habitTrackerData_v2';
+  const LEGACY_STORAGE_KEY = 'habitTracker.v3';
   const MARK_SEQUENCE = ['NONE', 'DONE', 'SKIP', 'MISS'];
   const DEFAULT_MISS_REASONS = ['Not logged', 'Lazy', 'Forgot', 'Work', 'Medical', 'Travel', 'Social'];
   const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1039,6 +1040,7 @@
     { value: 90, message: '🏆 3-Month Lifestyle' }
   ];
 
+  migrateStorageKeys();
   let appState = loadAppState();
   let currentStartDate = getInitialRangeStart();
   let selectedDate = formatDate(new Date());
@@ -1247,14 +1249,41 @@
     return 'habit-' + Math.random().toString(36).slice(2, 10);
   }
 
+  function safeParseJSON(raw, fallback, keyForQuarantine = '') {
+    if (typeof raw !== 'string') return fallback;
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      console.warn(`Invalid JSON in storage key "${keyForQuarantine}"`, error);
+      if (keyForQuarantine) {
+        const ts = Date.now();
+        localStorage.setItem(`${keyForQuarantine}__corrupt__${ts}`, raw);
+        localStorage.removeItem(keyForQuarantine);
+      }
+      return fallback;
+    }
+  }
+
+  function migrateStorageKeys() {
+    if (localStorage.getItem(STORAGE_KEY) === null) {
+      const oldRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (oldRaw !== null) {
+        const parsed = safeParseJSON(oldRaw, null, LEGACY_STORAGE_KEY);
+        if (parsed) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      }
+    }
+  }
+
   function loadAppState() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return normalizeState(JSON.parse(stored));
+      return normalizeState(safeParseJSON(stored, createDefaultState(), STORAGE_KEY));
     }
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (legacy) {
-      const migrated = migrateLegacyData(JSON.parse(legacy));
+      const migrated = migrateLegacyData(safeParseJSON(legacy, {}, LEGACY_KEY));
       saveState(migrated);
       return migrated;
     }
@@ -1300,6 +1329,9 @@
   }
 
   function normalizeState(state) {
+    if (!state || typeof state !== 'object') {
+      return createDefaultState();
+    }
     state.settings = state.settings || {};
     if (!Array.isArray(state.settings.missReasons)) {
       state.settings.missReasons = DEFAULT_MISS_REASONS.slice();
@@ -1312,21 +1344,39 @@
     state.analyticsCache = state.analyticsCache || null;
     state.reminderState = state.reminderState || {};
     state.lastEndOfDayRun = state.lastEndOfDayRun || null;
-    state.habits = (state.habits || []).map(habit => {
-      habit.id = habit.id || generateId();
-      habit.color = habit.color || '#4dd0e1';
-      habit.notes = habit.notes || '';
-      habit.reminderEnabled = Boolean(habit.reminderEnabled);
-      habit.reminderTime = habit.reminderTime || null;
-      habit.reminderDays = Array.isArray(habit.reminderDays) ? habit.reminderDays : [];
-      habit.entries = habit.entries || {};
-      habit.currentStreak = habit.currentStreak || 0;
-      habit.bestStreak = habit.bestStreak || 0;
-      habit.lastCelebration = habit.lastCelebration || 0;
-      habit.created = habit.created || formatDate(new Date());
-      return habit;
-    });
+    state.habits = (Array.isArray(state.habits) ? state.habits : []).map(normalizeHabit).filter(Boolean);
     return state;
+  }
+
+  function normalizeHabit(habit) {
+    if (!habit || typeof habit !== 'object') return null;
+    const name = typeof habit.name === 'string' ? habit.name.trim() : '';
+    if (!name) return null;
+    const normalized = { ...habit };
+    normalized.id = normalized.id || generateId();
+    normalized.name = name;
+    normalized.color = typeof normalized.color === 'string' ? normalized.color : '#4dd0e1';
+    normalized.notes = typeof normalized.notes === 'string' ? normalized.notes : '';
+    normalized.reminderEnabled = Boolean(normalized.reminderEnabled);
+    normalized.reminderTime = normalized.reminderTime || null;
+    normalized.reminderDays = Array.isArray(normalized.reminderDays) ? normalized.reminderDays.filter(d => Number.isInteger(d)) : [];
+    const safeEntries = {};
+    const rawEntries = normalized.entries && typeof normalized.entries === 'object' ? normalized.entries : {};
+    Object.entries(rawEntries).forEach(([date, entry]) => {
+      if (typeof date !== 'string' || !entry || typeof entry !== 'object') return;
+      const mark = MARK_SEQUENCE.includes(entry.mark) ? entry.mark : 'NONE';
+      safeEntries[date] = {
+        date,
+        mark,
+        reason: typeof entry.reason === 'string' ? entry.reason : ''
+      };
+    });
+    normalized.entries = safeEntries;
+    normalized.currentStreak = Number(normalized.currentStreak) || 0;
+    normalized.bestStreak = Number(normalized.bestStreak) || 0;
+    normalized.lastCelebration = Number(normalized.lastCelebration) || 0;
+    normalized.created = normalized.created || formatDate(new Date());
+    return normalized;
   }
 
   function migrateLegacyData(legacy) {
@@ -1718,8 +1768,18 @@
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target.result);
-        appState = normalizeState(data);
+        const data = safeParseJSON(e.target.result, null);
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid JSON structure.');
+        }
+        if (!Array.isArray(data.habits)) {
+          throw new Error('Import must include a habits array.');
+        }
+        const normalized = normalizeState(data);
+        if (!Array.isArray(normalized.habits)) {
+          throw new Error('Import data is missing habits.');
+        }
+        appState = normalized;
         persistAndRefresh();
         scheduleAllReminders();
         showToast('Import successful', 'Your data has been loaded.');
